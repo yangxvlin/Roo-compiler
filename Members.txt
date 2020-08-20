@@ -1,4 +1,5 @@
 Name, Student_id, email
 Xulin Yang, 904904, xuliny@student.unimelb.edu.au
+Wenrui Zhang, 872427, wenruiz@student.unimelb.edu.au
 Xu Shi, 991692, xssh1@student.unimelb.edu.au
 Chao Zhang, 878405, chaoz5@student.unimelb.edu.au
