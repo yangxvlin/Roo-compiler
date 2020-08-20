@@ -1,6 +1,6 @@
 # Roo-compiler
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 COMP90045 - Programming language implementation - 2020S2 - Assignment1&amp;2
 
@@ -16,6 +16,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://yangxvlin.github.io"><img src="https://avatars2.githubusercontent.com/u/26871369?v=4" width="100px;" alt=""/><br /><sub><b>XuLinYang</b></sub></a><br /><a href="https://github.com/yangxvlin/Roo-compiler/commits?author=yangxvlin" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/knll9311"><img src="https://avatars2.githubusercontent.com/u/56247858?v=4" width="100px;" alt=""/><br /><sub><b>knll9311</b></sub></a><br /><a href="https://github.com/yangxvlin/Roo-compiler/commits?author=knll9311" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Chaoszzz"><img src="https://avatars3.githubusercontent.com/u/38176355?v=4" width="100px;" alt=""/><br /><sub><b>Chaoszzz</b></sub></a><br /><a href="https://github.com/yangxvlin/Roo-compiler/commits?author=Chaoszzz" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/JackyWenruiZhang"><img src="https://avatars0.githubusercontent.com/u/54921555?v=4" width="100px;" alt=""/><br /><sub><b>JackyWenruiZhang</b></sub></a><br /><a href="https://github.com/yangxvlin/Roo-compiler/commits?author=JackyWenruiZhang" title="Code">💻</a></td>
   </tr>
 </table>
 
