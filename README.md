@@ -23,7 +23,12 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
-## specificatoins
+## specifications
+### stage 1a
+- <img src="./docs/1a.png" width="70%" />
+
+### stage 1b
+- <img src="./docs/1b.png" width="40%" />
 - [specification 1](./docs/asg1.pdf)
 
 ## directory structure
