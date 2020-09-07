@@ -38,7 +38,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - [specification 1](./docs/asg1.pdf)
 #### tasks
 - Roo has global type denitions for aggregate types (records and arrays), but there are no global variables. 
-- One (parameterless) procedure must be named \main".
+- One (parameterless) procedure must be named "main".
 - has three base types
   - The "write" and "writeln" commands can print inhabitants of all three base types. (showable)
   - integer
