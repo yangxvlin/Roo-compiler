@@ -1,3 +1,8 @@
+-----------------------------------------------------------
+-- COMP90045 Programming Language Implementation Project --
+--                     Joey Compiler                     --
+--  Implemented by Xulin Yang                            --
+-----------------------------------------------------------
 module Main (main) 
 where
 import JoeyParser (ast)
