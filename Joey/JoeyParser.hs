@@ -44,6 +44,10 @@ joeyReserved
     , "read", "then", "true", "while", "write", "writeln"
     ]
 
+-- reserved words according to the specification
+-- ["and", "array", "boolean", "call", "do", "else", "false", "fi", "if", "integer",
+--  "not", "od", "or", "procedure", "read", "record", "then", "true", "val", "while", "write", "writeln"]
+
 joeyOpnames 
   = ["+", "-", "*", "<-"]
 
