@@ -37,7 +37,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - <img src="./docs/1b.png" width="40%" />
 - [specification 1](./docs/asg1.pdf)
 #### tasks
-- Roo has global type denitions for aggregate types (records and arrays), but there are no global variables. 
+- Roo has global type definitions for aggregate types (records and arrays), but there are no global variables. 
 - One (parameterless) procedure must be named "main".
 - has three base types
   - The "write" and "writeln" commands can print inhabitants of all three base types. (showable)
@@ -99,8 +99,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - array type definition consists of (in the given order):
   - 1. the keyword array,
   - 2. a (positive) integer literal enclosed in square brackets,
-  - 3. a type name which is either an identier (a type alias) or one of boolean and integer,
-  - 4. an identier (giving a name to the array type), and
+  - 3. a type name which is either an identifier (a type alias) or one of boolean and integer,
+  - 4. an identifier (giving a name to the array type), and
   - 5. a semicolon.
   - ```
     array[10] integer tax;
