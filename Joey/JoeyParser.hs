@@ -44,17 +44,18 @@ reservedOp = Q.reservedOp scanner
 
 joeyReserved, joeyOpnames :: [String]
 
-joeyReserved
-  = ["false", "do", "else", "fi", "if", "main", "od", "procedure"
-    , "read", "then", "true", "while", "write", "writeln"
-    ]
-
 -- reserved words according to the specification
--- ["and", "array", "boolean", "call", "do", "else", "false", "fi", "if", "integer",
---  "not", "od", "or", "procedure", "read", "record", "then", "true", "val", "while", "write", "writeln"]
+joeyReserved
+  = ["and", "array", "boolean", "call", "do", "else", "false", "fi", "if", 
+    "integer", "not", "od", "or", "procedure", "read", "record", "then", 
+    "true", "val", "while", "write", "writeln"]
 
+-- reserved operators from specification
+-- 12 binary oprator (and, or above); 
+-- 2 unary: not (above), -; 
+-- assignment operator <-
 joeyOpnames 
-  = ["+", "-", "*", "<-"]
+  = [ "+", "-", "*", "/", "=", "!=", "<", "<=", ">", ">=", "<-"]
 
 -----------------------------------------------------------------
 --  pExp parses expressions. It is built using Parces's powerful
