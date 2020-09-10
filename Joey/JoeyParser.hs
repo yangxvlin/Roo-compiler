@@ -25,6 +25,7 @@ scanner
      { Q.commentLine     = "#"
      , Q.nestedComments  = True
      , Q.identStart      = letter
+     , Q.identLetter     = alphaNum <|> char '_' <|> char '\''
      , Q.opStart         = oneOf "+-*<"
      , Q.opLetter        = oneOf "-"
      , Q.reservedNames   = joeyReserved
@@ -119,23 +120,29 @@ pDataType
 -----------------------------------------------------------------
 pLValue :: Parser LValue
 pLValue 
-  = do
-      ident1 <- identifier
-      exp <- parens pExp
-      dot
-      ident2 <- identifier
-      return (LBracketsDot ident1 exp ident2)
+  = try (
+      do
+        ident1 <- identifier
+        exp <- parens pExp
+        dot
+        ident2 <- identifier
+        return (LBracketsDot ident1 exp ident2)
+   ) 
     <|>
-    do
-      ident <- identifier
-      exp <- parens pExp
-      return (LBrackets ident exp)
+    try (
+      do
+        ident <- identifier
+        exp <- parens pExp
+        return (LBrackets ident exp)
+    )
     <|>
-    do
-      ident1 <- identifier
-      dot
-      ident2 <- identifier
-      return (LDot ident1 ident2)
+    try (
+      do
+        ident1 <- identifier
+        dot
+        ident2 <- identifier
+        return (LDot ident1 ident2)
+    )
     <|>
     do
       ident <- identifier
