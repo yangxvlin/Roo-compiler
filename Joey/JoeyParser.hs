@@ -31,18 +31,19 @@ scanner
      , Q.reservedOpNames = joeyOpnames
      })
 
-whiteSpace = Q.whiteSpace scanner
-natural    = Q.natural scanner
-identifier = Q.identifier scanner
-semi       = Q.semi scanner
-comma      = Q.comma scanner
-dot        = Q.dot scanner
-parens     = Q.parens scanner
-braces     = Q.braces scanner
-brackets   = Q.brackets scanner
-squares    = Q.squares scanner
-reserved   = Q.reserved scanner
-reservedOp = Q.reservedOp scanner
+whiteSpace    = Q.whiteSpace scanner
+natural       = Q.natural scanner
+identifier    = Q.identifier scanner
+semi          = Q.semi scanner
+comma         = Q.comma scanner
+dot           = Q.dot scanner
+parens        = Q.parens scanner
+braces        = Q.braces scanner
+brackets      = Q.brackets scanner
+squares       = Q.squares scanner
+reserved      = Q.reserved scanner
+reservedOp    = Q.reservedOp scanner
+stringLiteral = Q.stringLiteral scanner
 
 joeyReserved, joeyOpnames :: [String]
 
@@ -82,48 +83,36 @@ pBooleanLiteral
    do { reserved "false"; return False }
 
 -----------------------------------------------------------------
---  The following are parsers for strings, numbers, booleans, 
---  identifiers (variable names are the only lvalues in Joey).
+-- An lvalue (<lvalue>) has four (and only four) possible forms:
+-- <id> [ <exp> ] . <id>
+-- <id> [ <exp> ]
+-- <id> . <id>
+-- <id>
+-- An example lvalue is point[0].xCoord
 -----------------------------------------------------------------
-
-pString, pNum, pBool, pIdent :: Parser Exp
-
-pString 
-  = do
-      char '"'
-      str <- many (satisfy (/= '"'))
-      char '"'
-      whiteSpace
-      return (StrConst str)
-    <?>
-    "string"
-
-pNum
-  = do
-      n <- natural <?> ""
-      return (IntConst (fromInteger n :: Int))
-    <?>
-    "number"
-
-pBool
-  = do { reserved "true"; return (BoolConst True) }
-    <|>
-    do { reserved "false"; return (BoolConst False) }
-
-pIdent 
-  = do
-      lval <- pLValue
-      return (Lval lval)
-    <?>
-    "identifier"
-
 pLValue :: Parser LValue
 pLValue 
   = do
+      ident1 <- identifier
+      exp <- brackets pExp
+      dot
+      ident2 <- identifier
+      return (LBracketsDot ident1 exp ident2)
+    <|>
+    do
+      ident <- identifier
+      exp <- brackets pExp
+      return (LBrackets ident exp)
+    <|>
+    do
+      ident1 <- identifier
+      dot
+      ident2 <- identifier
+      return (LDot ident1 ident2)
+    <|>
+    do
       ident <- identifier
       return (LId ident)
-    <?>
-    "lvalue"
 
 -----------------------------------------------------------------
 --  pExp is the main parser for expression. 
@@ -182,9 +171,38 @@ pExp
 
 pFac :: Parser Exp
 pFac
-  = choice [parens pExp, pNum, pBool, pIdent]
+  = choice [parens pExp, -- ( <exp> ) 
+            pLval,
+            pBoolConst, 
+            pIntConst, 
+            pStrConst
+           ]
     <?> "simple expression"
 
+pBoolConst, pIntConst, pStrConst :: Parser Expr
+pBoolConst
+  = 
+    do
+      b <- boolConst
+      return (BoolConst b)
+    <?>
+    "bool const"
+
+pIntConst
+  = 
+    do
+      i <- intConst
+      return (IntConst i)
+    <?>
+    "int const"
+
+pStrConst
+  = 
+    do
+      s <- stringLiteral
+      return (StrConst s)
+    <?>
+    "string literal"
 
 -----------------------------------------------------------------
 --  pStmt is the main parser for statements. 
@@ -237,12 +255,14 @@ pRead
 pWrite
   = do 
       reserved "write"
+      -- TODO can we  have string literal here?
       expr <- (pString <|> pExp)
       return (Write expr)
 
 pWriteln
   = do 
       reserved "writeln"
+      -- TODO can we  have string literal here?
       expr <- (pString <|> pExp)
       return (Writeln expr)
 

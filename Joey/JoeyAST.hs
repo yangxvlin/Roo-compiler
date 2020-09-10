@@ -53,8 +53,8 @@ type TypeAlias = String
 data LValue 
   = LId Ident -- <id>
   | LDot Ident Ident -- <id> . <id>
-  | LList Ident Exp -- <id> [ <exp> ]
-  | LListDot Ident Exp Ident -- <id> [ <exp> ] . <id>
+  | LBrackets Ident Exp -- <id> [ <exp> ]
+  | LBracketsDot Ident Exp Ident -- <id> [ <exp> ] . <id>
     deriving (Show, Eq)
 
 -- expression operators: 
@@ -88,6 +88,7 @@ data Exp
   | BoolConst BooleanLiteral -- <const> where <const> is the syntactic category of boolean, integer, and string literals.
   | IntConst IntegerLiteral
   | StrConst StringLiteral
+  -- ( <exp> ) is ignored here but handelled in parser
   | BinOpExp BinOp Exp Exp -- <exp> <binop> <exp>
   | UnOpExp UnOp Exp -- <unop> <exp>
     deriving (Show, Eq)
