@@ -2,6 +2,7 @@
 -- COMP90045 Programming Language Implementation Project --
 --                     Joey Compiler                     --
 --  Implemented by Xulin Yang                            --
+--  read from the bottom to top                          --
 -----------------------------------------------------------
 module JoeyParser (ast)
 where 
@@ -38,6 +39,7 @@ comma      = Q.comma scanner
 dot        = Q.dot scanner
 parens     = Q.parens scanner
 braces     = Q.braces scanner
+brackets   = Q.brackets scanner
 squares    = Q.squares scanner
 reserved   = Q.reserved scanner
 reservedOp = Q.reservedOp scanner
@@ -57,106 +59,27 @@ joeyReserved
 joeyOpnames 
   = [ "+", "-", "*", "/", "=", "!=", "<", "<=", ">", ">=", "<-"]
 
------------------------------------------------------------------
---  pExp parses expressions. It is built using Parces's powerful
---  buildExpressionParser and takes into account the operator
---  precedences and associativity specified in 'opTable' below.
------------------------------------------------------------------
-
-pExp :: Parser Exp
-pExp
-  = buildExpressionParser opTable pFac
-    <?> "expression"
-
-pFac :: Parser Exp
-pFac
-  = choice [parens pExp, pNum, pBool, pIdent]
-    <?> "simple expression"
-
-opTable
-  = [ [ binary "*" Op_mul ]
-    , [ binary "+" Op_add
-      , binary "-" Op_sub
-      ]
-    ]
-
-binary name op
-  = Infix (do { reservedOp name
-              ; return (BinOpExp op)
-              }
-          ) AssocLeft
-
------------------------------------------------------------------
---  pProgram is the topmost parsing function. It looks for a 
---  header "procedure main()", followed by the program body.
------------------------------------------------------------------
-
-pProgram :: Parser Program
-pProgram
-  = do
-      reserved "procedure"
-      reserved "main"
-      parens (return ())
-      (decls,stmts) <- pProgBody
-      return (Program decls stmts)
-      
------------------------------------------------------------------
---  pProgBody looks for a sequence of declarations followed by a
---  sequence of statements.
------------------------------------------------------------------
-
-pProgBody :: Parser ([Decl],[Stmt])
-pProgBody
-  = do
-      decls <- many pDecl
-      stmts <- braces (many1 pStmt)
-      return (decls,stmts)
-
-pDecl :: Parser Decl
-pDecl
-  = do
-      typeName <- pTypeName
-      ident <- identifier
-      semi
-      return (Decl typeName ident)
-
-pTypeName :: Parser TypeName
-pTypeName
-  = do { reserved "boolean"; return BoolType }
+pBaseType :: Parser BaseType
+pBaseType
+  = do { reserved "boolean"; return BooleanType }
     <|>
-    do { reserved "integer"; return IntType }
-      
+    do { reserved "integer"; return IntegerType }
+
 -----------------------------------------------------------------
---  pStmt is the main parser for statements. Joey only has read
---  and write statements, and assignments.
+--  pLiterals
 -----------------------------------------------------------------
-
-pStmt, pRead, pWrite, pAsg :: Parser Stmt
-
-pStmt 
-  = choice [pAsg, pRead, pWrite]
-
-pAsg
+pIntegerLiteral :: Parser IntegerLiteral
   = do
-      lvalue <- pLValue
-      reservedOp "<-"
-      expr <- pExp
-      semi
-      return (Assign lvalue expr)
+      n <- natural <?> "number"
+      return (fromInteger n :: Int)
+    <?>
+    "Integer Literal"
 
-pRead
-  = do 
-      reserved "read"
-      lvalue <- pLValue
-      semi
-      return (Read lvalue)
-
-pWrite
-  = do 
-      reserved "write"
-      expr <- (pString <|> pExp)
-      semi
-      return (Write expr)
+pBooleanLiteral :: parser BooleanLiteral
+pBooleanLiteral
+ = do { reserved "true"; return True }
+   <|>
+   do { reserved "false"; return False }
 
 -----------------------------------------------------------------
 --  The following are parsers for strings, numbers, booleans, 
@@ -201,7 +124,318 @@ pLValue
       return (LId ident)
     <?>
     "lvalue"
+
+-----------------------------------------------------------------
+--  pExp is the main parser for expression. 
+--  Expression related parsers
+
+--  It is built using Parces's powerful
+--  buildExpressionParser and takes into account the operator
+--  precedences and associativity specified in 'opTable' below.
+-----------------------------------------------------------------
+prefix name fun
+  = Prefix (do { reservedOp name
+               ; return fun 
+               }
+           )
+
+binary name op
+  = Infix (do { reservedOp name
+              ; return (BinOpExp op)
+              }
+          ) AssocLeft
+
+relation name rel
+  = Infix (do { reservedOp name
+              ; return rel 
+              }
+          ) AssocNone
+
+-- expression operators: 
+--     All the operators on the same line have the same precedence, 
+--         and the ones on later lines have lower precedence;
+--     The six relational operators are non-associative 
+--         so, for example, a = b = c is not a well-formed expression). 
+--     The six remaining binary operators are left-associative.
+-- -              |unary            |
+-- * /            |binary and infix |left-associative
+-- + -            |binary and infix |left-associative
+-- = != < <= > >= |binary and infix |relational, non-associative 
+-- not            |unary            |
+-- and            |binary and infix |left-associative
+-- or             |binary and infix |left-associative
+opTable
+  = [ [ prefix   "-"   Op_not    ]
+    , [ binary   "*"   Op_mul    , binary   "/"  Op_div  ]
+    , [ binary   "+"   Op_add    , binary   "-"  Op_sub  ]
+    , [ relation "="   Op_eq     , relation "!=" Op_neq  , relation "<"  Op_less
+      , relation "<="  Op_less_eq, relation ">"  Op_large, relation ">=" Op_large_eq ]
+    , [ prefix   "not" Op_not    ]
+    , [ binary   "and" Op_and    ]
+    , [ binary   "or"  Op_or     ]
+    ]
+
+pExp :: Parser Exp
+pExp
+  = buildExpressionParser opTable pFac
+    <?> "expression"
+
+pFac :: Parser Exp
+pFac
+  = choice [parens pExp, pNum, pBool, pIdent]
+    <?> "simple expression"
+
+
+-----------------------------------------------------------------
+--  pStmt is the main parser for statements. 
+--  Statement related parsers
+-----------------------------------------------------------------
+pStmt, pStmtAtom, pStmtComp :: Parser Stmt
+-- atom statement:
+--     <lvalue> <- <exp> ;
+--     read <lvalue> ;
+--     write <exp> ;
+--     writeln <exp> ;
+--     call <id> ( <exp-list> ) ; 
+--         where <exp-list> is a (possibly empty) comma-separated list of expressions.
+-- composite statement:
+--     if <expr> then <stmt-list> else <stmt-list> fi
+--     if <exp> then <stmt-list> fi # just make second [Stmt] emoty
+--     while <expr> do <stmt-list> od
+--         where <stmt-list> is a non-empty sequence of statements, atomic or composite
+pStmt = choice [pStmtAtom, pStmtComp]
+
+pStmtAtom
+  = 
+    do
+      r <- choice [pAsg, pRead, pWrite, pWriteln, pCall]
+      semi
+      return r
+    <?>
+      "atomic statement"
+
+pAsg, pRead, pWrite, pWriteln, pCall :: Parser Stmt
+-- <lvalue> <- <exp> ;
+pAsg
+  = do
+      -- Recognise the left value
+      lvalue <- pLValue
+      -- Reserved operator "<-"
+      reservedOp "<-"
+      -- Parse the assigned expression
+      rvalue <- pExp
+      -- Assign statement ends with semicolon ";"
+      return (Assign lvalue rvalue)
+
+pRead
+  = do 
+      reserved "read"
+      lvalue <- pLValue
+      return (Read lvalue)
+
+-- TODO can we write write/writeln with a helper function for code duplication?
+pWrite
+  = do 
+      reserved "write"
+      expr <- (pString <|> pExp)
+      return (Write expr)
+
+pWriteln
+  = do 
+      reserved "writeln"
+      expr <- (pString <|> pExp)
+      return (Writeln expr)
+
+pCall
+  = do
+      reserved "call"
+      ident <- identifier
+      exprs <- parens (pExp `sepBy` comma)
+      return (Call ident exprs)
+
+pStmtComp = (choice [pIf, pWhile]) <?> "composite statement"
+
+pIf, pWhile :: Parser Stmt
+pIf
+  = do
       
+      reserved "if"
+      exp <- pExp
+      reserved "then"
+      stmts <- many1 pStmt
+      -- check if there is an else statment
+      -- if not, return empty
+      estmts <- (
+        do
+          reserved "fi"
+          return []
+        <|>
+        do
+          reserved "else"
+          -- else body can not be empty
+          s <- many1 pStmt
+          reserved "fi"
+          return s
+        )
+      return (If exp stmts estmts)
+
+pWhile
+  = do
+      reserved "while"
+      exp <- pExp
+      reserved "do"
+      stmts <- many1 pStmt
+      reserved "od"
+      return (While e stmts)
+
+-----------------------------------------------------------------
+--  Procedure related parser
+-----------------------------------------------------------------
+-- Each formal parameter has two components (in the given order):
+-- 1. a parameter type/mode indicator, which is one of these five:
+--   a) a type alias and an identifier,
+--   b) boolean,
+--   c) integer,
+--   d) boolean and an identifier
+--   e) integer and an identifier
+pParameter :: Parser Parameter
+pParameter
+=
+  do
+    -- parse integer/boolean literal
+    literal <- choice [pIntegerLiteral, pBooleanLiteral]
+    return (Parameter literal)
+  <|>
+  do
+    -- parse boolean/integer variable or type alias variable
+    paraType <- choice [pBaseType, identifier]
+    name <- identifier
+    return (Parameter paraType name)
+
+-- The header has two components (in this order):
+--   1. an identifier (the procedure's name), and
+--   2. a comma-separated list of zero or more formal parameters within a pair 
+--      of parentheses (so the parentheses are always present).
+pProcedureHeader :: Parser PocedureHeader
+pProcedureHeader
+  =
+    do
+      procedureName <- identifier
+      parameters <- parens (pParameter `sepBy` comma)
+      return (ProcedureHeader procedureName parameters)
+
+-- A variable declaration consists of
+--   a) a type name (boolean, integer, or a type alias),
+--   b) followed by a non-empty (enforced in parser) comma-separated list of 
+  --    identifiers,
+--     i)  the list terminated with a semicolon.
+--     ii) There may be any number of variable declarations, in any order.
+pVariable :: Parser VariableDecl
+pVariable
+  =
+    do
+      varType <- choice [pBaseType, identifier]
+      varNames <- (identifier `sepBy1` comma) `endBy1` semi
+      return (VariableDecl varType varNames)
+
+
+-- procedure body consists of 0+ local variable declarations,
+-- 1. A variable declaration consists of
+--   a) a type name (boolean, integer, or a type alias),
+--   b) followed by a non-empty comma-separated list of identifiers,
+--     i)  the list terminated with a semicolon.
+--     ii) There may be any number of variable declarations, in any order.
+-- 2. followed by a non-empty (enforced in parser) sequence of statements,
+pProcedureBody :: Parser ProcedureBody
+pProcedureBody
+  =
+    do
+      vars <- many pVariable
+      stmts <- braces (many1 pStmt)
+      return (ProcedureBody vars stmts)
+
+-- Each procedure consists of (in the given order):
+--   1. the keyword procedure,
+--   2. a procedure header, and
+--   3. a procedure body.
+pProcedure :: Parser Procedure
+pProcedure
+  =
+    do
+      reserved "procedure"
+      procedureHeader <- pProcedureHeader
+      procedureBody <- pProcedureBody
+      return (Procedure procedureHeader procedureBody)
+
+-----------------------------------------------------------------
+--  Array related parser
+-----------------------------------------------------------------
+-- array type definition consists of (in the given order):
+--   1. the keyword array,
+--   2. a (positive) integer literal enclosed in square brackets,
+--   3. a type name which is either an identifier (a type alias) or one of 
+--      boolean and integer,
+--   4. an identifier (giving a name to the array type), and
+--   5. a semicolon.
+pArray :: Parser Array
+pArray
+  =
+    do
+      reserved "array"
+      -- need to check arraySize > 0
+      arraySize <- brackets pIntegerLiteral
+      arrayType <- choice [pBaseType, identifier]
+      arrayName <- identifier
+      semi
+      return (Array arraySize arrayType arrayName)
+
+-----------------------------------------------------------------
+--  Record related parser
+-----------------------------------------------------------------
+-- field declaration is of:
+--   1. boolean or integer
+--   2. followed by an identifier (the field name).
+pFieldDecl :: Parser FieldDecl
+pFieldDecl
+  =
+    do
+      fieldType <- pBaseType
+      fieldName <- identifier
+      return (FieldDecl fieldType fieldName)
+
+-- record consists of:
+--   1. the keyword record,
+--   2. a non-empty (enforced in parser) list of field declarations, separated 
+--      by semicolons, the whole list enclosed in braces,
+--   3. an identifier, and
+--   4. a semicolon.
+pRecord :: Parser Record
+pRecord
+  =
+    do
+      reserved "record"
+      recordFieldDecls <- braces (pFieldDecl `sepBy1` semi)
+      recordName <- identifier
+      semi
+      return (Record recordFieldDecls recordName)
+
+-----------------------------------------------------------------
+--  pProgram is the topmost parsing function. It looks for a 
+--  header "procedure main()", followed by the program body.
+-----------------------------------------------------------------
+-- A Roo program consists of 
+--   1. zero or more record type definitions, followed by 
+--   2. zero or more array type definitions, followed by 
+--   3. one or more (enforced in parser) procedure definitions.
+pProgram :: Parser Program
+pProgram
+  = do
+      records <- many pRecord
+      arraies <- many pArray
+      procedures <- many1 pProcedure
+      return (Program records arraies procedures)
+
+
 -----------------------------------------------------------------
 -- main
 -----------------------------------------------------------------

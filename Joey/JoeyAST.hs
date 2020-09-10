@@ -57,9 +57,19 @@ data LValue
   | LListDot Ident Exp Ident -- <id> [ <exp> ] . <id>
     deriving (Show, Eq)
 
--- All the operators on the same line have the same precedence, and 
--- the ones on later lines have higher precedence; the highest precedence being
--- given to unary minus.
+-- expression operators: 
+--     All the operators on the same line have the same precedence, 
+--         and the ones on later lines have lower precedence;
+--     The six relational operators are non-associative 
+--         so, for example, a = b = c is not a well-formed expression). 
+--     The six remaining binary operators are left-associative.
+-- -              |unary            |
+-- * /            |binary and infix |left-associative
+-- + -            |binary and infix |left-associative
+-- = != < <= > >= |binary and infix |relational, non-associative 
+-- not            |unary            |
+-- and            |binary and infix |left-associative
+-- or             |binary and infix |left-associative
 data BinOp 
   = Op_or -- or
   | Op_and -- and
@@ -67,7 +77,6 @@ data BinOp
   | Op_add | Op_sub -- + -
   | Op_mul | Op_div -- * /
     deriving (Show, Eq)
-
 data UnOp
   = Op_not -- not; below or, above and
   | Op_neg  -- -; below * /
@@ -83,7 +92,20 @@ data Exp
   | UnOpExp UnOp Exp -- <unop> <exp>
     deriving (Show, Eq)
 
+-- atom statement:
+--     <lvalue> <- <exp> ;
+--     read <lvalue> ;
+--     write <exp> ;
+--     writeln <exp> ;
+--     call <id> ( <exp-list> ) ; 
+--         where <exp-list> is a (possibly empty) comma-separated list of expressions.
+-- composite statement:
+--     if <expr> then <stmt-list> else <stmt-list> fi
+--     if <exp> then <stmt-list> fi # just make second [Stmt] emoty
+--     while <expr> do <stmt-list> od
+--         where <stmt-list> is a non-empty sequence of statements, atomic or composite
 data Stmt 
+  -- atom statement:
   = Assign LValue Exp -- <lvalue> <- <exp> ;
   | Read LValue -- read <lvalue> ;
   | Write Exp -- write <exp> ;
@@ -92,18 +114,18 @@ data Stmt
                     -- where <exp-list> is a (possibly empty) comma-separated list of expressions.
   -- composite statement:
   | If Exp [Stmt] [Stmt] -- if <expr> then <stmt-list> else <stmt-list> fi
-                          -- if <exp> then <stmt-list> fi # just make second [Stmt] emoty
+                          -- if <exp> then <stmt-list> fi # just make second [Stmt] empty
   | While Exp [Stmt]     -- while <expr> do <stmt-list> od
+                    -- where <stmt-list> is a non-empty sequence of statements, atomic or composite
     deriving (Show, Eq)
 
 -- Each formal parameter has two components (in the given order):
 -- 1. a parameter type/mode indicator, which is one of these five:
---   a) a type alias,
+--   a) a type alias and an identifier,
 --   b) boolean,
 --   c) integer,
---   d) boolean val, or
---   e) integer val,
--- 2. and an identifier.
+--   d) boolean and an identifier
+--   e) integer and an identifier
 data Parameter
   = Parameter TypeAlias Ident
   | Parameter BooleanLiteral
