@@ -65,22 +65,49 @@ pBaseType
   = do { reserved "boolean"; return BooleanType }
     <|>
     do { reserved "integer"; return IntegerType }
+    <?>
+      "base type"
 
 -----------------------------------------------------------------
 --  pLiterals
 -----------------------------------------------------------------
+pBooleanLiteral :: Parser BooleanLiteral
+pBooleanLiteral
+ = do { reserved "true"; return (BooleanLiteral True) }
+   <|>
+   do { reserved "false"; return (BooleanLiteral False) }
+   <?>
+      "boolean literal"
+
 pIntegerLiteral :: Parser IntegerLiteral
+pIntegerLiteral
   = do
       n <- natural <?> "number"
-      return (fromInteger n :: Int)
+      return (IntegerLiteral (fromInteger n :: Int))
     <?>
-    "Integer Literal"
+      "Integer Literal"
 
-pBooleanLiteral :: parser BooleanLiteral
-pBooleanLiteral
- = do { reserved "true"; return True }
-   <|>
-   do { reserved "false"; return False }
+pStringLiteral :: Parser StringLiteral
+pStringLiteral
+  =
+    do
+      s <- stringLiteral
+      return (StringLiteral s)
+    <?>
+      "string literal"
+
+pDataType :: Parser DataType
+pDataType
+  =
+    do
+      baseType <- pBaseType
+      return (BasyDataType baseType)
+    <|>
+    do
+      alias <- identifier
+      return (AliasDataType alias)
+    <?>
+      "data type"
 
 -----------------------------------------------------------------
 -- An lvalue (<lvalue>) has four (and only four) possible forms:
@@ -94,14 +121,14 @@ pLValue :: Parser LValue
 pLValue 
   = do
       ident1 <- identifier
-      exp <- brackets pExp
+      exp <- parens pExp
       dot
       ident2 <- identifier
       return (LBracketsDot ident1 exp ident2)
     <|>
     do
       ident <- identifier
-      exp <- brackets pExp
+      exp <- parens pExp
       return (LBrackets ident exp)
     <|>
     do
@@ -113,6 +140,8 @@ pLValue
     do
       ident <- identifier
       return (LId ident)
+    <?>
+      "LValue"
 
 -----------------------------------------------------------------
 --  pExp is the main parser for expression. 
@@ -130,7 +159,7 @@ prefix name fun
 
 binary name op
   = Infix (do { reservedOp name
-              ; return (BinOpExp op)
+              ; return op
               }
           ) AssocLeft
 
@@ -167,7 +196,8 @@ opTable
 pExp :: Parser Exp
 pExp
   = buildExpressionParser opTable pFac
-    <?> "expression"
+    <?> 
+      "expression"
 
 pFac :: Parser Exp
 pFac
@@ -177,32 +207,41 @@ pFac
             pIntConst, 
             pStrConst
            ]
-    <?> "simple expression"
+    <?> 
+      "simple expression"
 
-pBoolConst, pIntConst, pStrConst :: Parser Expr
+pLval, pBoolConst, pIntConst, pStrConst :: Parser Exp
+pLval
+  =
+    do
+      lval <- pLValue
+      return (Lval lval)
+    <?>
+      "lval expression"
+
 pBoolConst
   = 
     do
-      b <- boolConst
+      b <- pBooleanLiteral
       return (BoolConst b)
     <?>
-    "bool const"
+      "bool const"
 
 pIntConst
   = 
     do
-      i <- intConst
+      i <- pIntegerLiteral
       return (IntConst i)
     <?>
-    "int const"
+      "int const"
 
 pStrConst
   = 
     do
-      s <- stringLiteral
+      s <- pStringLiteral
       return (StrConst s)
     <?>
-    "string literal"
+      "string literal"
 
 -----------------------------------------------------------------
 --  pStmt is the main parser for statements. 
@@ -244,27 +283,35 @@ pAsg
       rvalue <- pExp
       -- Assign statement ends with semicolon ";"
       return (Assign lvalue rvalue)
+    <?>
+      "assign"
 
 pRead
   = do 
       reserved "read"
       lvalue <- pLValue
       return (Read lvalue)
+    <?>
+      "read"
 
 -- TODO can we write write/writeln with a helper function for code duplication?
 pWrite
   = do 
       reserved "write"
       -- TODO can we  have string literal here?
-      expr <- (pString <|> pExp)
+      expr <- pExp
       return (Write expr)
+    <?>
+      "write"
 
 pWriteln
   = do 
       reserved "writeln"
       -- TODO can we  have string literal here?
-      expr <- (pString <|> pExp)
+      expr <- pExp
       return (Writeln expr)
+    <?>
+      "writeln"
 
 pCall
   = do
@@ -272,6 +319,8 @@ pCall
       ident <- identifier
       exprs <- parens (pExp `sepBy` comma)
       return (Call ident exprs)
+    <?>
+      "call"
 
 pStmtComp = (choice [pIf, pWhile]) <?> "composite statement"
 
@@ -298,6 +347,8 @@ pIf
           return s
         )
       return (If exp stmts estmts)
+    <?>
+      "if"
 
 pWhile
   = do
@@ -306,7 +357,9 @@ pWhile
       reserved "do"
       stmts <- many1 pStmt
       reserved "od"
-      return (While e stmts)
+      return (While exp stmts)
+    <?>
+      "while"
 
 -----------------------------------------------------------------
 --  Procedure related parser
@@ -320,29 +373,38 @@ pWhile
 --   e) integer and an identifier
 pParameter :: Parser Parameter
 pParameter
-=
-  do
-    -- parse integer/boolean literal
-    literal <- choice [pIntegerLiteral, pBooleanLiteral]
-    return (Parameter literal)
-  <|>
-  do
-    -- parse boolean/integer variable or type alias variable
-    paraType <- choice [pBaseType, identifier]
-    name <- identifier
-    return (Parameter paraType name)
+  =
+    do
+      -- parse integer literal
+      integer <- pIntegerLiteral
+      return (IntegerParameter integer)
+    <|>
+    do
+      -- parse boolean literal
+      boolean <- pBooleanLiteral
+      return (BooleanParameter boolean)
+    <|>
+    do
+      -- parse boolean/integer/type_alias variable
+      paraType <- pDataType
+      name <- identifier
+      return (DataParameter paraType name)
+    <?>
+      "parameter"
 
 -- The header has two components (in this order):
 --   1. an identifier (the procedure's name), and
 --   2. a comma-separated list of zero or more formal parameters within a pair 
 --      of parentheses (so the parentheses are always present).
-pProcedureHeader :: Parser PocedureHeader
+pProcedureHeader :: Parser ProcedureHeader
 pProcedureHeader
   =
     do
       procedureName <- identifier
       parameters <- parens (pParameter `sepBy` comma)
       return (ProcedureHeader procedureName parameters)
+    <?>
+      "procedure header"
 
 -- A variable declaration consists of
 --   a) a type name (boolean, integer, or a type alias),
@@ -354,9 +416,12 @@ pVariable :: Parser VariableDecl
 pVariable
   =
     do
-      varType <- choice [pBaseType, identifier]
-      varNames <- (identifier `sepBy1` comma) `endBy1` semi
+      varType <- pDataType
+      varNames <- (identifier `sepBy1` comma) --`endBy1` semi--    "var1, var2, var3;"
+      semi
       return (VariableDecl varType varNames)
+    <?>
+      "variable"
 
 
 -- procedure body consists of 0+ local variable declarations,
@@ -373,6 +438,8 @@ pProcedureBody
       vars <- many pVariable
       stmts <- braces (many1 pStmt)
       return (ProcedureBody vars stmts)
+    <?>
+      "procedure body"
 
 -- Each procedure consists of (in the given order):
 --   1. the keyword procedure,
@@ -386,6 +453,8 @@ pProcedure
       procedureHeader <- pProcedureHeader
       procedureBody <- pProcedureBody
       return (Procedure procedureHeader procedureBody)
+    <?>
+      "procedure"
 
 -----------------------------------------------------------------
 --  Array related parser
@@ -404,10 +473,12 @@ pArray
       reserved "array"
       -- need to check arraySize > 0
       arraySize <- brackets pIntegerLiteral
-      arrayType <- choice [pBaseType, identifier]
+      arrayType <- pDataType
       arrayName <- identifier
       semi
       return (Array arraySize arrayType arrayName)
+      <?>
+        "array"
 
 -----------------------------------------------------------------
 --  Record related parser
@@ -422,6 +493,8 @@ pFieldDecl
       fieldType <- pBaseType
       fieldName <- identifier
       return (FieldDecl fieldType fieldName)
+    <?>
+      "field declaration"
 
 -- record consists of:
 --   1. the keyword record,
@@ -438,6 +511,8 @@ pRecord
       recordName <- identifier
       semi
       return (Record recordFieldDecls recordName)
+    <?>
+      "record"
 
 -----------------------------------------------------------------
 --  pProgram is the topmost parsing function. It looks for a 
@@ -454,6 +529,8 @@ pProgram
       arraies <- many pArray
       procedures <- many1 pProcedure
       return (Program records arraies procedures)
+    <?>
+      "program"
 
 
 -----------------------------------------------------------------
