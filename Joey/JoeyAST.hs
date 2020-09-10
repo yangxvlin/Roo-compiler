@@ -42,6 +42,8 @@ type IntegerLiteral = Int
 --   those characters.
 type StringLiteral = String
 
+type TypeAlias = String
+
 -- -----------------------------------------------------------------
 -- original provided code are in comments or modified
 -- -----------------------------------------------------------------
@@ -103,7 +105,7 @@ data Stmt
 --   e) integer val,
 -- 2. and an identifier.
 data Parameter
-  = Parameter Ident Ident
+  = Parameter TypeAlias Ident
   | Parameter BooleanLiteral
   | Parameter IntegerLiteral
   | Parameter BaseType Ident
@@ -118,12 +120,13 @@ data ProcedureHeader
 
 -- A variable declaration consists of
 --   a) a type name (boolean, integer, or a type alias),
---   b) followed by a non-empty comma-separated list of identifiers,
+--   b) followed by a non-empty (enforced in parser) comma-separated list of 
+  --    identifiers,
 --     i)  the list terminated with a semicolon.
 --     ii) There may be any number of variable declarations, in any order.
 data VariableDecl
-  = VariableDecl BaseType Ident [Ident]
-  | VariableDecl Ident Ident [Ident]
+  = VariableDecl BaseType [Ident]
+  | VariableDecl TypeAlias [Ident]
 
 -- procedure body consists of 0+ local variable declarations,
 -- 1. A variable declaration consists of
@@ -131,9 +134,9 @@ data VariableDecl
 --   b) followed by a non-empty comma-separated list of identifiers,
 --     i)  the list terminated with a semicolon.
 --     ii) There may be any number of variable declarations, in any order.
--- 2. followed by a non-empty sequence of statements,
+-- 2. followed by a non-empty (enforced in parser) sequence of statements,
 data ProcedureBody
-  = ProcedureBody VariableDecl Stmt [Stmt]
+  = ProcedureBody VariableDecl [Stmt]
   deriving (Show, Eq)
 
 -- Each procedure consists of (in the given order):
@@ -153,7 +156,7 @@ data Procedure
 --   5. a semicolon.
 data Array
   = Array IntegerLiteral BaseType Ident
-  | Array IntegerLiteral Ident Ident
+  | Array IntegerLiteral TypeAlias Ident
   deriving (Show, Eq)
 
 -- field declaration is of:
@@ -165,19 +168,19 @@ data FieldDecl
 
 -- record consists of:
 --   1. the keyword record,
---   2. a non-empty list of field declarations, separated by semicolons, the 
---      whole list enclosed in braces,
+--   2. a non-empty (enforced in parser) list of field declarations, separated 
+--      by semicolons, the whole list enclosed in braces,
 --   3. an identifier, and
 --   4. a semicolon.
 data Record
-  = Record FieldDecl [FieldDecl] Ident
+  = Record [FieldDecl] Ident
   deriving (Show, Eq)
 
 -- A Roo program consists of 
 --   1. zero or more record type definitions, followed by 
 --   2. zero or more array type definitions, followed by 
---   3. one or more procedure definitions.
+--   3. one or more (enforced in parser) procedure definitions.
 data Program
-  = Program [Record] [Array] Procedure [Procedure]
+  = Program [Record] [Array] [Procedure]
     deriving (Show, Eq)
 
