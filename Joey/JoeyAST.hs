@@ -114,7 +114,7 @@ data Exp
   | Op_mul  Exp Exp
   | Op_div  Exp Exp
   | Op_not Exp-- <unop> <exp>
-  | Op_neg Exp
+  | Op_neg Exp -- unary -
     deriving (Show, Eq)
 
 -- atom statement:
