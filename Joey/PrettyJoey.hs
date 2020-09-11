@@ -26,6 +26,9 @@ semicolon = ";"
 surroundByParens :: String -> String
 surroundByParens s = "(" ++ s ++ ")"
 
+surroundByBrackets :: String -> String
+surroundByBrackets s = "[" ++ s ++ "]"
+
 -----------------------------------------------------------------
 --  AST toString functions 
 --  read from bottom to top
@@ -82,7 +85,7 @@ strRecord (Record fieldDecls recordName) =
 -- spaces, and the whole line terminated by a semicolon.
 strArray :: Array -> String
 strArray (Array arraySize arrayType arrayName) = 
-  "array[" ++ (show arraySize) ++ "] " ++ (strDataType arrayType) ++ " " ++ arrayName ++ semicolon ++ newline
+  "array" ++ surroundByBrackets (show arraySize) ++ " " ++ (strDataType arrayType) ++ " " ++ arrayName ++ semicolon ++ newline
 
 -----------------------------------------------------------------
 --  
@@ -96,9 +99,12 @@ strProcedureHeader :: ProcedureHeader -> String
 strProcedureHeader (ProcedureHeader procedureName parameters) = 
   procedureName ++ " " ++ (surroundByParens (intercalate ", " (map strParameter parameters)))
 
+
+
 -- variableDecls can be empty
 -- stmts is nonempty
 strProcedureBody :: ProcedureBody -> String
+-- Within each procedure, declarations and top-level statements should be indented.
 strProcedureBody (ProcedureBody variableDecls stmts) = ""
 
 -- convert procedure to string
