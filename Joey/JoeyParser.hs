@@ -123,7 +123,7 @@ pLValue
   = try (
       do
         ident1 <- identifier
-        exp <- parens pExp
+        exp <- brackets pExp
         dot
         ident2 <- identifier
         return (LBracketsDot ident1 exp ident2)
@@ -132,7 +132,7 @@ pLValue
     try (
       do
         ident <- identifier
-        exp <- parens pExp
+        exp <- brackets pExp
         return (LBrackets ident exp)
     )
     <|>
