@@ -27,7 +27,7 @@ scanner
      , Q.identStart      = letter
      , Q.identLetter     = alphaNum <|> char '_' <|> char '\''
      , Q.opStart         = oneOf "+-*<"
-     , Q.opLetter        = oneOf "-"
+     , Q.opLetter        = oneOf "="
      , Q.reservedNames   = joeyReserved
      , Q.reservedOpNames = joeyOpnames
      })
@@ -74,9 +74,9 @@ pBaseType
 -----------------------------------------------------------------
 pBooleanLiteral :: Parser BooleanLiteral
 pBooleanLiteral
- = do { reserved "true"; return (BooleanLiteral True) }
+ = do { reserved "true"; return (True) }
    <|>
-   do { reserved "false"; return (BooleanLiteral False) }
+   do { reserved "false"; return (False) }
    <?>
       "boolean literal"
 
@@ -84,7 +84,7 @@ pIntegerLiteral :: Parser IntegerLiteral
 pIntegerLiteral
   = do
       n <- natural <?> "number"
-      return (IntegerLiteral (fromInteger n :: Int))
+      return (fromInteger n :: Int)
     <?>
       "Integer Literal"
 
@@ -93,7 +93,7 @@ pStringLiteral
   =
     do
       s <- stringLiteral
-      return (StringLiteral s)
+      return (s)
     <?>
       "string literal"
 
@@ -190,7 +190,7 @@ relation name rel
 -- and            |binary and infix |left-associative
 -- or             |binary and infix |left-associative
 opTable
-  = [ [ prefix   "-"   Op_not    ]
+  = [ [ prefix   "-"   Op_neg    ]
     , [ binary   "*"   Op_mul    , binary   "/"  Op_div  ]
     , [ binary   "+"   Op_add    , binary   "-"  Op_sub  ]
     , [ relation "="   Op_eq     , relation "!=" Op_neq  , relation "<"  Op_less

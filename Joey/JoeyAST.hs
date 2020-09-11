@@ -33,17 +33,14 @@ data BaseType
     deriving (Show, Eq)
 
 -- A boolean literal is false or true.
-data BooleanLiteral = BooleanLiteral Bool
-  deriving (Show, Eq)
+type BooleanLiteral = Bool
 -- An integer literal is a sequence of digits, possibly preceded by a minus sign.
-data IntegerLiteral = IntegerLiteral Int
-  deriving (Show, Eq)
+type IntegerLiteral = Int
 -- A string literal is a sequence of characters between double quotes.
 --   The sequence itself cannot contain double quotes or newline/tab characters. 
 --   It may, however, contain '" ', '\n', and '\t', respectively, to represent 
 --   those characters.
-data StringLiteral = StringLiteral String
-  deriving (Show, Eq)
+type StringLiteral = String
 
 type AliasType = String
 
