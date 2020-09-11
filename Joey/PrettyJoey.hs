@@ -99,13 +99,25 @@ strProcedureHeader :: ProcedureHeader -> String
 strProcedureHeader (ProcedureHeader procedureName parameters) = 
   procedureName ++ " " ++ (surroundByParens (intercalate ", " (map strParameter parameters)))
 
-
+strVariableDecl :: VariableDecl -> String
+strVariableDecl (VariableDecl dataType varNames) = 
+  -- Within each procedure, declarations and top-level statements should be indented.
+  (addIndentation 1) ++ 
+  (strDataType dataType) ++ " " ++ (intercalate ", " varNames)  ++ semicolon ++
+  -- Each variable declaration should be on a separate line.
+  newline
 
 -- variableDecls can be empty
 -- stmts is nonempty
 strProcedureBody :: ProcedureBody -> String
 -- Within each procedure, declarations and top-level statements should be indented.
-strProcedureBody (ProcedureBody variableDecls stmts) = ""
+strProcedureBody (ProcedureBody variableDecls stmts) = 
+  (concatMap strVariableDecl variableDecls) ++
+  -- The { and } that surround a procedure body should begin at the start of a 
+  -- line: no indentation. Moreover, these delimiters should appear alone, each 
+  -- making up a single line.
+  "{" ++ newline ++
+  "}" ++ newline
 
 -- convert procedure to string
 strProcedure :: Procedure -> String
