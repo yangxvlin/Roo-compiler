@@ -40,7 +40,7 @@ main
                let output = ast input
                case output of
                  Right tree 
-                   -> putStrLn (pp tree)
+                   -> putStr (pp tree)
                  Left err 
                    -> do putStrLn "Parse error at "
                          print err

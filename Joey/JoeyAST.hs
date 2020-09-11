@@ -131,15 +131,15 @@ data Exp
 --         where <stmt-list> is a non-empty sequence of statements, atomic or composite
 data Stmt 
   -- atom statement:
-  = Assign LValue Exp -- <lvalue> <- <exp> ;
-  | Read LValue -- read <lvalue> ;
-  | Write Exp -- write <exp> ;
-  | Writeln Exp -- writeln <exp> ;
-  | Call Ident [Exp] -- call <id> ( <exp-list> ) ; 
-                    -- where <exp-list> is a (possibly empty) comma-separated list of expressions.
+  = Assign LValue Exp -- <lvalue> <- <exp>;
+  | Read LValue -- read <lvalue>;
+  | Write Exp -- write <exp>;
+  | Writeln Exp -- writeln <exp>;
+  | Call Ident [Exp] -- call <id> ( <exp-list> ); 
+                     -- where <exp-list> is a (possibly empty) comma-separated list of expressions.
   -- composite statement:
-  | If Exp [Stmt] [Stmt] -- if <expr> then <stmt-list> else <stmt-list> fi
-                          -- if <exp> then <stmt-list> fi # just make second [Stmt] empty
+  | If Exp [Stmt] [Stmt] -- if <exp> then <stmt-list> else <stmt-list> fi
+                         -- if <exp> then <stmt-list> fi # just make second [Stmt] empty
   | While Exp [Stmt]     -- while <expr> do <stmt-list> od
                     -- where <stmt-list> is a non-empty sequence of statements, atomic or composite
     deriving (Show, Eq)

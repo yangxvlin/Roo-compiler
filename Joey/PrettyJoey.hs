@@ -23,11 +23,22 @@ newline = "\n"
 semicolon :: String
 semicolon = ";"
 
+comma :: String
+-- There should be a single space after a comma
+comma = ", "
+
 surroundByParens :: String -> String
 surroundByParens s = "(" ++ s ++ ")"
 
 surroundByBrackets :: String -> String
 surroundByBrackets s = "[" ++ s ++ "]"
+
+-- replace \n, \t to \\n, \\t so that they can be printed as string in the output not escape
+strEscape :: String -> String
+strEscape ('\n':xs) =  "\\n" ++ strEscape xs
+strEscape ('\t':xs) =  "\\t" ++ strEscape xs
+strEscape (x:xs)    = x : strEscape xs
+strEscape ""        = ""
 
 -----------------------------------------------------------------
 --  AST toString functions 
@@ -41,6 +52,79 @@ strBaseType IntegerType = "integer"
 strDataType :: DataType -> String
 strDataType (AliasDataType t) = t
 strDataType (BasyDataType b) = strBaseType b
+
+-----------------------------------------------------------------
+--  
+-----------------------------------------------------------------
+strLValue :: LValue -> String
+strLValue (LId ident) = ident
+strLValue (LDot ident1 ident2) = ident1 ++ "." ++ ident2
+strLValue (LBrackets ident exp) = ident ++ (surroundByBrackets (strExp exp))
+strLValue (LBracketsDot ident1 exp ident2) = ident1 ++ (surroundByBrackets (strExp exp)) ++ "." ++ ident2
+
+strExp :: Exp -> String
+-- <lvalue>
+strExp (Lval lValue) = strLValue lValue
+-- <const>
+strExp (BoolConst booleanLiteral) = show booleanLiteral
+-- <const>
+strExp (IntConst integerLiteral) = show integerLiteral
+-- <const>
+-- White space, and upper/lower case, should be preserved inside strings.
+strExp (StrConst stringLiteral) = "\"" ++ (strEscape stringLiteral) ++ "\""
+-- <exp> <binop> <exp>
+strExp _ = ""
+
+
+-- Int: indentation level
+strStmt :: Int -> Stmt -> String
+-- In a procedure body, each statement should start on a new line. So ++ newline in each end
+strStmt indentLevel (Assign lValue exp) = 
+  -- <lvalue> <- <exp> ;
+  -- Single spaces should surround the assignment operator <-
+  (addIndentation indentLevel) ++ (strLValue lValue) ++ " <- " ++ (strExp exp) ++ semicolon ++ newline
+strStmt indentLevel (Read lValue) = 
+  -- read <lvalue>;
+  (addIndentation indentLevel) ++ "read " ++ (strLValue lValue) ++ semicolon ++ newline
+strStmt indentLevel (Write exp) =
+  -- write <exp>;
+  (addIndentation indentLevel) ++ "write " ++ (strExp exp) ++ semicolon ++ newline
+strStmt indentLevel (Writeln exp) = 
+  -- writeln <exp>;
+  (addIndentation indentLevel) ++ "writeln " ++ (strExp exp) ++ semicolon ++ newline
+strStmt indentLevel (Call ident exps) =
+  -- call <id> ( <exp-list> ); 
+  --     where <exp-list> is a (possibly empty) comma-separated list of expressions.
+  (addIndentation indentLevel) ++ "call " ++ ident ++ " " ++ surroundByParens (intercalate comma (map strExp exps)) ++ semicolon ++ newline
+-- thenStmts is non-empty, elseStmts is possible empty
+strStmt indentLevel (If exp thenStmts elseStmts) = 
+  -- terminating fi (and a possible else) should be indented exactly as the corresponding if.
+  -- IF elseStmts empty: if <exp> then <stmt-list> fi
+  if null elseStmts then
+    -- In a while statement, "if ... then" should be printed on one line, 
+    -- irrespective of the size of the intervening expression
+    (addIndentation indentLevel) ++ "if " ++ (strExp exp) ++ " then" ++ newline ++
+    (concatMap (strStmt (indentLevel+1)) thenStmts) ++
+    -- the terminating fi should be indented exactly as the corresponding if.
+    (addIndentation indentLevel) ++ "fi" ++ newline
+  -- OTHERWISE:          if <expr> then <stmt-list> else <stmt-list> fi
+  else
+    -- In a while statement, "if ... then" should be printed on one line, 
+    -- irrespective of the size of the intervening expression
+    (addIndentation indentLevel) ++ "if " ++ (strExp exp) ++ " then" ++ newline ++
+    (concatMap (strStmt (indentLevel+1)) thenStmts) ++
+    (addIndentation indentLevel) ++ "else" ++ newline ++
+    (concatMap (strStmt (indentLevel+1)) elseStmts) ++
+    -- the terminating fi and else should be indented exactly as the corresponding if.
+    (addIndentation indentLevel) ++ "fi" ++ newline
+-- stmts is non-empty
+strStmt indentLevel (While exp stmts) = 
+  -- In a while statement, "while ... do" should be printed on one line, 
+  -- irrespective of the size of the intervening expression
+  (addIndentation indentLevel) ++ "while " ++ (strExp exp) ++ " do" ++ newline ++
+  (concatMap (strStmt (indentLevel+1)) stmts) ++
+  -- The terminating od should be indented exactly as the corresponding while.
+  (addIndentation indentLevel) ++ "od" ++ newline
 
 -----------------------------------------------------------------
 --  
@@ -97,13 +181,12 @@ strParameter (IntegerParameter integerLiteral) = show integerLiteral
 
 strProcedureHeader :: ProcedureHeader -> String
 strProcedureHeader (ProcedureHeader procedureName parameters) = 
-  procedureName ++ " " ++ (surroundByParens (intercalate ", " (map strParameter parameters)))
+  procedureName ++ " " ++ (surroundByParens (intercalate comma (map strParameter parameters)))
 
 strVariableDecl :: VariableDecl -> String
 strVariableDecl (VariableDecl dataType varNames) = 
   -- Within each procedure, declarations and top-level statements should be indented.
-  (addIndentation 1) ++ 
-  (strDataType dataType) ++ " " ++ (intercalate ", " varNames)  ++ semicolon ++
+  (addIndentation 1) ++ (strDataType dataType) ++ " " ++ (intercalate comma varNames)  ++ semicolon ++
   -- Each variable declaration should be on a separate line.
   newline
 
@@ -116,7 +199,8 @@ strProcedureBody (ProcedureBody variableDecls stmts) =
   -- The { and } that surround a procedure body should begin at the start of a 
   -- line: no indentation. Moreover, these delimiters should appear alone, each 
   -- making up a single line.
-  "{" ++ newline ++
+  "{" ++ newline ++ 
+  concatMap (strStmt 1) stmts ++ 
   "}" ++ newline
 
 -- convert procedure to string
@@ -136,7 +220,7 @@ strProcedure (Procedure ph pb) =
 strProgram :: Program -> String
 -- If there are no record and array type definitions, the first procedure should 
 -- start on line 1.
-strProgram (Program [] [] procedures) = concatMap strProcedure procedures
+strProgram (Program [] [] procedures) = intercalate newline (map strProcedure procedures)
 -- Otherwise there should be a single blank line between the type definitions 
 -- and the first procedure.
 strProgram (Program records arraies procedures) = 
