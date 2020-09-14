@@ -34,11 +34,11 @@ surroundByBrackets :: String -> String
 surroundByBrackets s = "[" ++ s ++ "]"
 
 -- replace \n, \t to \\n, \\t so that they can be printed as string in the output not escape
-strEscape :: String -> String
-strEscape ('\n':xs) =  "\\n" ++ strEscape xs
-strEscape ('\t':xs) =  "\\t" ++ strEscape xs
-strEscape (x:xs)    = x : strEscape xs
-strEscape ""        = ""
+-- strEscape :: String -> String
+-- strEscape ('\n':xs) =  "\\n" ++ strEscape xs
+-- strEscape ('\t':xs) =  "\\t" ++ strEscape xs
+-- strEscape (x:xs)    = x : strEscape xs
+-- strEscape ""        = ""
 
 -----------------------------------------------------------------
 --  AST toString functions 
@@ -62,6 +62,281 @@ strLValue (LDot ident1 ident2) = ident1 ++ "." ++ ident2
 strLValue (LBrackets ident exp) = ident ++ (surroundByBrackets (strExp exp))
 strLValue (LBracketsDot ident1 exp ident2) = ident1 ++ (surroundByBrackets (strExp exp)) ++ "." ++ ident2
 
+-- exp1 has higher precendence than exp2, higher if exp2 has no operator
+isHigherPrecendence :: Exp -> Exp -> Bool
+isHigherPrecendence exp1@(Op_neg _) exp2 = 
+  case exp2 of
+    (Op_neg _  ) -> False
+    _            -> True
+isHigherPrecendence exp1@(Op_mul _ _) exp2 = 
+  case exp2 of
+    (Op_neg _  ) -> False
+    (Op_mul _ _) -> False
+    (Op_div _ _) -> False
+    _            -> True
+isHigherPrecendence exp1@(Op_div _ _) exp2 = 
+  case exp2 of
+    (Op_neg _  ) -> False
+    (Op_mul _ _) -> False
+    (Op_div _ _) -> False
+    _            -> True
+isHigherPrecendence exp1@(Op_add _ _) exp2 = 
+  case exp2 of
+    (Op_neg _  ) -> False
+    (Op_mul _ _) -> False
+    (Op_div _ _) -> False
+    (Op_add _ _) -> False
+    (Op_sub _ _) -> False
+    _            -> True
+isHigherPrecendence exp1@(Op_sub _ _) exp2 = 
+  case exp2 of
+    (Op_neg _  ) -> False
+    (Op_mul _ _) -> False
+    (Op_div _ _) -> False
+    (Op_add _ _) -> False
+    (Op_sub _ _) -> False
+    _            -> True
+isHigherPrecendence exp1@(Op_eq _ _) exp2 = 
+  case exp2 of
+    (Op_not _  )  -> True
+    (Op_and _ _)  -> True
+    (Op_or  _ _)  -> True
+    -- constants has lowest precendence
+    (Lval _) -> True
+    (BoolConst _) -> True
+    (IntConst _) -> True
+    (StrConst _) -> True
+    _             -> False
+isHigherPrecendence exp1@(Op_neq _ _) exp2 = 
+  case exp2 of
+    (Op_not _  )  -> True
+    (Op_and _ _)  -> True
+    (Op_or  _ _)  -> True
+    -- constants has lowest precendence
+    (Lval _) -> True
+    (BoolConst _) -> True
+    (IntConst _) -> True
+    (StrConst _) -> True
+    _             -> False
+isHigherPrecendence exp1@(Op_less _ _) exp2 = 
+  case exp2 of
+    (Op_not _  )  -> True
+    (Op_and _ _)  -> True
+    (Op_or  _ _)  -> True
+    -- constants has lowest precendence
+    (Lval _) -> True
+    (BoolConst _) -> True
+    (IntConst _) -> True
+    (StrConst _) -> True
+    _             -> False
+isHigherPrecendence exp1@(Op_less_eq _ _) exp2 = 
+  case exp2 of
+    (Op_not _  )  -> True
+    (Op_and _ _)  -> True
+    (Op_or  _ _)  -> True
+    -- constants has lowest precendence
+    (Lval _) -> True
+    (BoolConst _) -> True
+    (IntConst _) -> True
+    (StrConst _) -> True
+    _             -> False
+isHigherPrecendence exp1@(Op_large _ _) exp2 = 
+  case exp2 of
+    (Op_not _  )  -> True
+    (Op_and _ _)  -> True
+    (Op_or  _ _)  -> True
+    -- constants has lowest precendence
+    (Lval _) -> True
+    (BoolConst _) -> True
+    (IntConst _) -> True
+    (StrConst _) -> True
+    _             -> False
+isHigherPrecendence exp1@(Op_large_eq _ _) exp2 = 
+  case exp2 of
+    (Op_not _  )  -> True
+    (Op_and _ _)  -> True
+    (Op_or  _ _)  -> True
+    -- constants has lowest precendence
+    (Lval _) -> True
+    (BoolConst _) -> True
+    (IntConst _) -> True
+    (StrConst _) -> True
+    _             -> False
+isHigherPrecendence exp1@(Op_not _) exp2 = 
+  case exp2 of
+    (Op_and _ _)  -> True
+    (Op_or  _ _)  -> True
+    -- constants has lowest precendence
+    (Lval _) -> True
+    (BoolConst _) -> True
+    (IntConst _) -> True
+    (StrConst _) -> True
+    _             -> False
+isHigherPrecendence exp1@(Op_and _ _) exp2 = 
+  case exp2 of
+    (Op_or  _ _)  -> True
+    -- constants has lowest precendence
+    (Lval _) -> True
+    (BoolConst _) -> True
+    (IntConst _) -> True
+    (StrConst _) -> True
+    _             -> False
+isHigherPrecendence exp1@(Op_or _ _) exp2
+   -- constants has lowest precendence
+  | (isOperatorExp exp2) = True
+  | otherwise = False
+isHigherPrecendence _ _ = False
+
+-- exp1 has higher precendence than exp2
+isSamePrecendence :: Exp -> Exp -> Bool
+isSamePrecendence exp1@(Op_neg _) exp2 = 
+  case exp2 of
+    (Op_neg _  ) -> True
+    _            -> False
+isSamePrecendence exp1@(Op_mul _ _) exp2 = 
+  case exp2 of
+    (Op_mul _ _) -> True
+    (Op_div _ _) -> True
+    _            -> False
+isSamePrecendence exp1@(Op_div _ _) exp2 = 
+  case exp2 of
+    (Op_mul _ _) -> True
+    (Op_div _ _) -> True
+    _            -> False
+isSamePrecendence exp1@(Op_add _ _) exp2 = 
+  case exp2 of
+    (Op_add _ _) -> True
+    (Op_sub _ _) -> True
+    _            -> False
+isSamePrecendence exp1@(Op_sub _ _) exp2 = 
+  case exp2 of
+    (Op_add _ _) -> True
+    (Op_sub _ _) -> True
+    _            -> False
+isSamePrecendence exp1@(Op_eq _ _) exp2 = 
+  case exp2 of
+    (Op_not _  )  -> True
+    (Op_and _ _)  -> True
+    (Op_or  _ _)  -> True
+    _             -> False
+isSamePrecendence exp1@(Op_neq _ _) exp2 = 
+  case exp2 of
+    (Op_eq _ _) -> True
+    (Op_neq _ _) -> True
+    (Op_less _ _) -> True
+    (Op_less_eq _ _) -> True
+    (Op_large _ _) -> True
+    (Op_large_eq _ _) -> True
+    _             -> False
+isSamePrecendence exp1@(Op_less _ _) exp2 = 
+  case exp2 of
+    (Op_eq _ _) -> True
+    (Op_neq _ _) -> True
+    (Op_less _ _) -> True
+    (Op_less_eq _ _) -> True
+    (Op_large _ _) -> True
+    (Op_large_eq _ _) -> True
+    _             -> False
+isSamePrecendence exp1@(Op_less_eq _ _) exp2 = 
+  case exp2 of
+    (Op_eq _ _) -> True
+    (Op_neq _ _) -> True
+    (Op_less _ _) -> True
+    (Op_less_eq _ _) -> True
+    (Op_large _ _) -> True
+    (Op_large_eq _ _) -> True
+    _             -> False
+isSamePrecendence exp1@(Op_large _ _) exp2 = 
+  case exp2 of
+    (Op_eq _ _) -> True
+    (Op_neq _ _) -> True
+    (Op_less _ _) -> True
+    (Op_less_eq _ _) -> True
+    (Op_large _ _) -> True
+    (Op_large_eq _ _) -> True
+    _             -> False
+isSamePrecendence exp1@(Op_large_eq _ _) exp2 = 
+  case exp2 of
+    (Op_eq _ _) -> True
+    (Op_neq _ _) -> True
+    (Op_less _ _) -> True
+    (Op_less_eq _ _) -> True
+    (Op_large _ _) -> True
+    (Op_large_eq _ _) -> True
+    _             -> False
+isSamePrecendence exp1@(Op_not _) exp2 = 
+  case exp2 of
+    (Op_not _)  -> True
+    _             -> False
+isSamePrecendence exp1@(Op_and _ _) exp2 = 
+  case exp2 of
+    (Op_and _ _)  -> True
+    _             -> False
+isSamePrecendence exp1@(Op_or _ _) exp2 =
+  case exp2 of
+    (Op_or  _ _)  -> True
+    _             -> False
+isSamePrecendence _ _ = False
+
+-- exp1 has smaller precendence than exp2 if it is not higher nor same
+isSamllerPrecendence :: Exp -> Exp -> Bool
+isSamllerPrecendence exp1 exp2 = (not (isHigherPrecendence exp1 exp2)) &&
+                                 (not (isSamePrecendence   exp1 exp2))
+
+-- two expresions have same operator
+isSameOperation :: Exp -> Exp -> Bool
+isSameOperation (Op_or _ _) (Op_or _ _) = True
+isSameOperation (Op_and _ _) (Op_and _ _) = True
+isSameOperation (Op_eq _ _) (Op_eq _ _) = True
+isSameOperation (Op_neq _ _) (Op_neq _ _) = True
+isSameOperation (Op_less _ _) (Op_less _ _) = True
+isSameOperation (Op_less_eq _ _) (Op_less_eq _ _) = True
+isSameOperation (Op_large _ _) (Op_large _ _) = True
+isSameOperation (Op_large_eq _ _) (Op_large_eq _ _) = True
+isSameOperation (Op_add _ _) (Op_add _ _) = True
+isSameOperation (Op_sub _ _) (Op_sub _ _) = True
+isSameOperation (Op_mul _ _) (Op_mul _ _) = True
+isSameOperation (Op_div _ _) (Op_div _ _) = True
+isSameOperation (Op_not _) (Op_not _) = True
+isSameOperation (Op_neg _) (Op_neg _) = True
+isSameOperation _ _ = False
+
+-- does expression has operator
+isOperatorExp :: Exp -> Bool
+isOperatorExp (Lval _) = False
+isOperatorExp (BoolConst _) = False
+isOperatorExp (IntConst _) = False
+isOperatorExp (StrConst _) = False
+isOperatorExp _ = True
+
+-- some notation:
+--    pexp: parent      expression (definitely has operator)
+--    exp1: left child  expression
+--    exp2: right child expression
+-- turn binary expression's left child to string
+strBinaryExpLChild :: Exp -> Exp -> String
+strBinaryExpLChild pexp exp1
+  | (isSamllerPrecendence exp1 pexp) && (isOperatorExp exp1) = surroundByParens (strExp exp1) -- left child (with operator) has lower precendence suggests a parens
+  | otherwise = strExp exp1 -- no parens
+
+-- some notation:
+--    pexp: parent      expression (definitely has operator)
+--    exp1: left child  expression
+--    exp2: right child expression
+-- turn binary expression's right child to string
+strBinaryExpRChild :: Exp -> Exp -> String
+strBinaryExpRChild pexp@(Op_div _ _) exp1@(Op_div _ _) = surroundByParens (strExp exp1)  -- / with a right child of / need a parens
+strBinaryExpRChild pexp@(Op_div _ _) exp1@(Op_mul _ _) = surroundByParens (strExp exp1)  -- / with a right child of * need a parens
+strBinaryExpRChild pexp@(Op_sub _ _) exp1@(Op_sub _ _) = surroundByParens (strExp exp1)  -- - (sub) with a right child of - (sub) need a parens
+strBinaryExpRChild pexp@(Op_sub _ _) exp1@(Op_add _ _) = surroundByParens (strExp exp1)  -- - (sub) with a right child of + need a parens
+strBinaryExpRChild pexp exp1
+  | (isSamllerPrecendence exp1 pexp) && (isOperatorExp exp1) = surroundByParens (strExp exp1) -- right child (with operator) has lower precendence suggests a parens
+  | otherwise = strExp exp1 -- no parens
+
+-- some notation:
+--    pexp: parent      expression
+--    exp1: left child  expression
+--    exp2: right child expression
 strExp :: Exp -> String
 -- <lvalue>
 strExp (Lval lValue) = strLValue lValue
@@ -71,9 +346,81 @@ strExp (BoolConst booleanLiteral) = show booleanLiteral
 strExp (IntConst integerLiteral) = show integerLiteral
 -- <const>
 -- White space, and upper/lower case, should be preserved inside strings.
-strExp (StrConst stringLiteral) = "\"" ++ (strEscape stringLiteral) ++ "\""
+-- strExp (StrConst stringLiteral) = "\"" ++ (strEscape stringLiteral) ++ "\""
+strExp (StrConst stringLiteral) = show stringLiteral
+
+-- "-(binary/unary expressions)"
+-- no space after unary minus
+strExp (Op_neg exp)
+  | isOperatorExp exp = "-" ++ surroundByBrackets (strExp exp) -- need to parens expression with operator
+  | otherwise         = "-" ++ (strExp exp) -- no need to parens constants
+
 -- <exp> <binop> <exp>
-strExp _ = ""
+-- Single spaces should surround 12 binary operators.
+-- * binary expression
+strExp pexp@(Op_mul exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " * " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- / binary expression
+strExp pexp@(Op_div exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " / " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- + binary expression
+strExp pexp@(Op_add exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " + " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- - binary expression
+strExp pexp@(Op_sub exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " - " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- = binary expression
+strExp pexp@(Op_eq exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " = " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- != binary expression
+strExp pexp@(Op_neq exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " != " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- < binary expression
+strExp pexp@(Op_less exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " < " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- <= binary expression
+strExp pexp@(Op_less_eq exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " <= " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- > binary expression
+strExp pexp@(Op_large exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " > " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- >= binary expression
+strExp pexp@(Op_large_eq exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " >= " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- >= binary expression
+strExp pexp@(Op_not exp) 
+  | isOperatorExp exp = "-" ++ surroundByBrackets (strExp exp) -- need to parens expression with operator
+  | otherwise         = "-" ++ (strExp exp) -- no need to parens constants
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- and binary expression
+strExp pexp@(Op_and exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " and " ++ (strBinaryExpRChild pexp exp2)
+
+-- <exp> <binop> <exp>
+-- Single spaces should surround 12 binary operators.
+-- or binary expression
+strExp pexp@(Op_or exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " or " ++ (strBinaryExpRChild pexp exp2)
 
 
 -- Int: indentation level
@@ -130,7 +477,7 @@ strStmt indentLevel (While exp stmts) =
 --  
 -----------------------------------------------------------------
 strFieldDecl :: FieldDecl -> String
-strFieldDecl (FieldDecl baseType fieldName) = (show baseType) ++ fieldName
+strFieldDecl (FieldDecl baseType fieldName) = (strBaseType baseType) ++ " " ++ fieldName
 
 -- non empty input list of FieldDecl
 strFieldDecls :: [FieldDecl] -> String
