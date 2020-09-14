@@ -309,6 +309,16 @@ isOperatorExp (IntConst _) = False
 isOperatorExp (StrConst _) = False
 isOperatorExp _ = True
 
+-- return true if parent is sub/div and child has same precendence as parent
+--    pexp: parent expression
+--    cexp: child  expression
+isDivSubParentSamePrecChild :: Exp -> Exp -> Bool
+isDivSubParentSamePrecChild pexp@(Op_div _ _) cexp@(Op_div _ _) = True  -- / with a right child of / need a parens
+isDivSubParentSamePrecChild pexp@(Op_div _ _) cexp@(Op_mul _ _) = True  -- / with a right child of * need a parens
+isDivSubParentSamePrecChild pexp@(Op_sub _ _) cexp@(Op_sub _ _) = True  -- - (sub) with a right child of - (sub) need a parens
+isDivSubParentSamePrecChild pexp@(Op_sub _ _) cexp@(Op_add _ _) = True  -- - (sub) with a right child of + need a parens
+isDivSubParentSamePrecChild _ _ = False
+
 -- some notation:
 --    pexp: parent      expression (definitely has operator)
 --    exp1: left child  expression
@@ -325,12 +335,8 @@ strBinaryExpLChild pexp exp1
 --    exp2: right child expression
 -- turn binary expression's right child to string
 strBinaryExpRChild :: Exp -> Exp -> String
-strBinaryExpRChild pexp@(Op_div _ _) exp2@(Op_div _ _) = surroundByParens (strExp exp2)  -- / with a right child of / need a parens
-strBinaryExpRChild pexp@(Op_div _ _) exp2@(Op_mul _ _) = surroundByParens (strExp exp2)  -- / with a right child of * need a parens
-strBinaryExpRChild pexp@(Op_sub _ _) exp2@(Op_sub _ _) = surroundByParens (strExp exp2)  -- - (sub) with a right child of - (sub) need a parens
-strBinaryExpRChild pexp@(Op_sub _ _) exp2@(Op_add _ _) = surroundByParens (strExp exp2)  -- - (sub) with a right child of + need a parens
 strBinaryExpRChild pexp exp2
-  | (isSamllerPrecendence exp2 pexp) && (isOperatorExp exp2) = surroundByParens (strExp exp2) -- right child (with operator) has lower precendence suggests a parens
+  | (isOperatorExp exp2) && ((isDivSubParentSamePrecChild pexp exp2) || (isSamllerPrecendence exp2 pexp)) = surroundByParens (strExp exp2) -- right child (with operator) has lower precendence suggests a parens
   | otherwise = strExp exp2 -- no parens
 
 -- some notation:
