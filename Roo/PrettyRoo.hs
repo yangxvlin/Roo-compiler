@@ -325,13 +325,13 @@ strBinaryExpLChild pexp exp1
 --    exp2: right child expression
 -- turn binary expression's right child to string
 strBinaryExpRChild :: Exp -> Exp -> String
-strBinaryExpRChild pexp@(Op_div _ _) exp1@(Op_div _ _) = surroundByParens (strExp exp1)  -- / with a right child of / need a parens
-strBinaryExpRChild pexp@(Op_div _ _) exp1@(Op_mul _ _) = surroundByParens (strExp exp1)  -- / with a right child of * need a parens
-strBinaryExpRChild pexp@(Op_sub _ _) exp1@(Op_sub _ _) = surroundByParens (strExp exp1)  -- - (sub) with a right child of - (sub) need a parens
-strBinaryExpRChild pexp@(Op_sub _ _) exp1@(Op_add _ _) = surroundByParens (strExp exp1)  -- - (sub) with a right child of + need a parens
-strBinaryExpRChild pexp exp1
-  | (isSamllerPrecendence exp1 pexp) && (isOperatorExp exp1) = surroundByParens (strExp exp1) -- right child (with operator) has lower precendence suggests a parens
-  | otherwise = strExp exp1 -- no parens
+strBinaryExpRChild pexp@(Op_div _ _) exp2@(Op_div _ _) = surroundByParens (strExp exp2)  -- / with a right child of / need a parens
+strBinaryExpRChild pexp@(Op_div _ _) exp2@(Op_mul _ _) = surroundByParens (strExp exp2)  -- / with a right child of * need a parens
+strBinaryExpRChild pexp@(Op_sub _ _) exp2@(Op_sub _ _) = surroundByParens (strExp exp2)  -- - (sub) with a right child of - (sub) need a parens
+strBinaryExpRChild pexp@(Op_sub _ _) exp2@(Op_add _ _) = surroundByParens (strExp exp2)  -- - (sub) with a right child of + need a parens
+strBinaryExpRChild pexp exp2
+  | (isSamllerPrecendence exp2 pexp) && (isOperatorExp exp2) = surroundByParens (strExp exp2) -- right child (with operator) has lower precendence suggests a parens
+  | otherwise = strExp exp2 -- no parens
 
 -- some notation:
 --    pexp: parent      expression
