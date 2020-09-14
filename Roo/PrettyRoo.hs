@@ -53,6 +53,10 @@ strDataType :: DataType -> String
 strDataType (AliasDataType t) = t
 strDataType (BasyDataType b) = strBaseType b
 
+strBooleanLiteral :: BooleanLiteral -> String
+strBooleanLiteral True = "True"
+strBooleanLiteral False = "False"
+
 -----------------------------------------------------------------
 --  
 -----------------------------------------------------------------
@@ -347,7 +351,7 @@ strExp :: Exp -> String
 -- <lvalue>
 strExp (Lval lValue) = strLValue lValue
 -- <const>
-strExp (BoolConst booleanLiteral) = show booleanLiteral
+strExp (BoolConst booleanLiteral) = strBooleanLiteral booleanLiteral
 -- <const>
 strExp (IntConst integerLiteral) = show integerLiteral
 -- <const>
@@ -446,9 +450,9 @@ strStmt indentLevel (Writeln exp) =
   -- writeln <exp>;
   (addIndentation indentLevel) ++ "writeln " ++ (strExp exp) ++ semicolon ++ newline
 strStmt indentLevel (Call ident exps) =
-  -- call <id> ( <exp-list> ); 
+  -- call <id>(<exp-list>); 
   --     where <exp-list> is a (possibly empty) comma-separated list of expressions.
-  (addIndentation indentLevel) ++ "call " ++ ident ++ " " ++ surroundByParens (intercalate comma (map strExp exps)) ++ semicolon ++ newline
+  (addIndentation indentLevel) ++ "call " ++ ident ++ surroundByParens (intercalate comma (map strExp exps)) ++ semicolon ++ newline
 -- thenStmts is non-empty, elseStmts is possible empty
 strStmt indentLevel (If exp thenStmts elseStmts) = 
   -- terminating fi (and a possible else) should be indented exactly as the corresponding if.
@@ -529,7 +533,7 @@ strArray (Array arraySize arrayType arrayName) =
 -----------------------------------------------------------------
 strParameter :: Parameter -> String
 strParameter (DataParameter dataType paraName) = (strDataType dataType) ++ " " ++ paraName
-strParameter (BooleanParameter booleanLiteral) = show booleanLiteral
+strParameter (BooleanParameter booleanLiteral) = strBooleanLiteral booleanLiteral
 strParameter (IntegerParameter integerLiteral) = show integerLiteral
 
 strProcedureHeader :: ProcedureHeader -> String
