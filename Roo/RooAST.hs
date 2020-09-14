@@ -154,7 +154,9 @@ data Stmt
 data Parameter
   = DataParameter DataType Ident
   | BooleanParameter BooleanLiteral
+  | BooleanVal Ident
   | IntegerParameter IntegerLiteral
+  | IntegerVal Ident
     deriving (Show, Eq)
 
 -- The header has two components (in this order):

@@ -381,6 +381,22 @@ pWhile
 pParameter :: Parser Parameter
 pParameter
   =
+    try(
+      do { reserved "boolean"
+         ; reserved "val"
+         ; name <- identifier
+         ; return (BooleanVal name)
+         }
+    )
+    <|>
+    try(
+      do { reserved "integer"
+         ; reserved "val"
+         ; name <- identifier
+         ; return (IntegerVal name)
+         }
+    )
+    <|>
     do
       -- parse integer literal
       integer <- pIntegerLiteral

@@ -329,7 +329,7 @@ isDivSubParentSamePrecChild _ _ = False
 -- return true a not with constant after a relational expression doesn't need parens
 --    pexp: parent       expression
 --    exp2: right child  expression
-isRelationalRNotThenNoParens :: Exp -> Exp -> Bool
+-- isRelationalRNotThenNoParens :: Exp -> Exp -> Bool
 
 -- some notation:
 --    pexp: parent      expression (definitely has operator)
@@ -542,6 +542,8 @@ strArray (Array arraySize arrayType arrayName) =
 -----------------------------------------------------------------
 strParameter :: Parameter -> String
 strParameter (DataParameter dataType paraName) = (strDataType dataType) ++ " " ++ paraName
+strParameter (BooleanVal paraName) = "boolean val " ++ paraName
+strParameter (IntegerVal paraName) = "integer val " ++ paraName
 strParameter (BooleanParameter booleanLiteral) = strBooleanLiteral booleanLiteral
 strParameter (IntegerParameter integerLiteral) = show integerLiteral
 
