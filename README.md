@@ -43,7 +43,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - <img src="./docs/1b.png" width="40%" />
 - [specification 1](./docs/asg1.pdf)
 #### how to submit
-- ``` submit COMP90045 1b Makefile Roo.hs RooAST.hs PrettyRoo.hs ```
+- ``` submit COMP90045 1b Makefile Roo.hs RooAST.hs PrettyRoo.hs RooParser.hs ```
 - ``` verify COMP90045 1b | less ```
 #### tasks
 - Roo has global type definitions for aggregate types (records and arrays), but there are no global variables. 
