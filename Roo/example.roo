@@ -18,6 +18,7 @@ read n; write "\n";
 i<-0;
 while (i< n)
 do write "Client number: ";
+result<-1<-5;
 read a[i].client_number;
 write "Client's balance: " ;
 read bal;
@@ -31,4 +32,5 @@ i <- i+1;
 od
 i<-0;
 while i < n do writeln t[i]; od
+tricky<-((13+(3*5)*7)-(2*7))-(11/(20/(2*5)));
 }

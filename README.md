@@ -29,12 +29,19 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
+## repository structure
+- ```/docs```: documentation & specification
+- ```/Joey```: Joey is a subset language of Roo, provided as skeleton code
+- ```/Roo```: implemented Roo parser
+
 ## specifications
 ### stage 1a
 - <img src="./docs/1a.png" width="70%" />
+- ``` submit COMP90045 1a ```
 
 ### stage 1b
 - <img src="./docs/1b.png" width="40%" />
+- ``` submit COMP90045 1b ```
 - [specification 1](./docs/asg1.pdf)
 #### tasks
 - Roo has global type definitions for aggregate types (records and arrays), but there are no global variables. 

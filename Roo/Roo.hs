@@ -1,7 +1,12 @@
+-----------------------------------------------------------
+-- COMP90045 Programming Language Implementation Project --
+--                     Roo Compiler                      --
+--  Implemented by Xulin Yang                            --
+-----------------------------------------------------------
 module Main (main) 
 where
-import JoeyParser (ast)
-import PrettyJoey (pp)
+import RooParser (ast)
+import PrettyRoo (pp)
 import System.Environment (getProgName, getArgs)
 import System.Exit (exitWith, ExitCode(..))
 
@@ -35,7 +40,7 @@ main
                let output = ast input
                case output of
                  Right tree 
-                   -> putStrLn (pp tree)
+                   -> putStr (pp tree)
                  Left err 
                    -> do putStrLn "Parse error at "
                          print err
