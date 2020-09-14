@@ -1,4 +1,4 @@
-Roo: RooAST.hs RooParser PrettyRoo.hs Roo.hs
+Roo: RooAST.hs RooParser.hs PrettyRoo.hs Roo.hs
 	ghc Roo.hs
 
 RooParser: RooParser.hs RooAST.hs
