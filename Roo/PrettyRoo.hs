@@ -326,6 +326,11 @@ isDivSubParentSamePrecChild pexp@(Op_sub _ _) cexp@(Op_sub _ _) = True  -- - (su
 isDivSubParentSamePrecChild pexp@(Op_sub _ _) cexp@(Op_add _ _) = True  -- - (sub) with a right child of + need a parens
 isDivSubParentSamePrecChild _ _ = False
 
+-- return true a not with constant after a relational expression doesn't need parens
+--    pexp: parent       expression
+--    exp2: right child  expression
+isRelationalRNotThenNoParens :: Exp -> Exp -> Bool
+
 -- some notation:
 --    pexp: parent      expression (definitely has operator)
 --    exp1: left child  expression

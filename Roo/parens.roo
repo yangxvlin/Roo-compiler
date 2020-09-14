@@ -54,6 +54,9 @@ procedure main ()
     n <- not a = b;
 
     n____________ <- a = (not b);
+    n <- a = (-5);
+    n <- a + (-5);
+    error <- true + "123456";
     # n <- a = not b; # error
 
     # n <- not not true = not false;
