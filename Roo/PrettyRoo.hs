@@ -187,7 +187,7 @@ isHigherPrecendence exp1@(Op_and _ _) exp2 =
     _             -> False
 isHigherPrecendence exp1@(Op_or _ _) exp2
    -- constants has lowest precendence
-  | (isOperatorExp exp2) = True
+  | (not (isOperatorExp exp2)) = True
   | otherwise = False
 isHigherPrecendence _ _ = False
 
@@ -219,55 +219,58 @@ isSamePrecendence exp1@(Op_sub _ _) exp2 =
     _            -> False
 isSamePrecendence exp1@(Op_eq _ _) exp2 = 
   case exp2 of
-    (Op_not _  )  -> True
-    (Op_and _ _)  -> True
-    (Op_or  _ _)  -> True
-    _             -> False
+    -- (Op_eq _ _) -> True
+    -- (Op_neq _ _) -> True
+    -- (Op_less _ _) -> True
+    -- (Op_less_eq _ _) -> True
+    -- (Op_large _ _) -> True
+    -- (Op_large_eq _ _) -> True
+    _             -> False -- relational
 isSamePrecendence exp1@(Op_neq _ _) exp2 = 
   case exp2 of
-    (Op_eq _ _) -> True
-    (Op_neq _ _) -> True
-    (Op_less _ _) -> True
-    (Op_less_eq _ _) -> True
-    (Op_large _ _) -> True
-    (Op_large_eq _ _) -> True
-    _             -> False
+    -- (Op_eq _ _) -> True
+    -- (Op_neq _ _) -> True
+    -- (Op_less _ _) -> True
+    -- (Op_less_eq _ _) -> True
+    -- (Op_large _ _) -> True
+    -- (Op_large_eq _ _) -> True
+    _             -> False -- relational
 isSamePrecendence exp1@(Op_less _ _) exp2 = 
   case exp2 of
-    (Op_eq _ _) -> True
-    (Op_neq _ _) -> True
-    (Op_less _ _) -> True
-    (Op_less_eq _ _) -> True
-    (Op_large _ _) -> True
-    (Op_large_eq _ _) -> True
-    _             -> False
+    -- (Op_eq _ _) -> True
+    -- (Op_neq _ _) -> True
+    -- (Op_less _ _) -> True
+    -- (Op_less_eq _ _) -> True
+    -- (Op_large _ _) -> True
+    -- (Op_large_eq _ _) -> True
+    _             -> False -- relational
 isSamePrecendence exp1@(Op_less_eq _ _) exp2 = 
   case exp2 of
-    (Op_eq _ _) -> True
-    (Op_neq _ _) -> True
-    (Op_less _ _) -> True
-    (Op_less_eq _ _) -> True
-    (Op_large _ _) -> True
-    (Op_large_eq _ _) -> True
-    _             -> False
+    -- (Op_eq _ _) -> True
+    -- (Op_neq _ _) -> True
+    -- (Op_less _ _) -> True
+    -- (Op_less_eq _ _) -> True
+    -- (Op_large _ _) -> True
+    -- (Op_large_eq _ _) -> True
+    _             -> False -- relational
 isSamePrecendence exp1@(Op_large _ _) exp2 = 
   case exp2 of
-    (Op_eq _ _) -> True
-    (Op_neq _ _) -> True
-    (Op_less _ _) -> True
-    (Op_less_eq _ _) -> True
-    (Op_large _ _) -> True
-    (Op_large_eq _ _) -> True
+    -- (Op_eq _ _) -> True
+    -- (Op_neq _ _) -> True
+    -- (Op_less _ _) -> True
+    -- (Op_less_eq _ _) -> True
+    -- (Op_large _ _) -> True
+    -- (Op_large_eq _ _) -> True
     _             -> False
 isSamePrecendence exp1@(Op_large_eq _ _) exp2 = 
   case exp2 of
-    (Op_eq _ _) -> True
-    (Op_neq _ _) -> True
-    (Op_less _ _) -> True
-    (Op_less_eq _ _) -> True
-    (Op_large _ _) -> True
-    (Op_large_eq _ _) -> True
-    _             -> False
+    -- (Op_eq _ _) -> True
+    -- (Op_neq _ _) -> True
+    -- (Op_less _ _) -> True
+    -- (Op_less_eq _ _) -> True
+    -- (Op_large _ _) -> True
+    -- (Op_large_eq _ _) -> True
+    _             -> False -- relational
 isSamePrecendence exp1@(Op_not _) exp2 = 
   case exp2 of
     (Op_not _)  -> True
@@ -419,7 +422,8 @@ strExp pexp@(Op_large_eq exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " >= " +
 -- There should be a single space after not.
 -- not unary expression
 strExp pexp@(Op_not exp) 
-  | isOperatorExp exp = "not " ++ surroundByParens (strExp exp) -- need to parens expression with operator
+  -- need to parens expression with operator and (child's precendence is same or smaller)
+  | (isOperatorExp exp) && ((isSamePrecendence exp pexp) || (isSamllerPrecendence exp pexp)) = "not " ++ surroundByParens (strExp exp)
   | otherwise         = "not " ++ (strExp exp) -- no need to parens constants
 
 -- <exp> <binop> <exp>
