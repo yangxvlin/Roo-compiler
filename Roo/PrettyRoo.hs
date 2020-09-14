@@ -54,8 +54,8 @@ strDataType (AliasDataType t) = t
 strDataType (BasyDataType b) = strBaseType b
 
 strBooleanLiteral :: BooleanLiteral -> String
-strBooleanLiteral True = "True"
-strBooleanLiteral False = "False"
+strBooleanLiteral True = "true"
+strBooleanLiteral False = "false"
 
 -----------------------------------------------------------------
 --  
@@ -362,7 +362,7 @@ strExp (StrConst stringLiteral) = show stringLiteral
 -- "-(binary/unary expressions)"
 -- no space after unary minus
 strExp (Op_neg exp)
-  | isOperatorExp exp = "-" ++ surroundByBrackets (strExp exp) -- need to parens expression with operator
+  | isOperatorExp exp = "-" ++ surroundByParens (strExp exp) -- need to parens expression with operator
   | otherwise         = "-" ++ (strExp exp) -- no need to parens constants
 
 -- <exp> <binop> <exp>
@@ -416,11 +416,11 @@ strExp pexp@(Op_large exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " > " ++ (s
 strExp pexp@(Op_large_eq exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " >= " ++ (strBinaryExpRChild pexp exp2)
 
 -- <exp> <binop> <exp>
--- Single spaces should surround 12 binary operators.
--- >= binary expression
+-- There should be a single space after not.
+-- not unary expression
 strExp pexp@(Op_not exp) 
-  | isOperatorExp exp = "-" ++ surroundByBrackets (strExp exp) -- need to parens expression with operator
-  | otherwise         = "-" ++ (strExp exp) -- no need to parens constants
+  | isOperatorExp exp = "not " ++ surroundByParens (strExp exp) -- need to parens expression with operator
+  | otherwise         = "not " ++ (strExp exp) -- no need to parens constants
 
 -- <exp> <binop> <exp>
 -- Single spaces should surround 12 binary operators.
