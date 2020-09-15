@@ -77,4 +77,6 @@ procedure main ()
     n <- (not (1 + (not 2))) and 3;
     text <- 5*2 * 2;
     test <- ----- (not b);
+
+    write "\n\t\""; # escaping
 }
