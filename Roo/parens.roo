@@ -62,7 +62,7 @@ procedure main ()
 
     y <- (not a) = b;
     n <- not a = b;
-    n____________ <- a = (not b);
+    n <- a = (not b);
     # n <- a = not b; # error
 
     # n____________ <- not not b;

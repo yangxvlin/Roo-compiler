@@ -346,6 +346,11 @@ strBinaryExpLChild pexp exp1
   | (isSamllerPrecendence exp1 pexp) && (isOperatorExp exp1) = surroundByParens (strExp exp1) -- left child (with operator) has lower precendence suggests a parens
   | otherwise = strExp exp1 -- no parens
 
+-- True if expression is not <exp>
+isNotExp :: Exp -> Bool
+isNotExp (Op_not _) = True
+isNotExp _ = False
+
 -- some notation:
 --    pexp: parent      expression (definitely has operator)
 --    exp1: left child  expression
@@ -356,8 +361,9 @@ strBinaryExpRChild pexp exp2
   | (isOperatorExp exp2) && ((isDivSubParentSamePrecChild pexp exp2) || 
                              (isSamllerPrecendence exp2 pexp) ||
                              (isIntegerDision pexp exp2)
-                            ) 
-    = surroundByParens (strExp exp2) -- right child (with operator) has lower precendence suggests a parens
+                            )
+                         && (not (isNotExp exp2)) 
+    = surroundByParens (strExp exp2) -- right child (with operator) has lower precendence (except not operator) suggests a parens
   | otherwise = strExp exp2 -- no parens
 
 -- some notation:
