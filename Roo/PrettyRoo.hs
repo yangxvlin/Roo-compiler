@@ -326,6 +326,11 @@ isDivSubParentSamePrecChild pexp@(Op_sub _ _) cexp@(Op_sub _ _) = True  -- - (su
 isDivSubParentSamePrecChild pexp@(Op_sub _ _) cexp@(Op_add _ _) = True  -- - (sub) with a right child of + need a parens
 isDivSubParentSamePrecChild _ _ = False
 
+-- 3 * (5 / 3) = 3 * 1 = 3, but (3 * 5) / 3 = 15 / 3 = 5,  so parens needed
+isIntegerDision :: Exp -> Exp -> Bool
+isIntegerDision pexp@(Op_mul _ _) cexp@(Op_div _ _) = True 
+isIntegerDision _ _ = False
+
 -- return true a not with constant after a relational expression doesn't need parens
 --    pexp: parent       expression
 --    exp2: right child  expression
@@ -348,7 +353,11 @@ strBinaryExpLChild pexp exp1
 -- turn binary expression's right child to string
 strBinaryExpRChild :: Exp -> Exp -> String
 strBinaryExpRChild pexp exp2
-  | (isOperatorExp exp2) && ((isDivSubParentSamePrecChild pexp exp2) || (isSamllerPrecendence exp2 pexp)) = surroundByParens (strExp exp2) -- right child (with operator) has lower precendence suggests a parens
+  | (isOperatorExp exp2) && ((isDivSubParentSamePrecChild pexp exp2) || 
+                             (isSamllerPrecendence exp2 pexp) ||
+                             (isIntegerDision pexp exp2)
+                            ) 
+    = surroundByParens (strExp exp2) -- right child (with operator) has lower precendence suggests a parens
   | otherwise = strExp exp2 -- no parens
 
 -- some notation:

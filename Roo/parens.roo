@@ -29,7 +29,7 @@ procedure main ()
     y <- a / (b * c);
     n <- a + (b * c);
     n <- a - (b * c);
-    y_________________ <- a * (b / c); # ???
+    y <- a * (b / c); # integer division
     y <- a / (b / c);
     n <- a + (b / c);
     n <- a - (b / c);
@@ -56,7 +56,6 @@ procedure main ()
     n____________ <- a = (not b);
     n <- a = (-5);
     n <- a + (-5);
-    error <- true + "123456";
     # n <- a = not b; # error
 
     # n <- not not true = not false;
