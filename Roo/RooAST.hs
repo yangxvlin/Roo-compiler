@@ -6,26 +6,29 @@
 module RooAST where
 
 -----------------------------------
+-- Terminology:
+-- 0+: zero or more/possible empty
+-- 1+: one or more/ non empty
+--     both 0+, 1+ are stored in list [] but 1+ will be implemented in parser not here
+-----------------------------------
+
+-----------------------------------
 -- Specification of an AST for Roo
 -----------------------------------
 
 -- Identifier: String
 type Ident = String
 
--- Base type: boolean, integer, string type indicator
---    for example: integer var or boolean flag or "hello world"
+-- Base type: boolean, integer type indicator
+--     Not necessary to have string as no variable/parameter/declaration has string type
 data BaseType
   = BooleanType
   | IntegerType
-  -- | StringType  -- no sure whether we need this because 
-                -- No variables can have string type, and
-                -- no operations are available on strings.
-                -- string literals are available, so that meaningful messages can be printed from a Roo program.
     deriving (Show, Eq)
 
 -- A boolean literal is false or true.
 type BooleanLiteral = Bool
--- An integer literal is a sequence of digits, possibly preceded by a minus sign.
+-- An integer literal is a sequence of digits, only stores natural number in our parser implementation
 type IntegerLiteral = Int
 -- A string literal is a sequence of characters between double quotes.
 --   The sequence itself cannot contain double quotes or newline/tab characters. 
@@ -33,21 +36,23 @@ type IntegerLiteral = Int
 --   those characters.
 type StringLiteral = String
 
+-- User custermized record type, stored as string
 type AliasType = String
 
--- for Array, VariableDecl: they have either boolean, integer, or a type alias
+-- for Array, VariableDecl: they have either boolean, integer, or a type alias data type
+--     factored out for reuse purpose
 data DataType
   = BasyDataType BaseType
   | AliasDataType AliasType
     deriving (Show, Eq)
 
 -- An lvalue (<lvalue>) has four (and only four) possible forms:
--- An example lvalue is point[0].xCoord
+--     An example lvalue is point[0].xCoord
 data LValue 
-  = LId Ident -- <id>
-  | LDot Ident Ident -- <id> . <id>
-  | LBrackets Ident Exp -- <id> [ <exp> ]
-  | LBracketsDot Ident Exp Ident -- <id> [ <exp> ] . <id>
+  = LId Ident                     -- <id>
+  | LDot Ident Ident              -- <id>.<id>
+  | LBrackets Ident Exp           -- <id>[<exp>]
+  | LBracketsDot Ident Exp Ident  -- <id>[<exp>].<id>
     deriving (Show, Eq)
 
 -- expression operators: 
@@ -63,104 +68,80 @@ data LValue
 -- not            |unary            |
 -- and            |binary and infix |left-associative
 -- or             |binary and infix |left-associative
--- data BinOp 
---   = Op_or -- or
---   | Op_and -- and
---   | Op_eq | Op_neq | Op_less | Op_less_eq | Op_large | Op_large_eq -- = != < <= > >=
---   | Op_add | Op_sub -- + -
---   | Op_mul | Op_div -- * /
---     deriving (Show, Eq)
--- data UnOp
---   = Op_not -- not; below or, above and
---   | Op_neg  -- -; below * /
---     deriving (Show, Eq)
-
--- -- An expression (<exp>) has one of the following forms:
--- data Exp
---   = Lval LValue -- <lvalue>
---   | BoolConst BooleanLiteral -- <const> where <const> is the syntactic category of boolean, integer, and string literals.
---   | IntConst IntegerLiteral
---   | StrConst StringLiteral
---   -- ( <exp> ) is ignored here but handelled in parser
---   | BinOpExp BinOp Exp Exp -- <exp> <binop> <exp>
---   | UnOpExp UnOp Exp -- <unop> <exp>
---     deriving (Show, Eq)
-
 data Exp
-  = Lval LValue -- <lvalue>
-  | BoolConst BooleanLiteral -- <const> where <const> is the syntactic category of boolean, integer, and string literals.
+  = Lval LValue               -- <lvalue>
+  | BoolConst BooleanLiteral  -- <const> where <const> is the syntactic category of boolean, integer, and string literals.
   | IntConst IntegerLiteral
   | StrConst StringLiteral
-  -- ( <exp> ) is ignored here but handelled in parser
-  | Op_or Exp Exp
-  | Op_and Exp Exp -- <exp> <binop> <exp>
-  | Op_eq  Exp Exp
-  | Op_neq  Exp Exp
-  | Op_less  Exp Exp
-  | Op_less_eq  Exp Exp
-  | Op_large  Exp Exp
-  | Op_large_eq  Exp Exp
-  | Op_add  Exp Exp
-  | Op_sub  Exp Exp
-  | Op_mul  Exp Exp
-  | Op_div  Exp Exp
-  | Op_not Exp -- <unop> <exp>
-  | Op_neg Exp -- unary minus (-)
+                              -- ( <exp> ) is ignored here but handelled in parser
+  | Op_or Exp Exp             -- <exp> <binop: or> <exp>
+  | Op_and Exp Exp            -- <exp> <binop: and> <exp>
+  | Op_eq  Exp Exp            -- <exp> <binop: "="> <exp>
+  | Op_neq  Exp Exp           -- <exp> <binop: "!="> <exp>
+  | Op_less  Exp Exp          -- <exp> <binop: "<"> <exp>
+  | Op_less_eq  Exp Exp       -- <exp> <binop: "<="> <exp>
+  | Op_large  Exp Exp         -- <exp> <binop: ">"> <exp>
+  | Op_large_eq  Exp Exp      -- <exp> <binop: ">="> <exp>
+  | Op_add  Exp Exp           -- <exp> <binop: "+"> <exp>
+  | Op_sub  Exp Exp           -- <exp> <binop: "-"> <exp>
+  | Op_mul  Exp Exp           -- <exp> <binop: "*"> <exp>
+  | Op_div  Exp Exp           -- <exp> <binop: "/"> <exp>
+  | Op_not Exp                -- <unop: not> <exp>
+  | Op_neg Exp                -- <unop: "-"> <exp>
     deriving (Show, Eq)
 
--- atom statement:
---     <lvalue> <- <exp> ;
---     read <lvalue> ;
---     write <exp> ;
---     writeln <exp> ;
---     call <id> ( <exp-list> ) ; 
---         where <exp-list> is a (possibly empty) comma-separated list of expressions.
--- composite statement:
---     if <expr> then <stmt-list> else <stmt-list> fi
---     if <exp> then <stmt-list> fi # just make second [Stmt] emoty
---     while <expr> do <stmt-list> od
---         where <stmt-list> is a non-empty sequence of statements, atomic or composite
+-- Stmt has following two category:
+--  1) atom statement:
+--      <lvalue> <- <exp> ;
+--      read <lvalue> ;
+--      write <exp> ;
+--      writeln <exp> ;
+--      call <id>(<exp-list>) ; 
+--          where <exp-list> is a 0+ comma-separated list of expressions.
+--  2) composite statement:
+--      if <exp> then <stmt-list> else <stmt-list> fi
+--      if <exp> then <stmt-list> fi # just make above second [Stmt] empty
+--      while <exp> do <stmt-list> od
+--          where <stmt-list> is a 1+ sequence of statements, atomic or composite
+--  
+-- the data structure for above grammer are given accordingly below
 data Stmt 
-  -- atom statement:
-  = Assign LValue Exp -- <lvalue> <- <exp>;
-  | Read LValue -- read <lvalue>;
-  | Write Exp -- write <exp>;
-  | Writeln Exp -- writeln <exp>;
-  | Call Ident [Exp] -- call <id> ( <exp-list> ); 
-                     -- where <exp-list> is a (possibly empty) comma-separated list of expressions.
-  -- composite statement:
-  | If Exp [Stmt] [Stmt] -- if <exp> then <stmt-list> else <stmt-list> fi
-                         -- if <exp> then <stmt-list> fi # just make second [Stmt] empty
-  | While Exp [Stmt]     -- while <expr> do <stmt-list> od
-                    -- where <stmt-list> is a non-empty sequence of statements, atomic or composite
+  -- 1) atom statement:
+  = Assign LValue Exp 
+  | Read LValue 
+  | Write Exp 
+  | Writeln Exp 
+  | Call Ident [Exp] 
+  -- 2) composite statement:
+  | If Exp [Stmt] [Stmt] 
+  | While Exp [Stmt]     
     deriving (Show, Eq)
 
 -- Each formal parameter has two components (in the given order):
--- 1. a parameter type/mode indicator, which is one of these five:
---   a) a type alias and an identifier,
---   b) boolean,
---   c) integer,
---   d) boolean and an identifier
---   e) integer and an identifier
+--  1. a parameter type/mode indicator, which is one of these five:
+--    a) a type alias,
+--    b) boolean,
+--    c) integer,
+--    d) boolean val
+--    e) integer val
+--  2. an identifier
 data Parameter
-  = DataParameter DataType Ident
-  -- | BooleanParameter BooleanLiteral
-  | BooleanVal Ident
-  -- | IntegerParameter IntegerLiteral
-  | IntegerVal Ident
+  = DataParameter DataType Ident -- a) b) c) above
+  | BooleanVal Ident             -- d)       above
+  | IntegerVal Ident             -- e)       above
     deriving (Show, Eq)
 
 -- The header has two components (in this order):
 --   1. an identifier (the procedure's name), and
---   2. a comma-separated list of zero or more formal parameters within a pair 
---      of parentheses (so the parentheses are always present).
+--   2. a comma-separated list of 0+ formal parameters within a pair 
+--        of parentheses (so the parentheses are always present).
 data ProcedureHeader
   = ProcedureHeader Ident [Parameter]
     deriving (Show, Eq)
 
 -- A variable declaration consists of
 --   a) a type name (boolean, integer, or a type alias),
---   b) followed by a non-empty (enforced in parser) comma-separated list of 
+--   b) followed by a 0+ comma-separated list of 
   --    identifiers,
 --     i)  the list terminated with a semicolon.
 --     ii) There may be any number of variable declarations, in any order.
@@ -169,12 +150,12 @@ data VariableDecl
     deriving (Show, Eq)
 
 -- procedure body consists of 0+ local variable declarations,
--- 1. A variable declaration consists of
---   a) a type name (boolean, integer, or a type alias),
---   b) followed by a non-empty comma-separated list of identifiers,
---     i)  the list terminated with a semicolon.
---     ii) There may be any number of variable declarations, in any order.
--- 2. followed by a non-empty (enforced in parser) sequence of statements,
+--   1. A variable declaration consists of
+--     a) a type name (boolean, integer, or a type alias),
+--     b) followed by a 1+ comma-separated list of identifiers,
+--       i)  the list terminated with a semicolon.
+--       ii) There may be any number of variable declarations, in any order.
+--   2. followed by a 1+ sequence of statements,
 data ProcedureBody
   = ProcedureBody [VariableDecl] [Stmt]
     deriving (Show, Eq)
@@ -207,8 +188,8 @@ data FieldDecl
 
 -- record consists of:
 --   1. the keyword record,
---   2. a non-empty (enforced in parser) list of field declarations, separated 
---      by semicolons, the whole list enclosed in braces,
+--   2. a 1+ list of field declarations, separated by semicolons, 
+--        the whole list enclosed in braces,
 --   3. an identifier, and
 --   4. a semicolon.
 data Record
@@ -216,10 +197,9 @@ data Record
     deriving (Show, Eq)
 
 -- A Roo program consists of 
---   1. zero or more record type definitions, followed by 
---   2. zero or more array type definitions, followed by 
---   3. one or more (enforced in parser) procedure definitions.
+--   1. 0+ record type definitions, followed by 
+--   2. 0+ array type definitions, followed by 
+--   3. 1+ procedure definitions.
 data Program
   = Program [Record] [Array] [Procedure]
     deriving (Show, Eq)
-
