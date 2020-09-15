@@ -553,8 +553,8 @@ strParameter :: Parameter -> String
 strParameter (DataParameter dataType paraName) = (strDataType dataType) ++ " " ++ paraName
 strParameter (BooleanVal paraName) = "boolean val " ++ paraName
 strParameter (IntegerVal paraName) = "integer val " ++ paraName
-strParameter (BooleanParameter booleanLiteral) = strBooleanLiteral booleanLiteral
-strParameter (IntegerParameter integerLiteral) = show integerLiteral
+-- strParameter (BooleanParameter booleanLiteral) = strBooleanLiteral booleanLiteral
+-- strParameter (IntegerParameter integerLiteral) = show integerLiteral
 
 strProcedureHeader :: ProcedureHeader -> String
 strProcedureHeader (ProcedureHeader procedureName parameters) = 

@@ -397,16 +397,16 @@ pParameter
          }
     )
     <|>
-    do
-      -- parse integer literal
-      integer <- pIntegerLiteral
-      return (IntegerParameter integer)
-    <|>
-    do
-      -- parse boolean literal
-      boolean <- pBooleanLiteral
-      return (BooleanParameter boolean)
-    <|>
+    -- do
+    --   -- parse integer literal
+    --   integer <- pIntegerLiteral
+    --   return (IntegerParameter integer)
+    -- <|>
+    -- do
+    --   -- parse boolean literal
+    --   boolean <- pBooleanLiteral
+    --   return (BooleanParameter boolean)
+    -- <|>
     do
       -- parse boolean/integer/type_alias variable
       paraType <- pDataType

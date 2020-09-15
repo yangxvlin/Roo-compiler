@@ -153,9 +153,9 @@ data Stmt
 --   e) integer and an identifier
 data Parameter
   = DataParameter DataType Ident
-  | BooleanParameter BooleanLiteral
+  -- | BooleanParameter BooleanLiteral
   | BooleanVal Ident
-  | IntegerParameter IntegerLiteral
+  -- | IntegerParameter IntegerLiteral
   | IntegerVal Ident
     deriving (Show, Eq)
 
