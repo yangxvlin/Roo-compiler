@@ -519,15 +519,18 @@ pArray
   =
     do
       reserved "array"
-      -- need to check arraySize > 0
       arraySize <- brackets pIntegerLiteral
-      arrayType <- pDataType
-      arrayName <- identifier
-      semi
-      return (Array arraySize arrayType arrayName)
+      -- need to check arraySize > 0
+      if arraySize == 0
+      then error "array size sould not be 0"
+      else do
+        arrayType <- pDataType
+        arrayName <- identifier
+        semi
+        return (Array arraySize arrayType arrayName)
       <?>
         "array"
-
+        
 -----------------------------------------------------------------
 --  Record related parser
 -----------------------------------------------------------------
