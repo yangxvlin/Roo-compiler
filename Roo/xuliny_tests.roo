@@ -1,0 +1,16 @@
+record
+    { integer cli789ent_number
+    ; integer Ba123lance
+    ; boolean approv'ed'
+    # identifier errors
+    # ; integer _cli789ent_number
+    # ; integer !cli789ent_number
+    # ; integer 'cli789ent_number
+    # ; boolean 000
+    # ; boolean 0002asfas
+    } account;
+
+procedure main1()
+{
+    abc <- "hello";
+}
