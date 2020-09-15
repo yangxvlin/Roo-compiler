@@ -80,5 +80,5 @@ procedure main ()
     text <- 5*2 * 2;
     test <- ----- (not b);
 
-    write "\n\t\""; # escaping
+    write "\n\t\"\\"; # escaping
 }
