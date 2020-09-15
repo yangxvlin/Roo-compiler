@@ -74,7 +74,7 @@ procedure main ()
     n <- (not (not true)) and not false;
     # n <- (not not true) and (not false);
     # n <- not 1 + not 2 and 3;
-    # n <- (not (1 + (not 2))) and 3;
+    n <- (not (1 + (not 2))) and 3;
     text <- 5*2 * 2;
     test <- ----- (not b);
 }

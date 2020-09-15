@@ -213,11 +213,157 @@ pFac
             pBoolConst, 
             pIntConst, 
             pStrConst,
-            pneg,
-            pnot1
+            pneg
            ]
     <?> 
       "simple expression"
+
+-----------------------------------------------------------------
+--  pExp is the main parser for expressions.
+--  Level is decided based on the precedence of each operator
+-----------------------------------------------------------------
+--  pExpL1: or
+--  pExpL2: and
+--  pExpL3: not
+--  pExpL4: = != < <= > >=
+--  pExpL5: + -
+--  pExpL6: * /
+--  pExpL7: -
+-----------------------------------------------------------------
+-- pExp :: Parser Exp
+-- pExp
+--   = 
+--     do
+--       pExpL1
+--     <?>
+--     "expression"
+
+-- pExpL1 :: Parser Exp
+-- pExpL1 = chainl1 pExpL2 pBoolOr
+
+-- pBoolOr :: Parser (Exp -> Exp -> Exp)
+-- pBoolOr
+--   = 
+--     do
+--       reserved "or"
+--       return (Op_or)
+
+-- pExpL2 :: Parser Exp
+-- pExpL2 = chainl1 pExpL3 pBoolAnd
+
+-- pBoolAnd :: Parser (Exp -> Exp -> Exp)
+-- pBoolAnd
+--   = 
+--     do
+--       reserved "and"
+--       return (Op_add)
+
+-- pExpL3 :: Parser Exp
+-- pExpL3 = choice [pNot, pExpL4]
+
+-- pNot :: Parser Exp
+-- pNot
+--   = 
+--     do
+--       reserved "not"
+--       exp <- pExpL4
+--       return (Op_not exp)
+
+-- -- | Relational operators are non-associative
+-- pExpL4 :: Parser Exp
+-- pExpL4 = choice [try pRelationalOps, pExpL5]
+
+-- pRelationalOps :: Parser Exp
+-- pRelationalOps
+--   = 
+--     try(
+--       do
+--         exp1 <- pExpL5
+--         reservedOp "="
+--         exp2 <- pExpL5
+--         return (Op_eq exp1 exp2)
+--     )
+--     <|>
+--     try(
+--       do
+--         exp1 <- pExpL5
+--         reservedOp "!="
+--         exp2 <- pExpL5
+--         return (Op_neq exp1 exp2)
+--     )
+--     <|>
+--     try(
+--       do
+--         exp1 <- pExpL5
+--         reservedOp "<"
+--         exp2 <- pExpL5
+--         return (Op_less exp1 exp2)
+--     )
+--     <|>
+--     try(
+--       do
+--         exp1 <- pExpL5
+--         reservedOp "<="
+--         exp2 <- pExpL5
+--         return (Op_less_eq exp1 exp2)
+--     )
+--     <|>
+--     try(
+--       do
+--         exp1 <- pExpL5
+--         reservedOp ">"
+--         exp2 <- pExpL5
+--         return (Op_large exp1 exp2)
+--     )
+--     <|>
+--     do
+--       exp1 <- pExpL5
+--       reservedOp ">="
+--       exp2 <- pExpL5
+--       return (Op_large_eq exp1 exp2)
+--     <?>
+--       "relation expression"
+
+-- pExpL5 :: Parser Exp
+-- pExpL5 = choice [pBoolConst, (chainl1 pExpL6 pAddSub)]
+
+-- pAddSub :: Parser (Exp -> Exp -> Exp)
+-- pAddSub
+--   = 
+--     do
+--       reservedOp "-"
+--       return (Op_sub)
+--     <|>
+--     do
+--       reservedOp "+"
+--       return (Op_add)
+
+-- pExpL6 :: Parser Exp
+-- pExpL6 = chainl1 pExpL7 pMulDiv
+
+-- pMulDiv :: Parser (Exp -> Exp -> Exp)
+-- pMulDiv
+--   = 
+--     do
+--       reservedOp "*"
+--       return (Op_mul)
+--     <|>
+--     do
+--       reservedOp "/"
+--       return (Op_sub)
+
+-- pExpL7 :: Parser Exp
+-- pExpL7 = choice [pNeg, pIntConst, pLval, pParensExpr]
+
+-- pNeg :: Parser Exp
+-- pNeg
+--   =
+--     do
+--       reservedOp "-"
+--       exp <- pExpL7
+--       return (Op_neg exp)
+--     <?>
+--       "negation"
 
 pLval, pBoolConst, pIntConst, pStrConst :: Parser Exp
 pLval
@@ -244,6 +390,7 @@ pIntConst
     <?>
       "int const"
 
+-- pStrConst is not a part of pExp, it is only used in write/writeln statement
 pStrConst
   = 
     do
@@ -251,6 +398,15 @@ pStrConst
       return (StrConst s)
     <?>
       "string literal"
+
+-- pParensExpr :: Parser Exp
+-- pParensExpr
+--   = 
+--     do
+--       exp <- parens pExp
+--       return exp
+--     <?>
+--     "(<expression>)"
 
 pneg :: Parser Exp
 pneg
@@ -262,18 +418,6 @@ pneg
   <?>
     "negation"
 
-pnot1 :: Parser Exp
-pnot1 = chainr1 pnot Op_not
-
-pnot :: Parser Exp
-pnot 
-  =
-    do
-      reserved "not"
-      exp <- pnot
-      return (Op_not exp)
-    <?>
-      "not expression"
 
 -----------------------------------------------------------------
 --  pStmt is the main parser for statements. 
@@ -330,8 +474,8 @@ pRead
 pWrite
   = do 
       reserved "write"
-      -- TODO can we  have string literal here?
       expr <- pExp
+      -- expr <- choice [pStrConst, pExp]
       return (Write expr)
     <?>
       "write"
@@ -339,8 +483,8 @@ pWrite
 pWriteln
   = do 
       reserved "writeln"
-      -- TODO can we  have string literal here?
       expr <- pExp
+      -- expr <- choice [pStrConst, pExp]
       return (Writeln expr)
     <?>
       "writeln"
