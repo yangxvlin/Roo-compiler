@@ -212,7 +212,9 @@ pFac
             pLval,
             pBoolConst, 
             pIntConst, 
-            pStrConst
+            pStrConst,
+            pneg
+            -- pnot
            ]
     <?> 
       "simple expression"
@@ -249,6 +251,26 @@ pStrConst
       return (StrConst s)
     <?>
       "string literal"
+
+pneg :: Parser Exp
+pneg
+  =
+  do
+    reservedOp "-"
+    exp <- pExp
+    return (Op_neg exp)
+  <?>
+    "negation"
+
+pnot :: Parser Exp
+pnot 
+  =
+    do
+      reserved "not"
+      exp <- pExp
+      return (Op_not exp)
+    <?>
+      "not expression"
 
 -----------------------------------------------------------------
 --  pStmt is the main parser for statements. 

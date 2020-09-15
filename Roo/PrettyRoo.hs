@@ -378,8 +378,8 @@ strExp (StrConst stringLiteral) = show stringLiteral
 
 -- "-(binary/unary expressions)"
 -- no space after unary minus
-strExp (Op_neg exp)
-  | isOperatorExp exp = "-" ++ surroundByParens (strExp exp) -- need to parens expression with operator
+strExp pexp@(Op_neg exp)
+  | (isOperatorExp exp) && (not (isSamePrecendence pexp exp)) = "-" ++ surroundByParens (strExp exp) -- need to parens expression with operator; --5 no parens
   | otherwise         = "-" ++ (strExp exp) -- no need to parens constants
 
 -- <exp> <binop> <exp>
@@ -437,7 +437,7 @@ strExp pexp@(Op_large_eq exp1 exp2) = (strBinaryExpLChild pexp exp1) ++ " >= " +
 -- not unary expression
 strExp pexp@(Op_not exp) 
   -- need to parens expression with operator and (child's precendence is same or smaller)
-  | (isOperatorExp exp) && ((isSamePrecendence exp pexp) || (isSamllerPrecendence exp pexp)) = "not " ++ surroundByParens (strExp exp)
+  | (isOperatorExp exp) && (isSamllerPrecendence exp pexp) = "not " ++ surroundByParens (strExp exp)
   | otherwise         = "not " ++ (strExp exp) -- no need to parens constants
 
 -- <exp> <binop> <exp>
