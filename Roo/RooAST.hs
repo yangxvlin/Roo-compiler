@@ -2,6 +2,7 @@
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
 --  Implemented by Xulin Yang                            --
+--  read from the bottom to top                          --
 -----------------------------------------------------------
 module RooAST where
 
@@ -141,8 +142,8 @@ data ProcedureHeader
 
 -- A variable declaration consists of
 --   a) a type name (boolean, integer, or a type alias),
---   b) followed by a 0+ comma-separated list of 
-  --    identifiers,
+--   b) followed by a 1+ comma-separated list of 
+--        identifiers,
 --     i)  the list terminated with a semicolon.
 --     ii) There may be any number of variable declarations, in any order.
 data VariableDecl
