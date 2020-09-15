@@ -46,7 +46,7 @@ strBaseType BooleanType = "boolean"
 strBaseType IntegerType = "integer"
 
 strDataType :: DataType -> String
-strDataType (AliasDataType t) = t
+strDataType (AliasDataType t) = t -- t is String already
 strDataType (BasyDataType b) = strBaseType b
 
 strBooleanLiteral :: BooleanLiteral -> String
