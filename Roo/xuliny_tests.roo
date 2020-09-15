@@ -15,6 +15,14 @@ procedure main1()
     abc <- "hello";
 
     # escaping
-    write "abc\abc \ \n\t\"\\"; 
-    # write "\"; # escaping
+    writeln "\n\t\"";
+    writeln " \\n\ ";
+    writeln " \\t\ ";
+    writeln " \\"\ " ;
+    # write "abc\abc \ \n\t\"\" \\\\\\\"; # error as \" in the end
+    # write "\" \\"; # error as \" in the end
+    writeln " \  \abc ";
+    a <- "\" + ";
+    a <- "\" + \"";
+    # write "\"; # escaping error
 }

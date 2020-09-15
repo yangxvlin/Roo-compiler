@@ -35,6 +35,7 @@ scanner
      })
 
 whiteSpace    = Q.whiteSpace scanner
+lexeme        = Q.lexeme scanner
 natural       = Q.natural scanner
 identifier    = Q.identifier scanner
 semi          = Q.semi scanner
@@ -102,7 +103,8 @@ pDataType
 -----------------------------------------------------------------
 pBooleanLiteral :: Parser BooleanLiteral
 pBooleanLiteral
- = do { reserved "true"; return (True) }
+ = 
+   do { reserved "true"; return (True) }
    <|>
    do { reserved "false"; return (False) }
    <?>
@@ -110,17 +112,61 @@ pBooleanLiteral
 
 pIntegerLiteral :: Parser IntegerLiteral
 pIntegerLiteral
-  = do
+  = 
+    do
       n <- natural <?> "number"
       return (fromInteger n :: Int)
     <?>
       "Integer Literal"
 
+-- don't accept newline, tab, quote but "\n", "\t", "\"" <- two character string should still be accepted
+pcharacter :: Parser String
+pcharacter
+  =
+    try(
+      do
+        string ('\\':['n'])
+        return (['\\', 'n'])
+    )
+    <|>
+    try(
+      do
+        string ('\\':['t'])
+        return (['\\', 't'])
+    )
+    <|>
+    try(
+      do
+        string ('\\':['"'])
+        return (['\\', '"'])
+    )
+    <|>
+    do
+      c <- noneOf ['\n', '\t', '"']
+      return ([c])
+    <?>
+      "any character except newline, tab, quote"
+
+-- Parser for string
+pString :: Parser String
+pString
+  =
+    do
+      -- String is surrounded by two quotes
+      char '"'
+      -- Parse characters except newline / tab characters and quotes
+      str <- many pcharacter
+      char '"' <?> "\'\"\' to wrap the string"
+      spaces -- consumes following spaces
+      return (concat str)
+    <?>
+      "string cannot has newline, quote, tab"
+
 pStringLiteral :: Parser StringLiteral
 pStringLiteral
   =
     do
-      s <- stringLiteral
+      s <- pString
       return (s)
     <?>
       "string literal"

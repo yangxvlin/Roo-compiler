@@ -56,6 +56,12 @@ strBooleanLiteral False = "false"
 -- StringLiteral can be directly used as it is String type
 
 -- IntegerLiteral can be turned to string by show as it is Int type
+showEscaping :: String -> String
+showEscaping [] = ""
+showEscaping ('\"':xs) = "\\\"" ++ (showEscaping xs)
+showEscaping ('\n':xs) = "\\n" ++ (showEscaping xs)
+showEscaping ('\t':xs) = "\\t" ++ (showEscaping xs)
+showEscaping (x:xs) = x:(showEscaping xs)
 
 -----------------------------------------------------------------
 -- An lvalue (<lvalue>) has four (and only four) possible forms:
@@ -322,7 +328,7 @@ strExp (IntConst integerLiteral) = show integerLiteral
 -- <const>
 -- White space, and upper/lower case, should be preserved inside strings.
 -- stringLiterals
-strExp (StrConst stringLiteral) = show stringLiteral
+strExp (StrConst stringLiteral) = "\"" ++ stringLiteral ++ "\""
 -- <unop: "-"> <exp>
 -- no space after unary minus
 strExp pexp@(Op_neg exp)
