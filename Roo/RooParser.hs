@@ -213,8 +213,8 @@ pFac
             pBoolConst, 
             pIntConst, 
             pStrConst,
-            pneg
-            -- pnot
+            pneg,
+            pnot1
            ]
     <?> 
       "simple expression"
@@ -262,12 +262,15 @@ pneg
   <?>
     "negation"
 
+pnot1 :: Parser Exp
+pnot1 = chainr1 pnot Op_not
+
 pnot :: Parser Exp
 pnot 
   =
     do
       reserved "not"
-      exp <- pExp
+      exp <- pnot
       return (Op_not exp)
     <?>
       "not expression"

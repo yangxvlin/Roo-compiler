@@ -50,9 +50,6 @@ procedure main ()
     n <- not (1 < 2);
     n <- not (1 > 2);
 
-    y <- (not a) = b;
-    n <- not a = b;
-
     n <- a = (-5);
     n <- a + (-5);
     n <- - -5;
@@ -62,17 +59,22 @@ procedure main ()
     n <--- 1;
     n <----- 1;
 
-    n____________ <- not not b;
 
+    y <- (not a) = b;
+    n <- not a = b;
     n____________ <- a = (not b);
     # n <- a = not b; # error
 
+    # n____________ <- not not b;
+    # n____________ <- not a = not b;
+
     # n____________ <- not not true = not false;
-    # n <- not (not (true = (not false)));
+    n <- not (not (true = (not false)));
     # n____________ <- not not true and not false;
-    # n <- (not (not true)) and not false;
+    n <- (not (not true)) and not false;
     # n <- (not not true) and (not false);
     # n <- not 1 + not 2 and 3;
     # n <- (not (1 + (not 2))) and 3;
     text <- 5*2 * 2;
+    test <- ----- (not b);
 }
