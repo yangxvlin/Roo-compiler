@@ -9,17 +9,8 @@ module RooAST where
 -- Specification of an AST for Roo
 -----------------------------------
 
-import Text.Parsec.Pos
-
 -- Identifier: String
 type Ident = String
- 
--- Position: SourcePos (SourceName, Line, Column)
-type Pos = SourcePos
-
--- -----------------------------------------------------------------
--- customized by Xulin Yang
--- -----------------------------------------------------------------
 
 -- Base type: boolean, integer, string type indicator
 --    for example: integer var or boolean flag or "hello world"
