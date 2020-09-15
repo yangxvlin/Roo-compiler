@@ -29,13 +29,22 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
+## repository structure
+- ```/docs```: documentation & specification
+- ```/Joey```: Joey is a subset language of Roo, provided as skeleton code
+- ```/Roo```: implemented Roo parser
+
 ## specifications
 ### stage 1a
 - <img src="./docs/1a.png" width="70%" />
+- ``` submit COMP90045 1a ```
 
 ### stage 1b
 - <img src="./docs/1b.png" width="40%" />
 - [specification 1](./docs/asg1.pdf)
+#### how to submit
+- ``` submit COMP90045 1b Makefile Roo.hs RooAST.hs PrettyRoo.hs RooParser.hs ```
+- ``` verify COMP90045 1b | less ```
 #### tasks
 - Roo has global type definitions for aggregate types (records and arrays), but there are no global variables. 
 - One (parameterless) procedure must be named "main".
@@ -185,10 +194,3 @@ This project follows the [all-contributors](https://github.com/all-contributors/
   - If the input program has lexical/syntax errors, it should not be pretty-printed; instead suitable error messages should be produced.
   - The main program that you need to create is Roo.hs which will eventually be developed to a full compiler.
 - pretty printer
-
-
-
-## directory structure
-```
-- |Joey  # a parser and a pretty-printer for Roo
-```

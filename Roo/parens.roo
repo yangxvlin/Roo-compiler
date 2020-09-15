@@ -1,0 +1,67 @@
+procedure main ()
+{
+    n <- (a * b) + c;
+    n <- (a / b) + c;
+    n <- (a + b) + c;
+    n <- (a - b) + c;
+    n <- (a * b) - c;
+    n <- (a / b) - c;
+    n <- (a + b) - c;
+    n <- (a - b) - c;
+    n <- (a * b) * c;
+    n <- (a / b) * c;
+    y <- (a + b) * c;
+    y <- (a - b) * c;
+    n <- (a * b) / c;
+    n <- (a / b) / c;
+    y <- (a + b) / c;
+    y <- (a - b) / c;
+
+    y <- a * (b + c);
+    y <- a / (b + c);
+    n <- a + (b + c);
+    y <- a - (b + c);
+    y <- a * (b - c);
+    y <- a / (b - c);
+    n <- a + (b - c);
+    y <- a - (b - c);
+    n <- a * (b * c);
+    y <- a / (b * c);
+    n <- a + (b * c);
+    n <- a - (b * c);
+    y <- a * (b / c); # integer division
+    y <- a / (b / c);
+    n <- a + (b / c);
+    n <- a - (b / c);
+
+    y <- -(a + b);
+    n <- (-a) + b;
+
+    y <- (a = b) = c;
+    y <- a = (b = c);
+
+    n <- (not a) and b;
+    y <- not (a and b);
+    n <- (not a) or b;
+    y <- not (a or b);
+    n <- a and (not b);
+    n <- a or (not b);
+
+    n <- not (1 < 2);
+    n <- not (1 > 2);
+
+    y <- (not a) = b;
+    n <- not a = b;
+
+    n____________ <- a = (not b);
+    n <- a = (-5);
+    n <- a + (-5);
+    # n <- a = not b; # error
+
+    # n <- not not true = not false;
+    # n <- not (not (true = (not false)));
+    # n <- not not true and not false;
+    # n <- (not not true) and (not false);
+    # n <- not 1 + not 2 and 3;
+    # n <- (not (1 + (not 2))) and 3;
+}

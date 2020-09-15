@@ -26,3 +26,4 @@ cabal.project.local~
 .vscode/
 *.exe
 JoeyScanner.hs
+*.out
