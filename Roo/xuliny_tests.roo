@@ -13,4 +13,8 @@ record
 procedure main1()
 {
     abc <- "hello";
+
+    # escaping
+    write "abc\abc \ \n\t\"\\"; 
+    # write "\"; # escaping
 }
