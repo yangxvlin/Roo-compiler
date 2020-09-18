@@ -194,3 +194,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
   - If the input program has lexical/syntax errors, it should not be pretty-printed; instead suitable error messages should be produced.
   - The main program that you need to create is Roo.hs which will eventually be developed to a full compiler.
 - pretty printer
+
+### stage 2
+- [specification](./docs/asg2.pdf)
