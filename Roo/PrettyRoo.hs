@@ -198,7 +198,7 @@ isHigherPrecendence exp1@(Op_or _ _) exp2
   | otherwise = False
 isHigherPrecendence _ _ = False
 
--- exp1 has higher precendence than exp2
+-- exp1 has same precendence as exp2
 isSamePrecendence :: Exp -> Exp -> Bool
 isSamePrecendence exp1@(Op_neg _) exp2 = 
   case exp2 of
@@ -249,7 +249,7 @@ isSamllerPrecendence :: Exp -> Exp -> Bool
 isSamllerPrecendence exp1 exp2 = (not (isHigherPrecendence exp1 exp2)) &&
                                  (not (isSamePrecendence   exp1 exp2))
 
--- does expression has operator
+-- does expression has operator in it?
 hasOperatorExp :: Exp -> Bool
 hasOperatorExp (Lval _) = False
 hasOperatorExp (BoolConst _) = False
@@ -297,7 +297,10 @@ isNotExp _ = False
 -- turn binary expression's right child to string
 strBinaryExpRChild :: Exp -> Exp -> String
 strBinaryExpRChild pexp exp2
-  -- right child (with operator) has lower precendence (except not operator) suggests a parens
+  -- right child (with operator) has lower precendence (except "not" operator) or 
+  --    same predence as parent (if parent is div(/) or sub(-)) or
+  --    integer division happens
+  -- suggests a parens
   | (hasOperatorExp exp2) && 
     ((isDivSubParentSamePrecChild pexp exp2) || 
       (isSamllerPrecendence exp2 pexp) ||
