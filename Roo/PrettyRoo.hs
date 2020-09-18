@@ -56,12 +56,6 @@ strBooleanLiteral False = "false"
 -- StringLiteral can be directly used as it is String type
 
 -- IntegerLiteral can be turned to string by show as it is Int type
-showEscaping :: String -> String
-showEscaping [] = ""
-showEscaping ('\"':xs) = "\\\"" ++ (showEscaping xs)
-showEscaping ('\n':xs) = "\\n" ++ (showEscaping xs)
-showEscaping ('\t':xs) = "\\t" ++ (showEscaping xs)
-showEscaping (x:xs) = x:(showEscaping xs)
 
 -----------------------------------------------------------------
 -- An lvalue (<lvalue>) has four (and only four) possible forms:
