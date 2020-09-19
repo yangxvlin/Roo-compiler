@@ -30,6 +30,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
 ## repository structure
+- ```/2a submit```: submission to project 2a with personal info removed
 - ```/docs```: documentation & specification
 - ```/Joey```: Joey is a subset language of Roo, provided as skeleton code
 - ```/Roo```: implemented Roo parser
