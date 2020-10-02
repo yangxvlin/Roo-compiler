@@ -27,3 +27,6 @@ cabal.project.local~
 *.exe
 JoeyScanner.hs
 *.out
+xuliny.zip
+xuliny/
+./Roo/xuliny_tests.roo

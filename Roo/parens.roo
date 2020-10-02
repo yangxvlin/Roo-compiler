@@ -1,4 +1,4 @@
-# array[0] abc; # array size error
+array[0] integer val abx; # array size error
 
 procedure main ()
 {
