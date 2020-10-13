@@ -198,3 +198,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ### stage 2
 - [specification](./docs/asg2.pdf)
+
+### stage 3a
+#### how to submit
+- ``` submit COMP90045 3a xuliny.roo xuliny.in ```
+- ``` verify COMP90045 3a | less ```
