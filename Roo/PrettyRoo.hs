@@ -2,7 +2,7 @@
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
 --  Implemented by Xulin Yang                            --
---  read from the bottom to top                          --
+--  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module PrettyRoo (pp)
 where

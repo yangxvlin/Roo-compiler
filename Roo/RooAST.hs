@@ -2,7 +2,7 @@
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
 --  Implemented by Xulin Yang                            --
---  read from the bottom to top                          --
+--  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module RooAST where
 
@@ -10,7 +10,8 @@ module RooAST where
 -- Terminology:
 -- 0+: zero or more/possible empty
 -- 1+: one or more/ non empty
---     both 0+, 1+ are stored in list [] but 1+ will be implemented in parser not here
+--     both 0+, 1+ are stored in list [] but 1+ will be implemented in parser 
+--      not here
 -----------------------------------
 
 -----------------------------------
@@ -21,7 +22,8 @@ module RooAST where
 type Ident = String
 
 -- Base type: boolean, integer type indicator
---     Not necessary to have string as no variable/parameter/declaration has string type
+--     Not necessary to have string as no variable/parameter/declaration has 
+--      string type
 data BaseType
   = BooleanType
   | IntegerType
@@ -30,7 +32,8 @@ data BaseType
 -- User custermized record type, stored as string
 type AliasType = String
 
--- for Array, VariableDecl: they have either boolean, integer, or a type alias data type
+-- for Array, VariableDecl: they have either boolean, integer, or a type alias 
+--  data type
 --     factored out for reuse purpose
 data DataType
   = BasyDataType BaseType
@@ -61,10 +64,12 @@ data LValue
 -- or             |binary and infix |left-associative
 data Exp
   = Lval LValue               -- <lvalue>
-  | BoolConst Bool  -- <const> where <const> is the syntactic category of boolean, integer, and string literals.
+  | BoolConst Bool  -- <const> where <const> is the syntactic category of 
+                    -- boolean, integer, and string literals.
   | IntConst Int
   | StrConst String
-                              -- ( <exp> ) is ignored here but handelled in parser
+                              -- ( <exp> ) is ignored here but handelled in 
+                              --  parser
   | Op_or Exp Exp             -- <exp> <binop: or> <exp>
   | Op_and Exp Exp            -- <exp> <binop: and> <exp>
   | Op_eq  Exp Exp            -- <exp> <binop: "="> <exp>

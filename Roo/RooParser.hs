@@ -2,7 +2,7 @@
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
 --  Implemented by Xulin Yang                            --
---  read from the bottom to top                          --
+--  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module RooParser (ast)
 where 
@@ -26,7 +26,8 @@ scanner
      , Q.nestedComments  = True
      , Q.identStart      = letter
      -- An identifir is a non-empty sequence of alphanumeric characters, 
-    --  underscore and apostrophe ('), and it must start with a (lower or upper case) letter.
+    --  underscore and apostrophe ('), and it must start with a (lower or upper
+    --  case) letter.
      , Q.identLetter     = alphaNum <|> char '_' <|> char '\''
      , Q.opStart         = oneOf "+-*<"
      , Q.opLetter        = oneOf "="
@@ -119,7 +120,8 @@ pInt
     <?>
       "Integer Literal"
 
--- don't accept newline, tab, quote but "\n", "\t", "\"" <- two character string should still be accepted
+-- don't accept newline, tab, quote but "\n", "\t", "\"" <- two character 
+-- string should still be accepted
 pcharacter :: Parser String
 pcharacter
   =
@@ -280,8 +282,10 @@ opTable
   = [ [ prefix   "-"   Op_neg    ]
     , [ binary   "*"   Op_mul    , binary   "/"  Op_div  ]
     , [ binary   "+"   Op_add    , binary   "-"  Op_sub  ]
-    , [ relation "="   Op_eq     , relation "!=" Op_neq  , relation "<"  Op_less
-      , relation "<="  Op_less_eq, relation ">"  Op_large, relation ">=" Op_large_eq ]
+    , [ relation "="   Op_eq     , relation "!=" Op_neq  , 
+        relation "<"  Op_less
+      , relation "<="  Op_less_eq, relation ">"  Op_large, 
+        relation ">=" Op_large_eq ]
     , [ prefix   "not" Op_not    ]
     , [ binary   "and" Op_and    ]
     , [ binary   "or"  Op_or     ]
@@ -300,7 +304,8 @@ pFac
             pBoolConst, 
             pIntConst, 
             pStrConst,
-            pNeg         -- used to parse expression like ------1 (arbitrary unary minus before expression)
+            pNeg         -- used to parse expression like ------1 (arbitrary 
+                         -- unary minus before expression)
            ]
     <?> 
       "simple expression"
@@ -361,12 +366,14 @@ pStmt, pStmtAtom, pStmtComp :: Parser Stmt
 --     write <exp> ;
 --     writeln <exp> ;
 --     call <id> ( <exp-list> ) ; 
---         where <exp-list> is a (possibly empty) comma-separated list of expressions.
+--         where <exp-list> is a (possibly empty) comma-separated list of 
+  --          expressions.
 -- composite statement:
 --     if <expr> then <stmt-list> else <stmt-list> fi
 --     if <exp> then <stmt-list> fi # just make second [Stmt] empty
 --     while <expr> do <stmt-list> od
---         where <stmt-list> is a non-empty sequence of statements, atomic or composite
+--         where <stmt-list> is a non-empty sequence of statements, atomic or 
+--            composite
 pStmt = choice [pStmtAtom, pStmtComp]
 
 pStmtAtom
@@ -424,7 +431,8 @@ pCall
   = do
       reserved "call"
       ident <- identifier
-      exprs <- parens (pExp `sepBy` comma) -- 0+ comma-separated list of expressions
+      -- 0+ comma-separated list of expressions
+      exprs <- parens (pExp `sepBy` comma)
       return (Call ident exprs)
     <?>
       "call"
@@ -597,7 +605,8 @@ pArray
       -- need to check arraySize > 0 (positive integer)
       if arraySize == 0
       then
-        error ("array size sould not be 0 at line: " ++ (show (sourceLine pos)) ++ ", column: " ++ (show (sourceColumn pos + 1))) -- +1 to skip '['
+        error ("array size sould not be 0 at line: " ++ (show (sourceLine pos))
+          ++ ", column: " ++ (show (sourceColumn pos + 1))) -- +1 to skip '['
       else do
         arrayType <- pDataType
         arrayName <- identifier
