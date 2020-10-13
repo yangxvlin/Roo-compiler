@@ -46,6 +46,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 #### how to submit
 - ``` submit COMP90045 1b Makefile Roo.hs RooAST.hs PrettyRoo.hs RooParser.hs ```
 - ``` verify COMP90045 1b | less ```
+#### stage 1 result
+- [result](./docs/stage&#32;1&#32;result/all_files.pdf)
 #### tasks
 - Roo has global type definitions for aggregate types (records and arrays), but there are no global variables. 
 - One (parameterless) procedure must be named "main".
