@@ -148,8 +148,8 @@ pcharacter
       "any character except newline, tab, quote"
 
 -- Parser for string
-pString :: Parser String
-pString
+pStringLiteral :: Parser String
+pStringLiteral
   =
     do
       -- String is surrounded by two quotes
@@ -161,16 +161,6 @@ pString
       return (concat str)
     <?>
       "string cannot has newline, quote, tab"
-
-pStringLiteral :: Parser StringLiteral
-pStringLiteral
-  =
-    do
-      s <- pString
-      return (s)
-    <?>
-      "string literal"
-
 
 -----------------------------------------------------------------
 -- An lvalue (<lvalue>) has four (and only four) possible forms:
