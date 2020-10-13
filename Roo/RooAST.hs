@@ -27,16 +27,6 @@ data BaseType
   | IntegerType
     deriving (Show, Eq)
 
--- A boolean literal is false or true.
-type BooleanLiteral = Bool
--- An integer literal is a sequence of digits, only stores natural number in our parser implementation
-type IntegerLiteral = Int
--- A string literal is a sequence of characters between double quotes.
---   The sequence itself cannot contain double quotes or newline/tab characters. 
---   It may, however, contain '" ', '\n', and '\t', respectively, to represent 
---   those characters.
-type StringLiteral = String
-
 -- User custermized record type, stored as string
 type AliasType = String
 
@@ -71,9 +61,9 @@ data LValue
 -- or             |binary and infix |left-associative
 data Exp
   = Lval LValue               -- <lvalue>
-  | BoolConst BooleanLiteral  -- <const> where <const> is the syntactic category of boolean, integer, and string literals.
-  | IntConst IntegerLiteral
-  | StrConst StringLiteral
+  | BoolConst Bool  -- <const> where <const> is the syntactic category of boolean, integer, and string literals.
+  | IntConst Int
+  | StrConst String
                               -- ( <exp> ) is ignored here but handelled in parser
   | Op_or Exp Exp             -- <exp> <binop: or> <exp>
   | Op_and Exp Exp            -- <exp> <binop: and> <exp>
@@ -178,7 +168,7 @@ data Procedure
 --   4. an identifier (giving a name to the array type), and
 --   5. a semicolon.
 data Array
-  = Array IntegerLiteral DataType Ident
+  = Array Int DataType Ident
     deriving (Show, Eq)
 
 -- field declaration is of:

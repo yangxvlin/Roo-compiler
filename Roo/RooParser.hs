@@ -101,8 +101,8 @@ pDataType
 -----------------------------------------------------------------
 --  parse literals
 -----------------------------------------------------------------
-pBooleanLiteral :: Parser BooleanLiteral
-pBooleanLiteral
+pBool :: Parser Bool
+pBool
  = 
    do { reserved "true"; return (True) }
    <|>
@@ -110,8 +110,8 @@ pBooleanLiteral
    <?>
       "boolean literal"
 
-pIntegerLiteral :: Parser IntegerLiteral
-pIntegerLiteral
+pInt :: Parser Int
+pInt
   = 
     do
       n <- natural <?> "number"
@@ -148,8 +148,8 @@ pcharacter
       "any character except newline, tab, quote"
 
 -- Parser for string
-pStringLiteral :: Parser String
-pStringLiteral
+pString :: Parser String
+pString
   =
     do
       -- String is surrounded by two quotes
@@ -317,7 +317,7 @@ pLval
 pBoolConst
   = 
     do
-      b <- pBooleanLiteral
+      b <- pBool
       return (BoolConst b)
     <?>
       "bool const/literal expression"
@@ -325,7 +325,7 @@ pBoolConst
 pIntConst
   = 
     do
-      i <- pIntegerLiteral
+      i <- pInt
       return (IntConst i)
     <?>
       "int const/literal expression"
@@ -333,7 +333,7 @@ pIntConst
 pStrConst
   = 
     do
-      s <- pStringLiteral
+      s <- pString
       return (StrConst s)
     <?>
       "string const/literal expression"
@@ -593,7 +593,7 @@ pArray
     do
       reserved "array"
       pos <- getPosition
-      arraySize <- brackets pIntegerLiteral
+      arraySize <- brackets pInt
       -- need to check arraySize > 0 (positive integer)
       if arraySize == 0
       then

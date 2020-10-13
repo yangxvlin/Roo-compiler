@@ -49,13 +49,13 @@ strDataType :: DataType -> String
 strDataType (AliasDataType t) = t -- t is String already
 strDataType (BasyDataType b) = strBaseType b
 
-strBooleanLiteral :: BooleanLiteral -> String
-strBooleanLiteral True = "true"
-strBooleanLiteral False = "false"
+strBool :: Bool -> String
+strBool True = "true"
+strBool False = "false"
 
--- StringLiteral can be directly used as it is String type
+-- String can be directly used as it is String type
 
--- IntegerLiteral can be turned to string by show as it is Int type
+-- Int can be turned to string by show
 
 -----------------------------------------------------------------
 -- An lvalue (<lvalue>) has four (and only four) possible forms:
@@ -319,7 +319,7 @@ strExp :: Exp -> String
 -- <lvalue>
 strExp (Lval lValue) = strLValue lValue
 -- <const>
-strExp (BoolConst booleanLiteral) = strBooleanLiteral booleanLiteral
+strExp (BoolConst booleanLiteral) = strBool booleanLiteral
 -- <const>
 strExp (IntConst integerLiteral) = show integerLiteral
 -- <const>
