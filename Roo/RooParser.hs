@@ -184,33 +184,69 @@ pLValue :: Parser LValue
 pLValue 
   = try (
       do
-        ident1 <- identifier
-        exp <- brackets pExp
-        dot
-        ident2 <- identifier
-        return (LBracketsDot ident1 exp ident2)
-   ) 
+        lValue <- pLBracketsDot
+        return lValue
+    ) 
     <|>
     try (
       do
-        ident <- identifier
-        exp <- brackets pExp
-        return (LBrackets ident exp)
+        lValue <- pLBrackets
+        return lValue
     )
     <|>
     try (
       do
-        ident1 <- identifier
-        dot
-        ident2 <- identifier
-        return (LDot ident1 ident2)
+        lValue <- pLDot
+        return lValue
     )
     <|>
+    do
+      lValue <- pLId
+      return lValue
+    <?>
+      "LValue"
+
+pLBracketsDot :: Parser LValue
+pLBracketsDot
+  = 
+    do
+      ident1 <- identifier
+      exp <- brackets pExp
+      dot
+      ident2 <- identifier
+      return (LBracketsDot ident1 exp ident2)
+     <?>
+      "LBracketsDot"
+
+pLBrackets :: Parser LValue
+pLBrackets
+  = 
+    do
+      ident <- identifier
+      exp <- brackets pExp
+      return (LBrackets ident exp)
+    <?>
+      "pLBrackets"
+
+pLDot :: Parser LValue
+pLDot
+  =
+    do
+      ident1 <- identifier
+      dot
+      ident2 <- identifier
+      return (LDot ident1 ident2)
+    <?>
+      "pLDot"
+
+pLId :: Parser LValue
+pLId
+  =
     do
       ident <- identifier
       return (LId ident)
     <?>
-      "LValue"
+      "pLId"
 
 -----------------------------------------------------------------
 --  pExp is the main parser for expression. 
@@ -409,10 +445,10 @@ pIf, pWhile :: Parser Stmt
 
 -- parse: 
 --    if <exp> then <stmt-list> else <stmt-list> fi
---    if <exp> then <stmt-list> fi # just make above second [Stmt] empty
+--    if <exp> then <stmt-list> fi
 pIf
-  = do
-      
+  = 
+    do
       reserved "if"
       exp <- pExp
       reserved "then"

@@ -10,5 +10,5 @@ record {
 
 
 procedure main() {
-    read n;
+    read n[n.abc];
 }
