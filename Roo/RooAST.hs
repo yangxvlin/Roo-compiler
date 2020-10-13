@@ -114,7 +114,8 @@ data Stmt
   | Writeln Exp 
   | Call Ident [Exp] 
   -- 2) composite statement:
-  | If Exp [Stmt] [Stmt] 
+  | IfThen Exp [Stmt]
+  | IfThenElse Exp [Stmt] [Stmt]
   | While Exp [Stmt]     
     deriving (Show, Eq)
 

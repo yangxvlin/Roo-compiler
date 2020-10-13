@@ -30,8 +30,8 @@ scanner
      , Q.identLetter     = alphaNum <|> char '_' <|> char '\''
      , Q.opStart         = oneOf "+-*<"
      , Q.opLetter        = oneOf "="
-     , Q.reservedNames   = joeyReserved
-     , Q.reservedOpNames = joeyOpnames
+     , Q.reservedNames   = rooReserved
+     , Q.reservedOpNames = rooOpnames
      })
 
 whiteSpace    = Q.whiteSpace scanner
@@ -49,10 +49,10 @@ reserved      = Q.reserved scanner
 reservedOp    = Q.reservedOp scanner
 stringLiteral = Q.stringLiteral scanner
 
-joeyReserved, joeyOpnames :: [String]
+rooReserved, rooOpnames :: [String]
 
 -- reserved words according to the specification
-joeyReserved
+rooReserved
   = ["and", "array", "boolean", "call", "do", "else", "false", "fi", "if", 
     "integer", "not", "od", "or", "procedure", "read", "record", "then", 
     "true", "val", "while", "write", "writeln"]
@@ -61,7 +61,7 @@ joeyReserved
 -- 12 binary oprator (and, or; above reserved string); 
 -- 2 unary: not (above reserved string), -; 
 -- assignment operator <-
-joeyOpnames 
+rooOpnames 
   = [ "+", "-", "*", "/", "=", "!=", "<", "<=", ">", ">=", "<-"]
 
 -----------------------------------------------------------------
@@ -157,7 +157,7 @@ pString
       -- Parse characters except newline / tab characters and quotes
       str <- many pcharacter
       char '"' <?> "\'\"\' to wrap the string"
-      spaces -- consumes following spaces
+      whiteSpace -- consumes following spaces
       return (concat str)
     <?>
       "string cannot has newline, quote, tab"
@@ -416,22 +416,22 @@ pIf
       reserved "if"
       exp <- pExp
       reserved "then"
-      stmts <- many1 pStmt
+      thenStmts <- many1 pStmt
       -- check if there is an else statment
       -- if not, return empty
-      estmts <- (
+      res <- (
         do
           reserved "fi"
-          return []
+          return (IfThen exp thenStmts)
         <|>
         do
           reserved "else"
           -- else body can not be empty
-          s <- many1 pStmt
+          elseStmts <- many1 pStmt
           reserved "fi"
-          return s
+          return (IfThenElse exp thenStmts elseStmts)
         )
-      return (If exp stmts estmts)
+      return res
     <?>
       "if"
 
@@ -636,8 +636,8 @@ pProgram
 -- main (given skeleton code)
 -----------------------------------------------------------------
 
-joeyParse :: Parser Program
-joeyParse
+rooParse :: Parser Program
+rooParse
   = do
       whiteSpace
       p <- pProgram
@@ -646,7 +646,7 @@ joeyParse
 
 ast :: String -> Either ParseError Program
 ast input
-  =  runParser joeyParse 0 "" input
+  =  runParser rooParse 0 "" input
 
 pMain :: Parser Program
 pMain

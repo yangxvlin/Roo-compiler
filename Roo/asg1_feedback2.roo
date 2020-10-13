@@ -1,0 +1,14 @@
+record {integer client_number;integer balance;
+boolean approved}
+account;
+record {
+    integer client_number;
+    integer balance;
+    boolean approved
+} account;
+
+
+
+procedure main() {
+    read n;
+}

@@ -1,0 +1,12 @@
+procedure main()
+{
+# error1
+writeln "hello" # print hello
+;
+# change AST
+    if true then 
+        writeln " " ;
+    else 
+    writeln " #  # "; 
+fi
+}
