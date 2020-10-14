@@ -1,14 +1,21 @@
-record {integer client_number;integer balance;
-boolean approved}
-account;
-record {
-    integer client_number;
-    integer balance;
-    boolean approved
-} account;
+record {boolean x} boolrec;
+record {integer y; integer z} intrec;
 
-
-
-procedure main() {
-    read n[n.abc];
+procedure main()
+    boolean test;
+    integer n;
+    boolrec b;
+    intrec i;
+{
+    test <- false;
+    n <- 7;
+    b.x <- test;
+    test <- not b.x and true;
+    i.y <- n;
+    i.z <- 2 * i.y -1;
+    if test then
+        writeln i.y + i.z;
+    else
+        writeln i.z - i.y;
+    fi
 }
