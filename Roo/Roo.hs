@@ -7,6 +7,9 @@ module Main (main)
 where
 import RooParser (ast)
 import PrettyRoo (pp)
+-- import Semantic (analyse, Result(..))
+-- import OzCode (writeCode)
+-- import Codegen (ozCode)
 import System.Environment (getProgName, getArgs)
 import System.Exit (exitWith, ExitCode(..))
 
