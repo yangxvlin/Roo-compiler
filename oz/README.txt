@@ -10,3 +10,9 @@ The generation has been tested in September 2020 on the MSE server
 
   nutmeg2.eng.unimelb.edu.au
 
+Run your Roo compiler to compile a Roo program, and then feed that output into the Oz interpretter.
+
+$ ./Roo prog.roo > prog.oz
+$ ./oz prog.oz
+
+Alternatively, write prog.oz by hand and run.
