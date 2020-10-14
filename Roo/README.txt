@@ -54,6 +54,14 @@ To run these on some source programs, do
 or
     Roo -a io.roo
 
+To run semantic Analyser, do
+
+    Roo -n <file>  will do semantic analysis, but no code generation
+
+To run code generation, do
+
+    Roo <file>  will do the full compilation and output an Oz target program
+
 (the parser is written so that it understands command-line arguments;
 the -a option causes an AST to be output; the -p option is for
 pretty-printing.)
