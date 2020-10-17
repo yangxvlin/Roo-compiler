@@ -6,15 +6,29 @@
 -----------------------------------------------------------
 module RooAnalyser(analyse, Result(..)) where
 
+import Control.Monad.State
 import RooAST
 import SymbolTable
+import Data.Map
 
 data Result = Okay SymTable
             | Err String
 
-analyse :: Program -> Result
-analyse (Program records arraies procedures)
-  = 
+analyse :: Program -> Result 
+analyse prog
+  = let st = execState (construct prog) initialSymTable in 
+      (Err $ show $ size $ att st)
     -- do
-      -- runState initialSymTable
-      Okay (SymTable {  } )
+    --   let res = execState (construct prog) initialSymTable
+    --   case res of
+    --     SymTable st
+    --       -> return (Okay st)
+
+construct :: Program -> SymTableState ()
+construct prog@(Program records arraies procedures)
+  = 
+    do
+      st <- get
+      mapM_ insertRecordType records
+      mapM_ insertArrayType arraies
+      -- return (Okay st)

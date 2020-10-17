@@ -22,6 +22,8 @@ import RooAST
 data CompositeKey = CompositeKey String String
   deriving (Show, Eq, Ord)
 
+type SymTableState a = State SymTable a
+
 data SymTable 
   = SymTable 
     -- global array type table
@@ -48,7 +50,7 @@ initialSymTable = SymTable { att = Map.empty
 -- TypeTable related data structure and helper methods
 -- ---------------------------------------------------------------------------
 
-insertArrayType :: Array -> State SymTable ()
+insertArrayType :: Array -> SymTableState ()
 insertArrayType (Array arraySize dataType arrayName) 
   = 
     do
@@ -61,7 +63,7 @@ insertArrayType (Array arraySize dataType arrayName)
         put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
 
 -- assume fieldDecls are not duplicate
-insertRecordType :: Record -> State SymTable ()
+insertRecordType :: Record -> SymTableState ()
 insertRecordType (Record fieldDecls recordName)
   = 
     do
@@ -72,10 +74,12 @@ insertRecordType (Record fieldDecls recordName)
         error $ "Duplicated record name: " ++ recordName
       -- insert a record definition
       else
-        put $ st { rtt =  Map.insert recordName recordSize (rtt st) }
+        do
+          mapM_ (insertRecordFields recordName) fieldDecls 
+          put $ st { rtt = Map.insert recordName recordSize (rtt st) }
 
-insertRecordFields :: FieldDecl -> String -> State SymTable ()
-insertRecordFields (FieldDecl baseType fieldName) recordName
+insertRecordFields :: String -> FieldDecl -> SymTableState ()
+insertRecordFields recordName (FieldDecl baseType fieldName) 
   = 
     do
       st <- get
@@ -85,7 +89,7 @@ insertRecordFields (FieldDecl baseType fieldName) recordName
         error $ "Duplicated record field: " ++ recordName ++ "." ++ fieldName
       -- insert a (record name, field name) definition
       else
-        put $ st { rft =  Map.insert ck baseType (rft st) }
+        put $ st { rft = Map.insert ck baseType (rft st) }
 
 
 -- ---------------------------------------------------------------------------
