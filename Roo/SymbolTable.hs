@@ -14,10 +14,17 @@ import RooAST
 
 -- ---------------------------------------------------------------------------
 -- Termonology:
---  att: global array type table
---  rtt: global record type table
---  rft: global record field table
---  pt: global procedure table
+-- - global type table: holds information about type aliases and the composite
+--   types then name;
+--    - att: global array type table
+--    - rtt: global record type table
+--    - rft: global record field table
+-- - global procedure table: holds procedure parameter type, whether by 
+--   reference information
+--    - pt: global procedure table
+-- - local variable table: which provides information about formal parameters 
+--   and variables in the procedure that is currently being processed.
+--    - lts: stack of local variable tables
 -- ---------------------------------------------------------------------------
 
 data CompositeKey = CompositeKey String String
@@ -128,7 +135,5 @@ createformalParams (r:rs)
 
 
 -- ---------------------------------------------------------------------------
--- VariableTable related data structure and helper methods
--- which provides information about formal parameters and
--- variables in the procedure that is currently being processed.
+-- VariableTable related helper methods
 -- ---------------------------------------------------------------------------      
