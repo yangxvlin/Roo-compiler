@@ -9,8 +9,12 @@ module RooAnalyser(analyse, Result(..)) where
 import RooAST
 import SymbolTable
 
-data Result = Okay SymbolTable
+data Result = Okay SymTable
             | Err String
 
 analyse :: Program -> Result
-analyse prog = Okay (SymbolTable ())
+analyse (Program records arraies procedures)
+  = 
+    -- do
+      -- runState initialSymTable
+      Okay (SymTable {  } )

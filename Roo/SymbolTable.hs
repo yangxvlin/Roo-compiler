@@ -19,6 +19,9 @@ import RooAST
 --  rft: global record field table
 -- ---------------------------------------------------------------------------
 
+data CompositeKey = CompositeKey String String
+  deriving (Show, Eq, Ord)
+
 data SymTable 
   = SymTable 
     -- global array type table
@@ -29,11 +32,17 @@ data SymTable
     , rtt :: Map String (Int) 
       -- map of record name with number of fields
     -- global record field table
-    , rft :: Map (String, String) (BaseType)
+    , rft :: Map CompositeKey (BaseType)
       -- map of (record name, field name) with field type
-    , pt :: ProcedureTable
-    , lts :: [LocalVariableTable]
+    -- , pt :: ProcedureTable
+    -- , lts :: [LocalVariableTable]
     }
+
+initialSymTable :: SymTable
+initialSymTable = SymTable { att = Map.empty
+                           , rtt = Map.empty
+                           , rft = Map.empty
+                           }
 
 -- ---------------------------------------------------------------------------
 -- TypeTable related data structure and helper methods
@@ -45,7 +54,7 @@ insertArrayType (Array arraySize dataType arrayName)
     do
       st <- get
       -- duplicate array definition
-      if Map.member arrayName (att st) then
+      if (Map.member arrayName (att st)) then
         error $ "Duplicated array name: " ++ arrayName
       -- insert an array definition
       else
@@ -57,24 +66,26 @@ insertRecordType (Record fieldDecls recordName)
   = 
     do
       st <- get
+      let recordSize = length fieldDecls
       -- duplicate record definition
-      if Map.member recordName (rtt st) then
+      if (Map.member recordName (rtt st)) then
         error $ "Duplicated record name: " ++ recordName
       -- insert a record definition
       else
         put $ st { rtt =  Map.insert recordName recordSize (rtt st) }
 
-insertRecordFields :: FieldDecl -> String -> Map String BaseType -> Map String BaseType
-insertRecordFields [] _ = return ()
+insertRecordFields :: FieldDecl -> String -> State SymTable ()
 insertRecordFields (FieldDecl baseType fieldName) recordName
-  = do
-    st <- get
-    -- duplicate (record name, field name) definition
-      if Map.member (recordName, fieldName) (rft st) then
+  = 
+    do
+      st <- get
+      let ck = CompositeKey recordName fieldName
+      -- duplicate (record name, field name) definition
+      if (Map.member ck (rft st)) then
         error $ "Duplicated record field: " ++ recordName ++ "." ++ fieldName
       -- insert a (record name, field name) definition
       else
-        put $ st { rft =  Map.insert (recordName, fieldName) baseType (rft st) }
+        put $ st { rft =  Map.insert ck baseType (rft st) }
 
 
 -- ---------------------------------------------------------------------------

@@ -9,5 +9,5 @@ module Codegen(ozCode) where
 import SymbolTable
 import RooAST
 
-ozCode :: SymbolTable -> Program -> ()
+ozCode :: SymTable -> Program -> ()
 ozCode _ _ = ()
