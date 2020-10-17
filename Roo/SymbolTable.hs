@@ -12,6 +12,12 @@ import qualified Data.Map as Map
 import Text.Parsec.Pos
 import RooAST
 
+data SymTable = SymTable TypeTable ProcedureTable LocalVariableTables
+
+-- ---------------------------------------------------------------------------
+-- TypeTable related data structure and helper methods
+-- ---------------------------------------------------------------------------
+
 -- a (global) "type table" which holds information about type aliases and the 
 -- composite types then name;
 data TypeTable 
@@ -24,3 +30,13 @@ data TypeTable
     --                         and number of fields
     , recordType :: Map String ((Map String BaseType), Int)
     }
+
+insertArrayType :: TypeTable -> Array -> State SymTable ()
+insertArrayType tt (Array arraySize dataType arrayName) = 
+    insert arrayName (arraySize, dataType)
+  where
+    arrayTypeTable = arrayType tt
+
+insertRecordType :: TypeTable -> Record 
+
+
