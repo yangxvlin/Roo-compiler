@@ -1,13 +1,9 @@
------------------------------------------------------------
--- COMP90045 Programming Language Implementation Project --
---                     Roo Compiler                      --
---  Implemented by Xulin Yang                            --
------------------------------------------------------------
 module Main (main) 
 where
+
 import RooParser (ast)
-import PrettyRoo (pp)
-import RooAnalyser (analyse, Result(..))
+import PrettyPrinter (prettyPrint)
+import Semantic (analyse, Result(..))
 import OzCode (writeCode)
 import Codegen (ozCode)
 import System.Environment (getProgName, getArgs)
@@ -81,7 +77,7 @@ main
                let output = ast input
                case output of
                  Right tree 
-                   -> putStr (pp tree)
+                   -> putStrLn (prettyPrint tree)
                  Left err 
                    -> do putStrLn "Parse error at "
                          print err

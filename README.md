@@ -30,6 +30,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
 ## repository structure
+- ```/2a submit```: submission to project 2a with personal info removed
 - ```/docs```: documentation & specification
 - ```/Joey```: Joey is a subset language of Roo, provided as skeleton code
 - ```/Roo```: implemented Roo parser
@@ -45,6 +46,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 #### how to submit
 - ``` submit COMP90045 1b Makefile Roo.hs RooAST.hs PrettyRoo.hs RooParser.hs ```
 - ``` verify COMP90045 1b | less ```
+#### stage 1 result
+- [result](./docs/stage&#32;1&#32;result/all_files.pdf)
 #### tasks
 - Roo has global type definitions for aggregate types (records and arrays), but there are no global variables. 
 - One (parameterless) procedure must be named "main".
@@ -194,3 +197,11 @@ This project follows the [all-contributors](https://github.com/all-contributors/
   - If the input program has lexical/syntax errors, it should not be pretty-printed; instead suitable error messages should be produced.
   - The main program that you need to create is Roo.hs which will eventually be developed to a full compiler.
 - pretty printer
+
+### stage 2
+- [specification](./docs/asg2.pdf)
+
+### stage 3a
+#### how to submit
+- ``` submit COMP90045 3a xuliny.roo xuliny.in ```
+- ``` verify COMP90045 3a | less ```

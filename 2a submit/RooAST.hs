@@ -1,8 +1,7 @@
 -----------------------------------------------------------
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
---  Implemented by Xulin Yang                            --
---  Implemented by Team: GNU_project                     --
+--  read from the bottom to top                          --
 -----------------------------------------------------------
 module RooAST where
 
@@ -10,8 +9,7 @@ module RooAST where
 -- Terminology:
 -- 0+: zero or more/possible empty
 -- 1+: one or more/ non empty
---     both 0+, 1+ are stored in list [] but 1+ will be implemented in parser 
---      not here
+--     both 0+, 1+ are stored in list [] but 1+ will be implemented in parser not here
 -----------------------------------
 
 -----------------------------------
@@ -22,18 +20,26 @@ module RooAST where
 type Ident = String
 
 -- Base type: boolean, integer type indicator
---     Not necessary to have string as no variable/parameter/declaration has 
---      string type
+--     Not necessary to have string as no variable/parameter/declaration has string type
 data BaseType
   = BooleanType
   | IntegerType
     deriving (Show, Eq)
 
+-- A boolean literal is false or true.
+type BooleanLiteral = Bool
+-- An integer literal is a sequence of digits, only stores natural number in our parser implementation
+type IntegerLiteral = Int
+-- A string literal is a sequence of characters between double quotes.
+--   The sequence itself cannot contain double quotes or newline/tab characters. 
+--   It may, however, contain '" ', '\n', and '\t', respectively, to represent 
+--   those characters.
+type StringLiteral = String
+
 -- User custermized record type, stored as string
 type AliasType = String
 
--- for Array, VariableDecl: they have either boolean, integer, or a type alias 
---  data type
+-- for Array, VariableDecl: they have either boolean, integer, or a type alias data type
 --     factored out for reuse purpose
 data DataType
   = BasyDataType BaseType
@@ -64,12 +70,10 @@ data LValue
 -- or             |binary and infix |left-associative
 data Exp
   = Lval LValue               -- <lvalue>
-  | BoolConst Bool  -- <const> where <const> is the syntactic category of 
-                    -- boolean, integer, and string literals.
-  | IntConst Int
-  | StrConst String
-                              -- ( <exp> ) is ignored here but handelled in 
-                              --  parser
+  | BoolConst BooleanLiteral  -- <const> where <const> is the syntactic category of boolean, integer, and string literals.
+  | IntConst IntegerLiteral
+  | StrConst StringLiteral
+                              -- ( <exp> ) is ignored here but handelled in parser
   | Op_or Exp Exp             -- <exp> <binop: or> <exp>
   | Op_and Exp Exp            -- <exp> <binop: and> <exp>
   | Op_eq  Exp Exp            -- <exp> <binop: "="> <exp>
@@ -109,8 +113,7 @@ data Stmt
   | Writeln Exp 
   | Call Ident [Exp] 
   -- 2) composite statement:
-  | IfThen Exp [Stmt]
-  | IfThenElse Exp [Stmt] [Stmt]
+  | If Exp [Stmt] [Stmt] 
   | While Exp [Stmt]     
     deriving (Show, Eq)
 
@@ -173,7 +176,7 @@ data Procedure
 --   4. an identifier (giving a name to the array type), and
 --   5. a semicolon.
 data Array
-  = Array Int DataType Ident
+  = Array IntegerLiteral DataType Ident
     deriving (Show, Eq)
 
 -- field declaration is of:

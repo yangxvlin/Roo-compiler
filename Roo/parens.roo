@@ -1,3 +1,5 @@
+array[0] integer val abx; # array size error
+
 procedure main ()
 {
     n <- (a * b) + c;
@@ -50,18 +52,34 @@ procedure main ()
     n <- not (1 < 2);
     n <- not (1 > 2);
 
-    y <- (not a) = b;
-    n <- not a = b;
-
-    n____________ <- a = (not b);
     n <- a = (-5);
     n <- a + (-5);
+    n <- - -5;
+    n <- 2 - -5;
+    
+    n <- 1;
+    n <--- 1;
+    n <----- 1;
+
+
+    y <- (not a) = b;
+    n <- not a = b;
+    n <- a = (not b);
     # n <- a = not b; # error
 
-    # n <- not not true = not false;
-    # n <- not (not (true = (not false)));
-    # n <- not not true and not false;
+    # n____________ <- not not b;
+    # n____________ <- not a = not b;
+
+    # n____________ <- not not true = not false;
+    n <- not (not (true = (not false)));
+    # n____________ <- not not true and not false;
+    n <- (not (not true)) and not false;
     # n <- (not not true) and (not false);
     # n <- not 1 + not 2 and 3;
-    # n <- (not (1 + (not 2))) and 3;
+    n <- (not (1 + (not 2))) and 3;
+    text <- 5*2 * 2;
+    test <- ----- (not b);
+
+    write "abc\abc \ \n\t\"\\ "; # escaping
+    # write "\"; # escaping
 }

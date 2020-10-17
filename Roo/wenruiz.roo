@@ -1,0 +1,44 @@
+# check how many duplicate in 5 given numbers  
+# assume no more than 5 numbers
+
+array[5] integer numbs;
+
+procedure main()
+    integer i;
+    integer n;
+    integer duplicate_size;
+    integer current_size;
+    boolean unique;
+{
+    i <- 0;
+    duplicate_size <- 0;
+    current_size <- 0;
+    while i < 5 do
+        read n;
+        call check_duplicate (current_size, n, unique);
+        if unique then
+            read numbs[i];
+        else
+            duplicate_size <- duplicate_size + 1;
+        fi
+
+        current_size <- current_size + 1;
+        i <- i + 1;
+    od
+
+    write duplicate_size;
+}
+
+procedure check_duplicate (integer size, integer n, integer result)
+    integer i;
+    boolean unique;
+{
+    i <- 0; 
+    unique <- True;
+    while i < size do
+        if numbs[i] = n then
+            unique <- False;
+        fi
+    od
+    result <- unique;
+}

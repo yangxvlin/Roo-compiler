@@ -1,8 +1,7 @@
 -----------------------------------------------------------
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
---  Implemented by Xulin Yang                            --
---  Implemented by Team: GNU_project                     --
+--  read from the bottom to top                          --
 -----------------------------------------------------------
 module PrettyRoo (pp)
 where
@@ -49,13 +48,13 @@ strDataType :: DataType -> String
 strDataType (AliasDataType t) = t -- t is String already
 strDataType (BasyDataType b) = strBaseType b
 
-strBool :: Bool -> String
-strBool True = "true"
-strBool False = "false"
+strBooleanLiteral :: BooleanLiteral -> String
+strBooleanLiteral True = "true"
+strBooleanLiteral False = "false"
 
--- String can be directly used as it is String type
+-- StringLiteral can be directly used as it is String type
 
--- Int can be turned to string by show
+-- IntegerLiteral can be turned to string by show as it is Int type
 
 -----------------------------------------------------------------
 -- An lvalue (<lvalue>) has four (and only four) possible forms:
@@ -319,7 +318,7 @@ strExp :: Exp -> String
 -- <lvalue>
 strExp (Lval lValue) = strLValue lValue
 -- <const>
-strExp (BoolConst booleanLiteral) = strBool booleanLiteral
+strExp (BoolConst booleanLiteral) = strBooleanLiteral booleanLiteral
 -- <const>
 strExp (IntConst integerLiteral) = show integerLiteral
 -- <const>
@@ -396,16 +395,17 @@ strStmt indentLevel (Call ident exps) =
   --     where <exp-list> is a (possibly empty according to parser) comma-separated list of expressions.
   (addIndentation indentLevel) ++ "call " ++ ident ++ surroundByParens (intercalate comma (map strExp exps)) ++ semicolon ++ newline
 -- thenStmts is non-empty according to parser, elseStmts is possible empty according to parser
-strStmt indentLevel (IfThen exp thenStmts) = 
-  -- if <exp> then <stmt-list> fi
+strStmt indentLevel (If exp thenStmts elseStmts) = 
+  -- IF elseStmts is empty: according to parser: if <exp> then <stmt-list> fi
+  if null elseStmts then
     -- "if ... then" should be printed on one line, irrespective of the size of the intervening expression
     (addIndentation indentLevel) ++ "if " ++ (strExp exp) ++ " then" ++ newline ++
     -- more indentation
     (concatMap (strStmt (indentLevel+1)) thenStmts) ++
     -- the terminating fi should be indented exactly as the corresponding if.
     (addIndentation indentLevel) ++ "fi" ++ newline
-strStmt indentLevel (IfThenElse exp thenStmts elseStmts) = 
-  -- if <expr> then <stmt-list> else <stmt-list> fi
+  -- OTHERWISE            : according to parser: if <expr> then <stmt-list> else <stmt-list> fi
+  else
     -- "if ... then" should be printed on one line, irrespective of the size of the intervening expression
     (addIndentation indentLevel) ++ "if " ++ (strExp exp) ++ " then" ++ newline ++
     -- more indentation
