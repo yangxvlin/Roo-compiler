@@ -1,7 +1,7 @@
 -----------------------------------------------------------
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
---  Implemented by Xulin Yangm, Wenrui ZHang             --
+--  Implemented by Xulin Yangm, Wenrui Zhang             --
 --  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module SymbolTable where
@@ -93,5 +93,9 @@ insertRecordFields recordName (FieldDecl baseType fieldName)
 
 
 -- ---------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- procedure table related data structure and helper methods
 -- ---------------------------------------------------------------------------
 

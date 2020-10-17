@@ -1,11 +1,12 @@
 -----------------------------------------------------------
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
---  Implemented by Xulin Yang                            --
+--  Implemented by Xulin Yangm, Wenrui Zhang             --
 --  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module RooAnalyser(analyse, Result(..)) where
 
+import Control.Monad.Except
 import Control.Monad.State
 import RooAST
 import SymbolTable
