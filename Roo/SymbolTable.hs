@@ -96,6 +96,6 @@ insertRecordFields recordName (FieldDecl baseType fieldName)
 -- ---------------------------------------------------------------------------
 
 -- ---------------------------------------------------------------------------
--- procedure table related data structure and helper methods
+-- Procedure table
 -- ---------------------------------------------------------------------------
 
