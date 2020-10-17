@@ -48,6 +48,18 @@ insertArrayType (Array arraySize dataType arrayName)
       else
         put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
 
-insertRecordType :: TypeTable -> Record 
+insertRecordType :: Record -> State SymTable ()
+insertRecordType ()
+  =
+    do
+      st <- get
+      -- duplicate array definition
+      if Map.member arrayName (att st)) then
+        error $ "Duplicated array name: " ++ arrayName
+      -- insert an array definiotion to att
+      else
+        put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
 
+-- ---------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------
 
