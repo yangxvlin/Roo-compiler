@@ -12,30 +12,41 @@ import qualified Data.Map as Map
 import Text.Parsec.Pos
 import RooAST
 
-data SymTable = SymTable TypeTable ProcedureTable LocalVariableTables
+-- ---------------------------------------------------------------------------
+-- Termonology:
+--  att: array type table
+-- ---------------------------------------------------------------------------
+
+data SymTable 
+  = SymTable 
+    -- global array type table
+    { att :: Map String (Int, DataType) 
+      -- map of array name with array size and 
+      --                        data type (bool or integer or record)
+    -- global record type table
+    , rtt :: Map String ((Map String BaseType), Int) 
+      -- map of record name with field declaration 
+      --                             (map of field's name with bool or integer)
+      --                         and number of fields
+    , pt :: ProcedureTable
+    , lts :: [LocalVariableTable]
+    }
 
 -- ---------------------------------------------------------------------------
 -- TypeTable related data structure and helper methods
 -- ---------------------------------------------------------------------------
 
--- a (global) "type table" which holds information about type aliases and the 
--- composite types then name;
-data TypeTable 
-  = TypeTable
-    -- map of array name with array size and 
-    --                        data type (bool or integer or record)
-    { arrayType :: Map String (Int, DataType) 
-    -- map of record name with field declaration 
-    --                             (map of field's name with bool or integer) 
-    --                         and number of fields
-    , recordType :: Map String ((Map String BaseType), Int)
-    }
-
-insertArrayType :: TypeTable -> Array -> State SymTable ()
-insertArrayType tt (Array arraySize dataType arrayName) = 
-    insert arrayName (arraySize, dataType)
-  where
-    arrayTypeTable = arrayType tt
+insertArrayType :: Array -> State SymTable ()
+insertArrayType (Array arraySize dataType arrayName) 
+  = 
+    do
+      st <- get
+      -- duplicate array definition
+      if Map.member arrayName (att st)) then
+        error $ "Duplicated array name: " ++ arrayName
+      -- insert an array definiotion to att
+      else
+        put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
 
 insertRecordType :: TypeTable -> Record 
 
