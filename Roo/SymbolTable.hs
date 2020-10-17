@@ -14,7 +14,9 @@ import RooAST
 
 -- ---------------------------------------------------------------------------
 -- Termonology:
---  att: array type table
+--  att: global array type table
+--  rtt: global record type table
+--  rft: global record field table
 -- ---------------------------------------------------------------------------
 
 data SymTable 
@@ -24,10 +26,11 @@ data SymTable
       -- map of array name with array size and 
       --                        data type (bool or integer or record)
     -- global record type table
-    , rtt :: Map String ((Map String BaseType), Int) 
-      -- map of record name with field declaration 
-      --                             (map of field's name with bool or integer)
-      --                         and number of fields
+    , rtt :: Map String (Int) 
+      -- map of record name with number of fields
+    -- global record field table
+    , rft :: Map (String, String) (BaseType)
+      -- map of (record name, field name) with field type
     , pt :: ProcedureTable
     , lts :: [LocalVariableTable]
     }
@@ -42,23 +45,37 @@ insertArrayType (Array arraySize dataType arrayName)
     do
       st <- get
       -- duplicate array definition
-      if Map.member arrayName (att st)) then
+      if Map.member arrayName (att st) then
         error $ "Duplicated array name: " ++ arrayName
-      -- insert an array definiotion to att
+      -- insert an array definition
       else
         put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
 
+-- assume fieldDecls are not duplicate
 insertRecordType :: Record -> State SymTable ()
-insertRecordType ()
-  =
+insertRecordType (Record fieldDecls recordName)
+  = 
     do
       st <- get
-      -- duplicate array definition
-      if Map.member arrayName (att st)) then
-        error $ "Duplicated array name: " ++ arrayName
-      -- insert an array definiotion to att
+      -- duplicate record definition
+      if Map.member recordName (rtt st) then
+        error $ "Duplicated record name: " ++ recordName
+      -- insert a record definition
       else
-        put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
+        put $ st { rtt =  Map.insert recordName recordSize (rtt st) }
+
+insertRecordFields :: FieldDecl -> String -> Map String BaseType -> Map String BaseType
+insertRecordFields [] _ = return ()
+insertRecordFields (FieldDecl baseType fieldName) recordName
+  = do
+    st <- get
+    -- duplicate (record name, field name) definition
+      if Map.member (recordName, fieldName) (rft st) then
+        error $ "Duplicated record field: " ++ recordName ++ "." ++ fieldName
+      -- insert a (record name, field name) definition
+      else
+        put $ st { rft =  Map.insert (recordName, fieldName) baseType (rft st) }
+
 
 -- ---------------------------------------------------------------------------
 -- ---------------------------------------------------------------------------
