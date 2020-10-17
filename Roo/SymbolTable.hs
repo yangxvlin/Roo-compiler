@@ -1,7 +1,7 @@
 -----------------------------------------------------------
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
---  Implemented by Xulin Yangm, Wenrui ZHang             --
+--  Implemented by Xulin Yangm, Wenrui ZHang, Chao zhang --
 --  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module SymbolTable where
@@ -17,6 +17,7 @@ import RooAST
 --  att: global array type table
 --  rtt: global record type table
 --  rft: global record field table
+--  pt: global procedure table
 -- ---------------------------------------------------------------------------
 
 data CompositeKey = CompositeKey String String
@@ -36,7 +37,8 @@ data SymTable
     -- global record field table
     , rft :: Map CompositeKey (BaseType)
       -- map of (record name, field name) with field type
-    -- , pt :: ProcedureTable
+    -- global procedure table
+    , pt :: Map String ([(Bool, DataType)])
     -- , lts :: [LocalVariableTable]
     }
 
@@ -44,6 +46,7 @@ initialSymTable :: SymTable
 initialSymTable = SymTable { att = Map.empty
                            , rtt = Map.empty
                            , rft = Map.empty
+                           , pt = Map.empty
                            }
 
 -- ---------------------------------------------------------------------------
@@ -95,3 +98,32 @@ insertRecordFields recordName (FieldDecl baseType fieldName)
 -- ---------------------------------------------------------------------------
 -- ---------------------------------------------------------------------------
 
+
+
+-- ---------------------------------------------------------------------------
+-- ProcedureTable related data structure and helper methods
+-- ---------------------------------------------------------------------------
+insertProcedure :: Procedure -> SymTableState ()
+insertProcedure (Procedure (ProcedureHeader ident params) (ProcedureBody _ _ ))
+  = do
+    let formalParams = createformalParams params
+    putProcedure ident formalParams
+
+putProcedure :: String -> [(Bool, DataType)] -> SymTableState ()
+putProcedure procedureName formalParams
+  = do
+      st <- get
+      -- duplicate record definition
+      if Map.member procedureName (pt st) then
+        error $ "Duplicated procedure name: " ++ procedureName
+      -- insert a record definition
+      else
+        put $ st { pt =  Map.insert procedureName formalParams (pt st) }
+
+createformalParams :: [Parameter] -> [(Bool, DataType)]
+createformalParams [] = []
+createformalParams (r:rs) 
+  = case r of
+      BooleanVal _ -> [(True, BasyDataType BooleanType)] ++ (createformalParams rs)
+      IntegerVal _ -> [(True, BasyDataType IntegerType)] ++ (createformalParams rs)
+      DataParameter dataType _ -> [(False, dataType)] ++ (createformalParams rs)
