@@ -46,11 +46,11 @@ initialSymTable :: SymTable
 initialSymTable = SymTable { att = Map.empty
                            , rtt = Map.empty
                            , rft = Map.empty
-                           , pt = Map.empty
+                           , pt  = Map.empty
                            }
 
 -- ---------------------------------------------------------------------------
--- TypeTable related data structure and helper methods
+-- TypeTable related helper methods
 -- ---------------------------------------------------------------------------
 
 insertArrayType :: Array -> SymTableState ()
@@ -101,7 +101,7 @@ insertRecordFields recordName (FieldDecl baseType fieldName)
 
 
 -- ---------------------------------------------------------------------------
--- ProcedureTable related data structure and helper methods
+-- ProcedureTable related helper methods
 -- ---------------------------------------------------------------------------
 insertProcedure :: Procedure -> SymTableState ()
 insertProcedure (Procedure (ProcedureHeader ident params) (ProcedureBody _ _ ))
@@ -114,7 +114,7 @@ putProcedure procedureName formalParams
   = do
       st <- get
       -- duplicate record definition
-      if Map.member procedureName (pt st) then
+      if (Map.member procedureName (pt st)) then
         error $ "Duplicated procedure name: " ++ procedureName
       -- insert a record definition
       else
