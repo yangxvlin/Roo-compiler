@@ -1,7 +1,7 @@
 -----------------------------------------------------------
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
---  Implemented by Xulin Yangm, Wenrui ZHang, Chao zhang --
+--  Implemented by Xulin Yangm, Wenrui Zhang             --
 --  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module SymbolTable where
@@ -96,9 +96,7 @@ insertRecordFields recordName (FieldDecl baseType fieldName)
 
 
 -- ---------------------------------------------------------------------------
--- ---------------------------------------------------------------------------
-
-
+-- --------------------------------------------------------------------------
 
 -- ---------------------------------------------------------------------------
 -- ProcedureTable related helper methods
@@ -127,3 +125,10 @@ createformalParams (r:rs)
       BooleanVal _ -> [(True, BasyDataType BooleanType)] ++ (createformalParams rs)
       IntegerVal _ -> [(True, BasyDataType IntegerType)] ++ (createformalParams rs)
       DataParameter dataType _ -> [(False, dataType)] ++ (createformalParams rs)
+
+
+-- ---------------------------------------------------------------------------
+-- VariableTable related data structure and helper methods
+-- which provides information about formal parameters and
+-- variables in the procedure that is currently being processed.
+-- ---------------------------------------------------------------------------      
