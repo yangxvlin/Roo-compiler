@@ -1,8 +1,7 @@
 record {boolean x} boolrec;
 record {integer y; integer z} intrec;
-record {integer y; integer z} intrec;
 
-procedure main()
+procedure main1()
     boolean test;
     integer n;
     boolrec b;

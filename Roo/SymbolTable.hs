@@ -14,10 +14,17 @@ import RooAST
 
 -- ---------------------------------------------------------------------------
 -- Termonology:
---  att: global array type table
---  rtt: global record type table
---  rft: global record field table
---  pt: global procedure table
+-- - global type table: holds information about type aliases and the composite
+--   types then name;
+--    - att: global array type table
+--    - rtt: global record type table
+--    - rft: global record field table
+-- - global procedure table: holds procedure parameter type, whether by 
+--   reference information
+--    - pt: global procedure table
+-- - local variable table: which provides information about formal parameters 
+--   and variables in the procedure that is currently being processed.
+--    - lts: stack of local variable tables
 -- ---------------------------------------------------------------------------
 
 data CompositeKey = CompositeKey String String
@@ -46,11 +53,11 @@ initialSymTable :: SymTable
 initialSymTable = SymTable { att = Map.empty
                            , rtt = Map.empty
                            , rft = Map.empty
-                           , pt = Map.empty
+                           , pt  = Map.empty
                            }
 
 -- ---------------------------------------------------------------------------
--- TypeTable related data structure and helper methods
+-- TypeTable related helper methods
 -- ---------------------------------------------------------------------------
 
 insertArrayType :: Array -> SymTableState ()
@@ -99,7 +106,7 @@ insertRecordFields recordName (FieldDecl baseType fieldName)
 -- --------------------------------------------------------------------------
 
 -- ---------------------------------------------------------------------------
--- ProcedureTable related data structure and helper methods
+-- ProcedureTable related helper methods
 -- ---------------------------------------------------------------------------
 insertProcedure :: Procedure -> SymTableState ()
 insertProcedure (Procedure (ProcedureHeader ident params) (ProcedureBody _ _ ))
@@ -112,7 +119,7 @@ putProcedure procedureName formalParams
   = do
       st <- get
       -- duplicate record definition
-      if Map.member procedureName (pt st) then
+      if (Map.member procedureName (pt st)) then
         error $ "Duplicated procedure name: " ++ procedureName
       -- insert a record definition
       else
@@ -128,7 +135,7 @@ createformalParams (r:rs)
 
 
 -- ---------------------------------------------------------------------------
--- VariableTable related data structure and helper methods
+-- VariableTable related  helper methods
 -- which provides information about formal parameters and
 -- variables in the procedure that is currently being processed.
 -- --------------------------------------------------------------------------- 
