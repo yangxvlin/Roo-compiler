@@ -57,7 +57,11 @@ checkDistinctTypeAlias
 
 -- procedure's parameter and local variable should have different name
 
+-- different procedures' parameter and local variable could have same name 
 
+-- all defined procedures must have distinct names.
+
+-- the number of actual parameters in a call must be equal to the number of formal parameters in the procedure’s definition.
 
 -----------------------------------------------------------
 --Static semantics
