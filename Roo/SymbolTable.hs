@@ -37,7 +37,7 @@ data SymTable
     -- global array type table
     { att :: Map String (Int, DataType) 
       -- map of array name with array size and 
-      --                        data type (bool or integer or record)
+      -- data type (bool or integer or record)
     -- global record type table
     , rtt :: Map String (Int) 
       -- map of record name with number of fields
@@ -135,6 +135,19 @@ createformalParams (r:rs)
 
 
 -- ---------------------------------------------------------------------------
--- VariableTable related  helper methods
+-- VariableTable related helper methods
 -- --------------------------------------------------------------------------- 
 
+-- TO DO: PLEASE CHECK FOLLOWING --wenruiz
+-- insert one variable to the given procedure
+insertVariable :: Procedure -> VariableDecl -> SymTableState ()
+insertVariable (Procedure (ProcedureHeader ident params) (ProcedureBody _ _ )) (VariableDecl DataType Ident)
+  = do
+      -- extract the variable map from the procedure
+      
+      -- duplicate variable definition
+      if (Map.member arrayName (att st)) then
+        error $ "Duplicated variable name: " ++ arrayName
+      -- insert an variable definition
+      else
+        put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }

@@ -12,4 +12,4 @@ import RooAST
 ozCode :: SymTable -> Program -> ()
 ozCode _ _ = ()
 
--- assume fieldDecls are not duplicate
+-- 
