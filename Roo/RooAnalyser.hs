@@ -8,19 +8,27 @@ module RooAnalyser(analyse, Result(..)) where
 
 import Control.Monad
 import Control.Monad.State
+import Control.Monad.Except
 import RooAST
 import SymbolTable
 import qualified Data.Map as Map
 import Data.Either
 
-data Result = Okay SymTable
-            | Err String
-
+type Result = Either String SymTable
 
 analyse :: Program -> Result 
 analyse prog
-  = let st = execState (constructSymbolTable prog) initialSymTable in 
-      semanticCheck prog (Okay st)
+  = evalStateT (semanticCheckRooProgram prog) initialSymTable
+
+semanticCheckRooProgram :: Program -> SymTableState SymTable
+semanticCheckRooProgram prog
+  =
+    do
+      constructSymbolTable prog
+      mainProcedure <- getProcedureDefinition "main"
+      st <- get
+      return st
+
 
 constructSymbolTable :: Program -> SymTableState ()
 constructSymbolTable prog@(Program records arraies procedures)
@@ -29,19 +37,4 @@ constructSymbolTable prog@(Program records arraies procedures)
       st <- get
       mapM_ insertRecordType records
       mapM_ insertArrayType arraies
-
-semanticCheck :: Program -> Result -> Result
-semanticCheck prog st 
-  = 
-    do
-      checkHasMainProcedure st
-
-checkHasMainProcedure :: Result -> Result
-checkHasMainProcedure (Okay st) = 
-  if (Map.member "main" procedureTable) then
-    (Okay st)
-  else
-    (Err "The program should has at least one main procedure!")
-  where
-    procedureTable = pt st
-checkHasMainProcedure e@(Err err) = e
+      mapM_ insertProcedureDefinition procedures
