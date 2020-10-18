@@ -56,6 +56,10 @@ initialSymTable = SymTable { att = Map.empty
                            , pt  = Map.empty
                            }
 
+-- TO DO: PLEASE CHECK FOLLOWING --wenruiz                           
+data VarTable = VarTable {lts :: Map String (DataType)}
+initialVariableTable :: VarTable {lts = Map.empty}
+
 -- ---------------------------------------------------------------------------
 -- TypeTable related helper methods
 -- ---------------------------------------------------------------------------
