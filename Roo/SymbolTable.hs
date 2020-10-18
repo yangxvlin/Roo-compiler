@@ -393,40 +393,31 @@ insertVariable BooleanVar byValue varName
       checkVariableNotDefined varName
       cvt <- getCurVariableTable
       let availableSlot = slotCounter cvt
-      updateCurVariableTable cvt 
-        { slotCounter = availableSlot + 1
-        , vtt = Map.insert varName 
-                           (byValue, availableSlot, BooleanVar, 1)
-                           (vtt cvt)
-        }
+      let newSlotCounter = availableSlot + 1
+      updateNewVariableToLVT newSlotCounter 
+                             varName 
+                             (byValue, availableSlot, BooleanVar, 1)
 insertVariable IntegerVar byValue varName
   =
     do
       checkVariableNotDefined varName
       cvt <- getCurVariableTable
       let availableSlot = slotCounter cvt
-      updateCurVariableTable cvt 
-        { slotCounter = availableSlot + 1
-        , vtt = Map.insert varName 
-                           (byValue, availableSlot, IntegerVar, 1)
-                           (vtt cvt)
-        }
-insertVariable (RecordVar typeName) byValue varName
+      let newSlotCounter = availableSlot + 1
+      updateNewVariableToLVT newSlotCounter 
+                             varName 
+                             (byValue, availableSlot, IntegerVar, 1)
+insertVariable recVar@(RecordVar typeName) byValue varName
   =
     do
       checkVariableNotDefined varName
       cvt <- getCurVariableTable
       let availableSlot = slotCounter cvt
       (recordSize, _) <- getRecordType typeName
-
-      updateCurVariableTable cvt 
-        { slotCounter = availableSlot + recordSize
-        , vtt = Map.insert varName 
-                           (byValue, availableSlot, (RecordVar typeName), 
-                            recordSize
-                           )
-                           (vtt cvt)
-        }
+      let newSlotCounter = availableSlot + recordSize
+      updateNewVariableToLVT newSlotCounter 
+                             varName 
+                             (byValue, availableSlot, recVar, recordSize)
 insertVariable arr@(ArrayVar typeName) byValue varName
   =
     do
@@ -435,32 +426,35 @@ insertVariable arr@(ArrayVar typeName) byValue varName
       let availableSlot = slotCounter cvt
       (arraySize, arrayType) <- getArrayType typeName
       case arrayType of
-        BaseDataType BooleanType ->
+        BaseDataType _ ->
           do
-            updateCurVariableTable cvt 
-              { slotCounter = availableSlot + arraySize
-              , vtt = Map.insert varName 
-                                (byValue, availableSlot, arr, arraySize)
-                                (vtt cvt)
-              }
-        BaseDataType IntegerType ->
-          do
-            updateCurVariableTable cvt 
-              { slotCounter = availableSlot + arraySize
-              , vtt = Map.insert varName 
-                                (byValue, availableSlot, arr, arraySize)
-                                (vtt cvt)
-              }
+            let newSlotCounter = availableSlot + arraySize
+            updateNewVariableToLVT newSlotCounter 
+                                   varName 
+                                   (byValue, availableSlot, arr, arraySize)
         -- as an array cannot has alias type: array 
         AliasDataType recordName ->
           do
             (recordSize, _) <- getRecordType recordName
-            updateCurVariableTable cvt 
-              { slotCounter = availableSlot + recordSize * arraySize
-              , vtt = Map.insert varName 
-                                (byValue, availableSlot, arr, 
-                                 recordSize * arraySize 
-                                ) 
-                                (vtt cvt)
-              }
+            -- array size * #record's fields
+            let nSlotsRequired = recordSize * arraySize
+            let newSlotCounter = availableSlot + nSlotsRequired
+            updateNewVariableToLVT newSlotCounter 
+                                   varName 
+                                   (byValue, availableSlot, arr, nSlotsRequired
+                                   )
 
+updateNewVariableToLVT :: Int -> String -> (Bool, Int, VariableType, Int) 
+                              -> SymTableState ()
+updateNewVariableToLVT newSlotCounter 
+                       varName 
+                       (byValue, availableSlot, varType, slotRequired)
+  =
+    do
+      cvt <- getCurVariableTable
+      updateCurVariableTable cvt 
+        { slotCounter = newSlotCounter
+        , vtt = Map.insert varName 
+                           (byValue, availableSlot, varType, slotRequired)
+                           (vtt cvt)
+        }
