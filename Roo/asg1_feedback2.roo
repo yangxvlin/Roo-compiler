@@ -1,7 +1,7 @@
 record {boolean x} boolrec;
 record {integer y; integer z} intrec;
 
-procedure main(int a)
+procedure main()
     boolean test;
     integer n;
     boolrec b;
@@ -18,4 +18,11 @@ procedure main(int a)
     else
         writeln i.z - i.y;
     fi
+
+    call f(1, 2);
+}
+
+procedure f(integer a)
+{
+    writeln a;
 }

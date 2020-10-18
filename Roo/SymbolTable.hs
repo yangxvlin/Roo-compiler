@@ -226,30 +226,27 @@ putProcedure procedureName formalParams
       else
         put $ st { pt =  Map.insert procedureName formalParams (pt st) }
 
--- | Check if the procedure exists
--- checkProcedure :: String -> SymTableState String
--- checkProcedure procedureName 
---   = do
---       st <- get
---       if (M.member procedureName (pt st)) then 
---         return $ (pt st) M.! procedureName
---       else 
---         liftEither $ throwError $ "Procedure named " ++ procedureName ++ 
---                                   " does not exist"
+-- get procedure's parameter by name
+getProcedureParams :: String -> SymTableState [(Bool, DataType)]
+getProcedureParams procedureName 
+  = do
+      st <- get
+      if (Map.member procedureName (pt st)) then 
+        return $ (pt st) Map.! procedureName
+      else 
+        liftEither $ throwError $ "Procedure named " ++ procedureName ++ 
+                                  " does not exist"
 
 createformalParams :: [Parameter] -> [(Bool, DataType)]
 createformalParams [] = []
 createformalParams (r:rs) 
   = case r of
-      BooleanVal _ -> [(True, BaseDataType BooleanType)] ++ (createformalParams rs)
-      IntegerVal _ -> [(True, BaseDataType IntegerType)] ++ (createformalParams rs)
-      DataParameter dataType _ -> [(False, dataType)] ++ (createformalParams rs)
+      BooleanVal _ -> (True, BaseDataType BooleanType):(createformalParams rs)
+      IntegerVal _ -> (True, BaseDataType IntegerType):(createformalParams rs)
+      DataParameter dataType _ -> (False, dataType):(createformalParams rs)
 
 insertProcedureDefinition :: Procedure -> SymTableState ()
-insertProcedureDefinition p@(Procedure 
-                              (ProcedureHeader procedureName params) 
-                              (ProcedureBody _ _ )
-                            )
+insertProcedureDefinition p@(Procedure (ProcedureHeader procedureName _)  _)
   = 
     do
       st <- get
