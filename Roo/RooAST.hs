@@ -36,7 +36,7 @@ type AliasType = String
 --  data type
 --     factored out for reuse purpose
 data DataType
-  = BasyDataType BaseType
+  = BaseDataType BaseType
   | AliasDataType AliasType
     deriving (Show, Eq)
 

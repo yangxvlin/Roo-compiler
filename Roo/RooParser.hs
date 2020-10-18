@@ -90,7 +90,7 @@ pDataType
   =
     do
       baseType <- pBaseType
-      return (BasyDataType baseType)
+      return (BaseDataType baseType)
     <|>
     do
       alias <- identifier
