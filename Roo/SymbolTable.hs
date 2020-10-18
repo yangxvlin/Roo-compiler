@@ -53,7 +53,7 @@ data SymTable
     -- global procedure definition table
     , pdt :: Map String (Procedure)
     -- local variable table  
-    , lvts :: [VarTable]
+    , lvts :: [Map String (DataType)]
     }
 
 initialSymTable :: SymTable
@@ -63,12 +63,6 @@ initialSymTable = SymTable { att = Map.empty
                            , pt  = Map.empty
                            , lvts = []
                            }
-
--- TO DO: PLEASE CHECK FOLLOWING --wenruiz          
-data VarTable = VarTable {lvt :: Map String (DataType)}
-
-initialVariableTable :: VarTable 
-initialVariableTable = VarTable{lvt = Map.empty}
 
 -- ---------------------------------------------------------------------------
 -- TypeTable related helper methods
