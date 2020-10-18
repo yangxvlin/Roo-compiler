@@ -6,7 +6,9 @@
 -----------------------------------------------------------
 module SymbolTable where
 
+import Control.Monad
 import Control.Monad.State
+import Control.Monad.Except
 import Data.Map (Map, (!))
 import qualified Data.Map as Map
 import Text.Parsec.Pos
@@ -22,6 +24,7 @@ import RooAST
 -- - global procedure table: holds procedure parameter type, whether by 
 --   reference information
 --    - pt: global procedure table
+--    - pdt: global procedure definition table
 -- - local variable table: which provides information about formal parameters 
 --   and variables in the procedure that is currently being processed.
 --    - lts: stack of local variable tables
@@ -30,7 +33,8 @@ import RooAST
 data CompositeKey = CompositeKey String String
   deriving (Show, Eq, Ord)
 
-type SymTableState a = State SymTable a
+-- type SymTableState a = State SymTable a
+type SymTableState a = StateT SymTable (Either String) a
 
 data SymTable 
   = SymTable 
@@ -45,7 +49,10 @@ data SymTable
     , rft :: Map CompositeKey (BaseType)
       -- map of (record name, field name) with field type
     -- global procedure table
-    , pt :: Map String ([(Bool, DataType)])
+    , pt  :: Map String ([(Bool, DataType)])
+    -- global procedure definition table
+    , pdt :: Map String (Procedure)
+      -- map of procedure name with procedure's definition
     -- , lts :: [LocalVariableTable]
     }
 
@@ -54,6 +61,7 @@ initialSymTable = SymTable { att = Map.empty
                            , rtt = Map.empty
                            , rft = Map.empty
                            , pt  = Map.empty
+                           , pdt = Map.empty
                            }
 
 -- TO DO: PLEASE CHECK FOLLOWING --wenruiz                           
@@ -71,7 +79,7 @@ insertArrayType (Array arraySize dataType arrayName)
       st <- get
       -- duplicate array definition
       if (Map.member arrayName (att st)) then
-        error $ "Duplicated array name: " ++ arrayName
+        liftEither $ throwError ("Duplicated array name: " ++ arrayName)
       -- insert an array definition
       else
         put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
@@ -85,7 +93,7 @@ insertRecordType (Record fieldDecls recordName)
       let recordSize = length fieldDecls
       -- duplicate record definition
       if (Map.member recordName (rtt st)) then
-        error $ "Duplicated record name: " ++ recordName
+        liftEither $ throwError $ "Duplicated record name: " ++ recordName
       -- insert a record definition
       else
         do
@@ -100,7 +108,8 @@ insertRecordFields recordName (FieldDecl baseType fieldName)
       let ck = CompositeKey recordName fieldName
       -- duplicate (record name, field name) definition
       if (Map.member ck (rft st)) then
-        error $ "Duplicated record field: " ++ recordName ++ "." ++ fieldName
+        liftEither $ throwError $ "Duplicated record field: " ++ 
+                                  recordName ++ "." ++ fieldName
       -- insert a (record name, field name) definition
       else
         put $ st { rft = Map.insert ck baseType (rft st) }
@@ -124,10 +133,22 @@ putProcedure procedureName formalParams
       st <- get
       -- duplicate record definition
       if (Map.member procedureName (pt st)) then
-        error $ "Duplicated procedure name: " ++ procedureName
+        liftEither $ throwError $ "Duplicated procedure name: " ++ 
+                                  procedureName
       -- insert a record definition
       else
         put $ st { pt =  Map.insert procedureName formalParams (pt st) }
+
+-- | Check if the procedure exists
+-- checkProcedure :: String -> SymTableState String
+-- checkProcedure procedureName 
+--   = do
+--       st <- get
+--       if (M.member procedureName (pt st)) then 
+--         return $ (pt st) M.! procedureName
+--       else 
+--         liftEither $ throwError $ "Procedure named " ++ procedureName ++ 
+--                                   " does not exist"
 
 createformalParams :: [Parameter] -> [(Bool, DataType)]
 createformalParams [] = []
@@ -136,6 +157,33 @@ createformalParams (r:rs)
       BooleanVal _ -> [(True, BasyDataType BooleanType)] ++ (createformalParams rs)
       IntegerVal _ -> [(True, BasyDataType IntegerType)] ++ (createformalParams rs)
       DataParameter dataType _ -> [(False, dataType)] ++ (createformalParams rs)
+
+insertProcedureDefinition :: Procedure -> SymTableState ()
+insertProcedureDefinition p@(Procedure 
+                              (ProcedureHeader procedureName params) 
+                              (ProcedureBody _ _ )
+                            )
+  = 
+    do
+      st <- get
+      -- duplicate procedure definition
+      if (Map.member procedureName (pdt st)) then 
+        liftEither $ throwError $ "Duplicated procedure name: " ++ 
+                                  procedureName
+      -- insert a procedure definition
+      else 
+        put $ st { pdt = Map.insert procedureName p (pdt st) }
+
+getProcedureDefinition :: String -> SymTableState Procedure
+getProcedureDefinition procedureName
+  =
+    do
+      st <- get
+      if (Map.member procedureName (pdt st)) then 
+        return $ (pdt st) Map.! procedureName
+      else 
+        liftEither $ throwError $ "Procedure named " ++ procedureName ++ 
+                                  " does not exist"
 
 
 -- ---------------------------------------------------------------------------

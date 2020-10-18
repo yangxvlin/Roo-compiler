@@ -32,10 +32,10 @@ main
                  Right tree
                    -> do let pt = analyse tree
                          case pt of
-                           Err err
+                           Left err
                              -> do putStrLn err
                                    exitWith (ExitFailure 2)
-                           Okay table
+                           Right table
                              -> do let code = ozCode table tree
                                    putStrLn (writeCode code)
                  Left err
@@ -52,10 +52,10 @@ main
                  Right tree
                    -> do let pt = analyse tree
                          case pt of
-                           Err err
+                           Left err
                              -> do putStrLn err
                                    exitWith (ExitFailure 2)
-                           Okay _
+                           Right _
                              -> putStrLn "Roo program appears well-formed"
                  Left err
                    -> do putStr "Parse error at "
