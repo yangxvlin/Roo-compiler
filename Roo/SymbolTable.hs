@@ -202,4 +202,7 @@ insertVariable dataType varName
         liftEither $ throwError ("Duplicated variable name: " ++ varName)
       -- insert a record definition
       else
-        put $ st { lvts =  Map.insert varName dataType (last(lvts st))}
+        do
+          newLast = Map.insert varName dataType (last(lvts st))
+          parents = init (lvts st)
+          put $ st { lvts = (parents ++ newLast)  }
