@@ -307,7 +307,7 @@ updateCurVariableTable newLVT
       let newLvts = (lvts st) ++ [newLVT]
       put $ st { lvts = newLvts }
 
--- check variable not exist
+-- check variable name not exist in the local variable table as key
 checkVariableNotDefined :: String -> SymTableState ()
 checkVariableNotDefined varName
   =
