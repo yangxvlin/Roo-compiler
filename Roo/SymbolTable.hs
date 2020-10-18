@@ -136,7 +136,5 @@ createformalParams (r:rs)
 
 -- ---------------------------------------------------------------------------
 -- VariableTable related  helper methods
--- which provides information about formal parameters and
--- variables in the procedure that is currently being processed.
 -- --------------------------------------------------------------------------- 
 
