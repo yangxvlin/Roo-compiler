@@ -61,6 +61,7 @@ initialSymTable = SymTable { att = Map.empty
                            , rtt = Map.empty
                            , rft = Map.empty
                            , pt  = Map.empty
+                           , pdt = Map.empty
                            , lvts = []
                            }
 
@@ -180,29 +181,53 @@ getProcedureDefinition procedureName
 -- ---------------------------------------------------------------------------
 -- VariableTable related helper methods
 -- --------------------------------------------------------------------------- 
+addVarTable :: SymTableState ()
+addVarTable 
+  = 
+    do
+      st <- get
+      put $ st { lvts = lvts st ++ [Map.empty] }
 
--- TO DO: PLEASE CHECK FOLLOWING --wenruiz
+removeVarTable :: SymTableState ()
+removeVarTable
+  = 
+    do
+      st <- get
+      put $ st { lvts = init (lvts st) }
+
 -- insert variables to the given procedure
-insertVariables :: VariableDecl -> SymTableState ()
-insertVariables (VariableDecl dataType varNames)
-  = do
-      st <- get
-      -- check duplicate variables definition
-      fmap varNames insertVariable dataType _
-      
+insertVariables :: Procedure -> SymTableState ()
+insertVariables (Procedure (ProcedureHeader _ params) (ProcedureBody [(VariableDecl dataType (varNames : [varName]))] _ )) 
+--   = 
+--     do
+--       st <- get
+--       -- check duplicate variables definition
+--       insertVariable varName dataType
+--       insertVariables (VariableDecl dataType [varNames])
 
--- TO DO: PLEASE CHECK FOLLOWING --wenruiz
--- insert one variable to the given procedure        
-insertVariable :: DataType -> String -> SymTableState ()
-insertVariable dataType varName 
-  = do
-      st <- get
-      -- duplicate record definition
-      if (Map.member varName (last(lvts st))) then
-        liftEither $ throwError ("Duplicated variable name: " ++ varName)
-      -- insert a record definition
-      else
-        do
-          newLast = Map.insert varName dataType (last(lvts st))
-          parents = init (lvts st)
-          put $ st { lvts = (parents ++ newLast)  }
+-- insertVariables (VariableDecl dataType [varName])
+--   = 
+--     do
+--       st <- get
+--       -- check duplicate variables definition
+--       insertVariable varName dataType
+
+
+
+-- -- insert one variable to the given procedure        
+-- insertVariable :: String -> DataType -> SymTableState ()
+-- insertVariable varName dataType 
+--   = 
+--     do
+--       st <- get
+--       -- duplicate record definition
+--       lastVarTable <- last (lvts st)
+--       if (Map.member varName lastVarTable) then
+--         liftEither $ throwError ("Duplicated variable name: " ++ varName)
+--       -- insert a record definition
+--       else
+--         do
+--           newLast <- Map.insert varName dataType lastVarTable
+--           put $ st { lvts = init (lvts st) ++ [newLast]  }
+
+
