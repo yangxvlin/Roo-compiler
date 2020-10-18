@@ -198,6 +198,22 @@ removeVarTable
 -- insert variables to the given procedure
 insertVariables :: Procedure -> SymTableState ()
 insertVariables (Procedure (ProcedureHeader _ params) (ProcedureBody [(VariableDecl dataType (varNames : [varName]))] _ )) 
+  = do
+    let formalParams = createformalParams params
+    putProcedureVar formalParams
+
+putProcedureVar :: [(Bool, DataType)] -> SymTableState ()
+putProcedureVar formalParams
+  = do
+      st <- get
+      lastVarTable <- last (lvts st)
+      -- duplicate record definition
+      if (Map.member procedureName lastVarTable) then
+        liftEither $ throwError $ "Duplicated procedure name: " ++ 
+                                  procedureName
+      -- insert a record definition
+      else
+        put $ st { pt =  Map.insert procedureName formalParams (pt st) }
 --   = 
 --     do
 --       st <- get
