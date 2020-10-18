@@ -24,7 +24,7 @@ import RooAST
 -- - global procedure table: holds procedure parameter type, whether by 
 --   reference information
 --    - pt: global procedure table
---    - pdt: global procedure definition table
+--    - pdt: global procedure definition table, holds procedure's defintion
 -- - local variable table: which provides information about formal parameters 
 --   and variables in the procedure that is currently being processed.
 --    - lts: stack of local variable tables

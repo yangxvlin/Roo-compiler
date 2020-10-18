@@ -11,6 +11,7 @@ import Control.Monad.State
 import Control.Monad.Except
 import RooAST
 import SymbolTable
+import Data.Map (Map, (!))
 import qualified Data.Map as Map
 import Data.Either
 
@@ -27,6 +28,8 @@ semanticCheckRooProgram prog
       constructSymbolTable prog
       checkDistinctTypeAlias
       mainProcedure <- getProcedureDefinition "main"
+      -- Every program must contain a procedure of arity 0 named "main"
+      checkArityProcedure "main" 0
       st <- get
       return st
 
@@ -38,6 +41,7 @@ constructSymbolTable prog@(Program records arraies procedures)
       st <- get
       mapM_ insertRecordType records
       mapM_ insertArrayType arraies
+      mapM_ insertProcedure procedures
       mapM_ insertProcedureDefinition procedures
 
 -- all type aliases must be distinct, record and array has no overlapping name
@@ -145,6 +149,19 @@ checkDistinctTypeAlias
 -- a string literal. The same goes for writeln.
 -- Every procedure in a program must be well-typed, that is, its body must be a sequence of
 -- well-typed statements. Every program must contain a procedure of arity 0 named “main”.
+checkArityProcedure :: String -> Int -> SymTableState ()
+checkArityProcedure procedureName arity
+  = 
+    do
+      st <- get
+      let procedureArity = length $ (pt st) Map.! procedureName
+      if procedureArity == arity then 
+        return ()
+      else
+        liftEither $ throwError ("Unmatched arity(" ++ (show arity) ++ 
+                                 ") for procedure: \"" ++ procedureName ++ 
+                                 "\" found arity = " ++ (show procedureArity)
+                                )
 
 -----------------------------------------------------------
 --Dynamic semantics
