@@ -46,7 +46,8 @@ data SymTable
       -- map of (record name, field name) with field type
     -- global procedure table
     , pt :: Map String ([(Bool, DataType)])
-    -- , lts :: [LocalVariableTable]
+    -- local variable table  
+    , lvts :: [VarTable]
     }
 
 initialSymTable :: SymTable
@@ -54,11 +55,14 @@ initialSymTable = SymTable { att = Map.empty
                            , rtt = Map.empty
                            , rft = Map.empty
                            , pt  = Map.empty
+                           , lvts = []
                            }
 
--- TO DO: PLEASE CHECK FOLLOWING --wenruiz                           
-data VarTable = VarTable {lts :: Map String (DataType)}
-initialVariableTable :: VarTable {lts = Map.empty}
+-- TO DO: PLEASE CHECK FOLLOWING --wenruiz          
+data VarTable = VarTable {lvt :: Map String (DataType)}
+
+initialVariableTable :: VarTable 
+initialVariableTable = VarTable{lvt = Map.empty}
 
 -- ---------------------------------------------------------------------------
 -- TypeTable related helper methods
@@ -143,15 +147,24 @@ createformalParams (r:rs)
 -- --------------------------------------------------------------------------- 
 
 -- TO DO: PLEASE CHECK FOLLOWING --wenruiz
--- insert one variable to the given procedure
-insertVariable :: Procedure -> VariableDecl -> SymTableState ()
-insertVariable (Procedure (ProcedureHeader ident params) (ProcedureBody _ _ )) (VariableDecl DataType Ident)
+-- insert variables to the given procedure
+insertVariables :: VariableDecl -> SymTableState ()
+insertVariables (VariableDecl dataType varNames)
   = do
-      -- extract the variable map from the procedure
-      
-      -- duplicate variable definition
-      if (Map.member arrayName (att st)) then
-        error $ "Duplicated variable name: " ++ arrayName
-      -- insert an variable definition
+      st <- get
+      -- check duplicate variables definition
+      let checkVarName = do 
+        insertVariable
+
+-- TO DO: PLEASE CHECK FOLLOWING --wenruiz
+-- insert one variable to the given procedure        
+insertVariable :: Sting -> SymTableState ()
+insertVariable varNames
+  = do
+      st <- get
+      -- duplicate record definition
+      if (Map.member varNames (last(lvts) st)) then
+        error $ "Duplicated variable name: " ++ varNames
+      -- insert a record definition
       else
-        put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
+        put $ st { att =  Map.insert varName dataType (last(lvts) st)}
