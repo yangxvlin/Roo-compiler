@@ -49,17 +49,11 @@ data SymTable
     , rft :: Map CompositeKey (BaseType)
       -- map of (record name, field name) with field type
     -- global procedure table
-<<<<<<< HEAD
-    , pt :: Map String ([(Bool, DataType)])
-    -- local variable table  
-    , lvts :: [VarTable]
-=======
     , pt  :: Map String ([(Bool, DataType)])
     -- global procedure definition table
     , pdt :: Map String (Procedure)
-      -- map of procedure name with procedure's definition
-    -- , lts :: [LocalVariableTable]
->>>>>>> 06c31b1c239d455eb895acc3c2c95b3956af1d81
+    -- local variable table  
+    , lvts :: [VarTable]
     }
 
 initialSymTable :: SymTable
@@ -67,7 +61,6 @@ initialSymTable = SymTable { att = Map.empty
                            , rtt = Map.empty
                            , rft = Map.empty
                            , pt  = Map.empty
-<<<<<<< HEAD
                            , lvts = []
                            }
 
@@ -76,14 +69,6 @@ data VarTable = VarTable {lvt :: Map String (DataType)}
 
 initialVariableTable :: VarTable 
 initialVariableTable = VarTable{lvt = Map.empty}
-=======
-                           , pdt = Map.empty
-                           }
-
--- TO DO: PLEASE CHECK FOLLOWING --wenruiz                           
--- data VarTable = VarTable {lts :: Map String (DataType)}
--- initialVariableTable :: VarTable {lts = Map.empty}
->>>>>>> 06c31b1c239d455eb895acc3c2c95b3956af1d81
 
 -- ---------------------------------------------------------------------------
 -- TypeTable related helper methods
@@ -130,10 +115,6 @@ insertRecordFields recordName (FieldDecl baseType fieldName)
       -- insert a (record name, field name) definition
       else
         put $ st { rft = Map.insert ck baseType (rft st) }
-
-
--- ---------------------------------------------------------------------------
--- --------------------------------------------------------------------------
 
 -- ---------------------------------------------------------------------------
 -- ProcedureTable related helper methods
@@ -202,45 +183,29 @@ getProcedureDefinition procedureName
         liftEither $ throwError $ "Procedure named " ++ procedureName ++ 
                                   " does not exist"
 
-
 -- ---------------------------------------------------------------------------
 -- VariableTable related helper methods
 -- --------------------------------------------------------------------------- 
 
 -- TO DO: PLEASE CHECK FOLLOWING --wenruiz
-<<<<<<< HEAD
 -- insert variables to the given procedure
 insertVariables :: VariableDecl -> SymTableState ()
 insertVariables (VariableDecl dataType varNames)
   = do
       st <- get
       -- check duplicate variables definition
-      let checkVarName = do 
-        insertVariable
+      fmap varNames insertVariable dataType _
+      
 
 -- TO DO: PLEASE CHECK FOLLOWING --wenruiz
 -- insert one variable to the given procedure        
-insertVariable :: Sting -> SymTableState ()
-insertVariable varNames
+insertVariable :: DataType -> String -> SymTableState ()
+insertVariable dataType varName 
   = do
       st <- get
       -- duplicate record definition
-      if (Map.member varNames (last(lvts) st)) then
-        error $ "Duplicated variable name: " ++ varNames
+      if (Map.member varName (last(lvts st))) then
+        liftEither $ throwError ("Duplicated variable name: " ++ varName)
       -- insert a record definition
       else
-        put $ st { att =  Map.insert varName dataType (last(lvts) st)}
-=======
--- insert one variable to the given procedure
--- insertVariable :: Procedure -> VariableDecl -> SymTableState ()
--- insertVariable (Procedure (ProcedureHeader ident params) (ProcedureBody _ _ )) (VariableDecl DataType Ident)
---   = do
---       -- extract the variable map from the procedure
-      
---       -- duplicate variable definition
---       if (Map.member arrayName (att st)) then
---         error $ "Duplicated variable name: " ++ arrayName
---       -- insert an variable definition
---       else
---         put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
->>>>>>> 06c31b1c239d455eb895acc3c2c95b3956af1d81
+        put $ st { lvts =  Map.insert varName dataType (last(lvts st))}
