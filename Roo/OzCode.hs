@@ -14,7 +14,20 @@ module OzCode(writeCode) where
 type Register = Int
 
 data stackInstruction
-    = pushStackFrame Int
-    | popStachFrame Int
-    | store Int Register
-    | 
+    = PushStackFrame Int
+    | PopStachFrame Int
+    | Store Int Register
+    | Load Register Int
+    | LoadAddress Register Int
+    | LoadIndirect Register Register
+    | StoreIndirect Register Register
+    deriving (Show, Eq)
+
+data Constant
+    = IntConst Register Int
+    | RealConst Register Float
+    | StringConst Register String
+    deriving (Show, Eq)
+    
+data ArithmeticInstruction
+    = Add 

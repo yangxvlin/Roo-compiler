@@ -306,37 +306,6 @@ putProcedureVar formalParams
       -- insert a record definition
       else
         put $ st { pt =  Map.insert procedureName formalParams (pt st) }
---   = 
---     do
---       st <- get
---       -- check duplicate variables definition
---       insertVariable varName dataType
---       insertVariables (VariableDecl dataType [varNames])
-
--- insertVariables (VariableDecl dataType [varName])
---   = 
---     do
---       st <- get
---       -- check duplicate variables definition
---       insertVariable varName dataType
-
-
-
--- -- insert one variable to the given procedure        
--- insertVariable :: String -> DataType -> SymTableState ()
--- insertVariable varName dataType 
---   = 
---     do
---       st <- get
---       -- duplicate record definition
---       lastVarTable <- last (lvts st)
---       if (Map.member varName lastVarTable) then
---         liftEither $ throwError ("Duplicated variable name: " ++ varName)
---       -- insert a record definition
---       else
---         do
---           newLast <- Map.insert varName dataType lastVarTable
---           put $ st { lvts = init (lvts st) ++ [newLast]  }
 
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
