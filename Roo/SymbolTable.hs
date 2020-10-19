@@ -36,21 +36,24 @@ data CompositeKey = CompositeKey String String
 
 type SymTableState a = StateT SymTable (Either String) a
 
-data VariableType = BooleanVar | IntegerVar | RecordVar String | ArrayVar String
+-- A short hand form for variable type
+data VariableType = BooleanVar 
+                  | IntegerVar 
+                  | RecordVar String 
+                  | ArrayVar String
 
+-- 1. available slot number
+-- 2. available register number
+-- 3. mapping of variable name with 
+--    a) true if it is pass by value and
+--    b) allocated slot number and
+--    c) its type and
+--    d) #elements for array, #fields for record, 1 for boolean/integer
 data LocalVariableTable
   = LocalVariableTable
-    -- available slot number
     { slotCounter :: Int
-    -- available register number
     , registerCounter :: Int
-    -- mapping of variable name with whether it is pass by value and
-    --                               allocated slot number and
-    --                               its type and
-    --                               #elements for array, 
-    --                                1 for bool/int/record.field
     , vtt :: Map String (Bool, Int, VariableType, Int)
-      -- only true if procedure's parameter is pass by value
     }
 
 -- Array:  array size, type
@@ -59,22 +62,24 @@ data AliasTypeInfo
   = ArrayInfo  (Int, DataType)
   | RecordInfo (Int, [FieldDecl])
 
+-- 1. att  :: global alias type table
+-- 2. rft  :: global record field table
+--            = map of (record name, field name) with 
+--                a) field's type and
+--                b) index of the field in record
+-- 3. pt   :: global procedure table
+--            = map of procedure name with
+--                a) [true if pass by value, parameter's type]
+--                b) procedure's definition
+-- 4. pdt  :: global procedure definition table
+-- 5. lvts :: stack of local variable table  
 data SymTable 
   = SymTable 
-    -- global alias type table
     { att :: Map String AliasTypeInfo
-    -- global record field table
     , rft :: Map CompositeKey (BaseType, Int)
-      -- map of (record name, field name) with field type and
-      --                                       its index in record
-    -- global procedure table
     , pt  :: Map String ([(Bool, DataType)]) 
-      -- only true if procedure's parameter is pass by value
-    -- global procedure definition table
     , pdt :: Map String (Procedure)
-    -- stack of local variable table  
     , lvts :: [LocalVariableTable]
-    -- available label number
     , labelCounter :: Int
     }
 
@@ -349,15 +354,15 @@ insertProcedureParameter (BooleanVal varName)
 insertProcedureParameter (IntegerVal varName) 
   = insertVariable IntegerVar True varName
 insertProcedureParameter (DataParameter (BaseDataType BooleanType) 
-                                         varName
+                                        varName
                          ) 
   = insertVariable BooleanVar False varName
 insertProcedureParameter (DataParameter (BaseDataType IntegerType) 
-                                         varName
+                                        varName
                          ) 
   = insertVariable IntegerVar False varName
 insertProcedureParameter (DataParameter (AliasDataType typeName) 
-                                         varName
+                                        varName
                          )
   =
     do
