@@ -105,7 +105,7 @@ insertArrayType (Array arraySize dataType arrayName)
       st <- get
       -- duplicate array definition
       if (Map.member arrayName (att st)) then
-        liftEither $ throwError ("Duplicated array name: " ++ arrayName)
+        liftEither $ throwError ("Duplicated alias type: " ++ arrayName)
       -- insert an array definition
       else
         put $ st { att =  Map.insert arrayName 
@@ -135,7 +135,7 @@ insertRecordType (Record fieldDecls recordName)
       let recordSize = length fieldDecls
       -- duplicate record definition
       if (Map.member recordName (att st)) then
-        liftEither $ throwError $ "Duplicated record name: " ++ recordName
+        liftEither $ throwError $ "Duplicated alias type: " ++ recordName
       -- insert a record definition
       else
         do

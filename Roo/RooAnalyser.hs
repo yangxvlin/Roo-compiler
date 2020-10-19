@@ -26,7 +26,6 @@ semanticCheckRooProgram prog
   =
     do
       constructSymbolTable prog
-      -- checkDistinctTypeAlias
       mainProcedure <- getProcedureDefinition "main"
       -- Every program must contain a procedure of arity 0 named "main"
       checkArityProcedure "main" 0
@@ -47,16 +46,7 @@ constructSymbolTable prog@(Program records arraies procedures)
       mapM_ insertProcedureDefinition procedures
 
 -- all type aliases must be distinct, record and array has no overlapping name
--- checkDistinctTypeAlias :: SymTableState ()
--- checkDistinctTypeAlias
---   =
---     do
---       st <- get
---       -- has overlapping name in type alias
---       if Map.size (Map.intersection (att st) (rtt st)) > 0 then
---         liftEither $ throwError ("Duplicated type alias name")
---       else
---         return ()
+
 
 -- Within a given procedure, variable names, including formal parameter names, 
 -- must be distinct.
