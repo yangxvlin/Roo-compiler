@@ -202,15 +202,15 @@ insertVariables (Procedure (ProcedureHeader _ params) (ProcedureBody [(VariableD
     let formalParams = createformalParams params
     putProcedureVar formalParams
 
-putProcedureVar :: [(Bool, DataType)] -> SymTableState ()
+putProcedureVar :: [Parameter] -> SymTableState ()
+putProcedureVar [] = []
 putProcedureVar formalParams
   = do
       st <- get
       lastVarTable <- last (lvts st)
       -- duplicate record definition
       if (Map.member procedureName lastVarTable) then
-        liftEither $ throwError $ "Duplicated procedure name: " ++ 
-                                  procedureName
+        liftEither $ throwError $ "Duplicated procedure name: " ++ procedureName
       -- insert a record definition
       else
         put $ st { pt =  Map.insert procedureName formalParams (pt st) }
