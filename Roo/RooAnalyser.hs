@@ -62,7 +62,7 @@ constructSymbolTable prog@(Program records arraies procedures)
 -- procedure's parameter and local variable should have different name
 
 -- different procedures' parameter and local variable could have same name 
--- soln: each procedure's param and local var are stored in separate 
+-- soln: handled by each procedure's param and local var are stored in separate 
 --       LocalVariableTable as defined in SymbolTable.hs
 
 -- all defined procedures must have distinct names.
