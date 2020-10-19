@@ -28,6 +28,14 @@ data Constant
     | RealConst Register Float
     | StringConst Register String
     deriving (Show, Eq)
-    
+
+data OpType 
+    = OpInt
+    | OpReal
+    deriving (Show, Eq)
+
 data ArithmeticInstruction
-    = Add 
+    = binary Add OpType Register Register Register
+    | binary Sub OpType Register Register Register
+    | binary Mul OpType Register Register Register
+    | binary Div OpType Register Register Register
