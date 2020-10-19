@@ -11,6 +11,7 @@ import Control.Monad.State
 import Control.Monad.Except
 import RooAST
 import SymbolTable
+import Data.Map (Map, (!))
 import qualified Data.Map as Map
 import Data.Either
 
@@ -27,10 +28,14 @@ semanticCheckRooProgram prog
       constructSymbolTable prog
       checkDistinctTypeAlias
       mainProcedure <- getProcedureDefinition "main"
+      -- Every program must contain a procedure of arity 0 named "main"
+      checkArityProcedure "main" 0
+      -- start checking from "main" procedure
+      checkStmts mainProcedure
       st <- get
       return st
 
-
+-- construct global type tables
 constructSymbolTable :: Program -> SymTableState ()
 constructSymbolTable prog@(Program records arraies procedures)
   = 
@@ -38,6 +43,7 @@ constructSymbolTable prog@(Program records arraies procedures)
       st <- get
       mapM_ insertRecordType records
       mapM_ insertArrayType arraies
+      mapM_ insertProcedure procedures
       mapM_ insertProcedureDefinition procedures
 
 -- all type aliases must be distinct, record and array has no overlapping name
@@ -57,7 +63,36 @@ checkDistinctTypeAlias
 
 -- procedure's parameter and local variable should have different name
 
+-- different procedures' parameter and local variable could have same name 
 
+-- all defined procedures must have distinct names.
+
+
+checkStmts :: Procedure -> SymTableState ()
+checkStmts (Procedure _ pb@(ProcedureBody _ stmts))
+  = 
+    do
+      pushLocalVariableTable
+      mapM_ checkStmt stmts
+      popLocalVariableTable
+
+checkStmt :: Stmt -> SymTableState ()
+checkStmt (Call procedureName exps) 
+  = 
+    do
+      proParams <- getProcedureParams procedureName
+      let nParamsFound = length exps
+      let nParamsExpected = length proParams
+      -- the number of actual parameters in a call must be equal to the number 
+      -- of formal parameters in the procedure’s definition.
+      if nParamsFound /= nParamsExpected then 
+        liftEither $ throwError (show nParamsExpected ++ 
+        " parameters expected for procedure: \"" ++ procedureName ++ "\" " ++ 
+        show nParamsFound ++ " parameters found")
+      else
+        -- TODO check type matched
+        return ()
+checkStmt _ = return ()
 
 -----------------------------------------------------------
 --Static semantics
@@ -141,6 +176,19 @@ checkDistinctTypeAlias
 -- a string literal. The same goes for writeln.
 -- Every procedure in a program must be well-typed, that is, its body must be a sequence of
 -- well-typed statements. Every program must contain a procedure of arity 0 named “main”.
+checkArityProcedure :: String -> Int -> SymTableState ()
+checkArityProcedure procedureName arity
+  = 
+    do
+      st <- get
+      let procedureArity = length $ (pt st) Map.! procedureName
+      if procedureArity == arity then 
+        return ()
+      else
+        liftEither $ throwError ("Unmatched arity(" ++ (show arity) ++ 
+                                 ") for procedure: \"" ++ procedureName ++ 
+                                 "\" found arity = " ++ (show procedureArity)
+                                )
 
 -----------------------------------------------------------
 --Dynamic semantics
