@@ -211,18 +211,18 @@ getTypeAlias typeName
 insertProcedure :: Procedure -> SymTableState ()
 insertProcedure (Procedure (ProcedureHeader ident params) (ProcedureBody _ _ ))
   = do
-    let formalParams = createformalParams params
+    let formalParams = map createformalParam params
     putProcedure ident formalParams
 
 putProcedure :: String -> [(Bool, DataType)] -> SymTableState ()
 putProcedure procedureName formalParams
   = do
       st <- get
-      -- duplicate record definition
+      -- duplicate procedure definition
       if (Map.member procedureName (pt st)) then
         liftEither $ throwError $ "Duplicated procedure name: " ++ 
                                   procedureName
-      -- insert a record definition
+      -- insert a procedure definition
       else
         put $ st { pt =  Map.insert procedureName formalParams (pt st) }
 
@@ -237,13 +237,12 @@ getProcedureParams procedureName
         liftEither $ throwError $ "Procedure named " ++ procedureName ++ 
                                   " does not exist"
 
-createformalParams :: [Parameter] -> [(Bool, DataType)]
-createformalParams [] = []
-createformalParams (r:rs) 
-  = case r of
-      BooleanVal _ -> (True, BaseDataType BooleanType):(createformalParams rs)
-      IntegerVal _ -> (True, BaseDataType IntegerType):(createformalParams rs)
-      DataParameter dataType _ -> (False, dataType):(createformalParams rs)
+-- convert Parameter definted in AST to a tuple (is passed by value, type)
+createformalParam :: Parameter -> (Bool, DataType)
+createformalParam (BooleanVal _) = (True, BaseDataType BooleanType)
+createformalParam (IntegerVal _) = (True, BaseDataType IntegerType)
+createformalParam (DataParameter dataType _) = (False, dataType)
+
 
 insertProcedureDefinition :: Procedure -> SymTableState ()
 insertProcedureDefinition p@(Procedure (ProcedureHeader procedureName _)  _)
