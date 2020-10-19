@@ -70,13 +70,13 @@ data AliasTypeInfo
 -- 3. pt   :: global procedure table
 --            = map of procedure name with
 --                a) [true if pass by value, parameter's type]
---                b) procedure's statements
+--                b) procedure's deifnition
 -- 4. lvts :: stack of local variable table  
 data SymTable 
   = SymTable 
     { att :: Map String AliasTypeInfo
     , rft :: Map CompositeKey (BaseType, Int)
-    , pt  :: Map String ([(Bool, DataType)], [Stmt]) 
+    , pt  :: Map String ([(Bool, DataType)], Procedure) 
     , lvts :: [LocalVariableTable]
     , labelCounter :: Int
     }
@@ -214,14 +214,13 @@ getTypeAlias typeName
 -- ProcedureTable related helper methods
 -- ---------------------------------------------------------------------------
 insertProcedure :: Procedure -> SymTableState ()
-insertProcedure (Procedure (ProcedureHeader ident params) 
-                           (ProcedureBody _ stmts ))
+insertProcedure p@(Procedure (ProcedureHeader ident params) _)
   = do
     let formalParams = map createformalParam params
-    putProcedure ident formalParams stmts
+    putProcedure ident formalParams p
 
-putProcedure :: String -> [(Bool, DataType)] -> [Stmt] -> SymTableState ()
-putProcedure procedureName formalParams stmts
+putProcedure :: String -> [(Bool, DataType)] -> Procedure -> SymTableState ()
+putProcedure procedureName formalParams p
   = do
       st <- get
       -- duplicate procedure definition
@@ -230,10 +229,10 @@ putProcedure procedureName formalParams stmts
                                   procedureName
       -- insert a procedure definition
       else
-        put $ st {pt = Map.insert procedureName (formalParams, stmts) (pt st)}
+        put $ st {pt = Map.insert procedureName (formalParams, p) (pt st)}
 
 -- get procedure's type info
-getProcedure :: String -> SymTableState ([(Bool, DataType)], [Stmt])
+getProcedure :: String -> SymTableState ([(Bool, DataType)], Procedure)
 getProcedure procedureName 
   = do
       st <- get
@@ -327,8 +326,6 @@ insertProcedureVariable (Procedure (ProcedureHeader ident params)
   =
     do
       pushLocalVariableTable
-      -- current local variable table
-      let cvt = getCurVariableTable
       mapM_ insertProcedureParameter params
       mapM_ insertProcedureVariableDecl variableDecls
 

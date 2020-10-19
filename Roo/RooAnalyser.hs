@@ -26,11 +26,16 @@ semanticCheckRooProgram prog
   =
     do
       constructSymbolTable prog
-      (_, mainProcedureStmts) <- getProcedure "main"
+      (_, mainProc@(Procedure _ (ProcedureBody _ mainProcStmts))) <- 
+        getProcedure "main"
       -- Every program must contain a procedure of arity 0 named "main"
       checkArityProcedure "main" 0
+      -- insert main procedure's local variable
+      pushLocalVariableTable
+      insertProcedureVariable mainProc
       -- start checking from "main" procedure's statements
-      checkStmts mainProcedureStmts
+      checkStmts mainProcStmts
+      popLocalVariableTable
       st <- get
       return st
 
@@ -45,31 +50,32 @@ constructSymbolTable prog@(Program records arraies procedures)
       mapM_ insertProcedure procedures
 
 -- all type aliases must be distinct, record and array has no overlapping name
-
+-- soln: handled when insertRecordType & insertArrayType as defined in 
+  --     SymbolTable.hs
 
 -- Within a given procedure, variable names, including formal parameter names, 
 -- must be distinct.
+-- soln: handled when insertProcedureVariable by calling 
+--       insertProcedureParameter & insertProcedureVariableDecl in 
+--       SymbolTable.hs
 
 -- procedure's parameter and local variable should have different name
 
 -- different procedures' parameter and local variable could have same name 
+-- soln: each procedure's param and local var are stored in separate 
+--       LocalVariableTable as defined in SymbolTable.hs
 
 -- all defined procedures must have distinct names.
-
+-- soln: handled when insertProcedure as defined in SymbolTable.hs
 
 checkStmts :: [Stmt] -> SymTableState ()
-checkStmts stmts
-  = 
-    do
-      pushLocalVariableTable
-      mapM_ checkStmt stmts
-      popLocalVariableTable
+checkStmts = mapM_ checkStmt
 
 checkStmt :: Stmt -> SymTableState ()
 checkStmt (Call procedureName exps) 
   = 
     do
-      (proParams, _) <- getProcedure procedureName
+      (proParams, procCalled) <- getProcedure procedureName
       let nParamsFound = length exps
       let nParamsExpected = length proParams
       -- the number of actual parameters in a call must be equal to the number 
@@ -79,8 +85,15 @@ checkStmt (Call procedureName exps)
         " parameters expected for procedure: \"" ++ procedureName ++ "\" " ++ 
         show nParamsFound ++ " parameters found")
       else
-        -- TODO check type matched
-        return ()
+        do
+          -- TODO check type matched
+
+          -- keeps checking the proedure being called
+          pushLocalVariableTable
+          insertProcedureVariable procCalled
+          let (Procedure _ (ProcedureBody _ procCalledStmts)) = procCalled
+          checkStmts procCalledStmts
+          popLocalVariableTable
 checkStmt _ = return ()
 
 -----------------------------------------------------------

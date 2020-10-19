@@ -19,10 +19,11 @@ procedure main()
         writeln i.z - i.y;
     fi
 
-    call f(1, 2);
+    call f(1);
 }
 
-procedure f(integer a)
+procedure f(integer val a)
+    integer a;
 {
     writeln a;
 }
