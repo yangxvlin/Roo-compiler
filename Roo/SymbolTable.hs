@@ -19,7 +19,6 @@ import RooAST
 -- - global type table: holds information about type aliases and the composite
 --   types then name;
 --    - att: global alias type table
---    - rtt: global record type table
 --    - rft: global record field table
 -- - global procedure table: holds procedure parameter type, whether by 
 --   reference information
@@ -57,8 +56,8 @@ data LocalVariableTable
 -- Array:  array size, type
 -- Record: #fields,    [field's definition]
 data AliasTypeInfo 
-  = Array  (Int, DataType)
-  | Record (Int, [FieldDecl])
+  = ArrayInfo  (Int, DataType)
+  | RecordInfo (Int, [FieldDecl])
 
 data SymTable 
   = SymTable 
@@ -110,7 +109,7 @@ insertArrayType (Array arraySize dataType arrayName)
       -- insert an array definition
       else
         put $ st { att =  Map.insert arrayName 
-                                     (Array (arraySize, dataType)) 
+                                     (ArrayInfo (arraySize, dataType)) 
                                      (att st) 
                  }
 
@@ -121,7 +120,7 @@ getArrayType arrayName
       st <- get
       -- get an array definition
       if (Map.member arrayName (att st)) then
-        let (Array info) = ((att st) Map.! arrayName) in return info
+        let (ArrayInfo info) = ((att st) Map.! arrayName) in return info
       -- no array definition
       else
         liftEither $ throwError $ "Array named " ++ arrayName ++ 
@@ -135,15 +134,15 @@ insertRecordType (Record fieldDecls recordName)
       st <- get
       let recordSize = length fieldDecls
       -- duplicate record definition
-      if (Map.member recordName (rtt st)) then
+      if (Map.member recordName (att st)) then
         liftEither $ throwError $ "Duplicated record name: " ++ recordName
       -- insert a record definition
       else
         do
           insertRecordFields recordName fieldDecls 0
-          put $ st { rtt = Map.insert recordName 
-                                      (Record (recordSize, fieldDecls))
-                                      (rtt st) 
+          put $ st { att = Map.insert recordName 
+                                      (RecordInfo (recordSize, fieldDecls))
+                                      (att st) 
                    }
 
 getRecordType :: String -> SymTableState (Int, [FieldDecl])
@@ -152,8 +151,8 @@ getRecordType recordName
     do
       st <- get
       -- get an record definition
-      if (Map.member recordName (rtt st)) then
-        let (Record info) = (rtt st) Map.! recordName in return info
+      if (Map.member recordName (att st)) then
+        let (RecordInfo info) = (att st) Map.! recordName in return info
       -- no record definition
       else
         liftEither $ throwError $ "Record named " ++ recordName ++ 
@@ -203,9 +202,9 @@ getTypeAlias typeName
       st <- get
       if (Map.member typeName (att st)) then 
         do
-          case (rtt st) Map.! typeName of 
-            (Record _) -> return (RecordVar typeName)
-            (Array  _) -> return (ArrayVar  typeName)
+          case (att st) Map.! typeName of 
+            (RecordInfo _) -> return (RecordVar typeName)
+            (ArrayInfo  _) -> return (ArrayVar  typeName)
       else 
         liftEither $ throwError $ "Undefiend alias type: " ++ typeName
 
@@ -298,18 +297,35 @@ getCurVariableTable
       st <- get
       return $ last $ lvts st
 
-putProcedureVar :: [Parameter] -> SymTableState ()
-putProcedureVar [] = []
-putProcedureVar formalParams
-  = do
+updateCurVariableTable :: LocalVariableTable -> SymTableState ()
+updateCurVariableTable newLVT
+  =
+    do
+      popLocalVariableTable
       st <- get
-      lastVarTable <- last (lvts st)
-      -- duplicate record definition
-      if (Map.member procedureName lastVarTable) then
-        liftEither $ throwError $ "Duplicated procedure name: " ++ procedureName
-      -- insert a record definition
-      else
-        put $ st { pt =  Map.insert procedureName formalParams (pt st) }
+      let newLvts = (lvts st) ++ [newLVT]
+      put $ st { lvts = newLvts }
+
+-- check variable name not exist in the local variable table as key
+checkVariableNotDefined :: String -> SymTableState ()
+checkVariableNotDefined varName
+  =
+    do
+      cvt <- getCurVariableTable
+      if (Map.member varName (vtt cvt)) then 
+        liftEither $ throwError $ "Duplicated variable name: " ++ varName
+      else 
+        return ()
+
+getVariableType :: String -> SymTableState (Bool, Int, VariableType, Int)
+getVariableType varName
+  =
+    do
+      cvt <- getCurVariableTable
+      if (Map.member varName (vtt cvt)) then
+         return $ (vtt cvt) Map.! varName
+      else 
+        liftEither $ throwError $ "Unknown variable name: " ++ varName
 
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
