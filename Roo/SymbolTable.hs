@@ -18,7 +18,7 @@ import RooAST
 -- Termonology:
 -- - global type table: holds information about type aliases and the composite
 --   types then name;
---    - att: global array type table
+--    - att: global alias type table
 --    - rtt: global record type table
 --    - rft: global record field table
 -- - global procedure table: holds procedure parameter type, whether by 
@@ -54,15 +54,16 @@ data LocalVariableTable
       -- only true if procedure's parameter is pass by value
     }
 
+-- Array:  array size, type
+-- Record: #fields,    [field's definition]
+data AliasTypeInfo 
+  = Array  (Int, DataType)
+  | Record (Int, [FieldDecl])
+
 data SymTable 
   = SymTable 
-    -- global array type table
-    { att :: Map String (Int, DataType) 
-      -- map of array name with array size and 
-      --                        data type (bool or integer or record)
-    -- global record type table
-    , rtt :: Map String (Int, [FieldDecl]) 
-      -- map of record name with number of fields
+    -- global alias type table
+    { att :: Map String AliasTypeInfo
     -- global record field table
     , rft :: Map CompositeKey (BaseType, Int)
       -- map of (record name, field name) with field type and
@@ -80,7 +81,6 @@ data SymTable
 
 initialSymTable :: SymTable
 initialSymTable = SymTable { att = Map.empty
-                           , rtt = Map.empty
                            , rft = Map.empty
                            , pt  = Map.empty
                            , pdt = Map.empty
@@ -109,7 +109,10 @@ insertArrayType (Array arraySize dataType arrayName)
         liftEither $ throwError ("Duplicated array name: " ++ arrayName)
       -- insert an array definition
       else
-        put $ st { att =  Map.insert arrayName (arraySize, dataType) (att st) }
+        put $ st { att =  Map.insert arrayName 
+                                     (Array (arraySize, dataType)) 
+                                     (att st) 
+                 }
 
 getArrayType :: String -> SymTableState (Int, DataType)
 getArrayType arrayName
@@ -118,7 +121,7 @@ getArrayType arrayName
       st <- get
       -- get an array definition
       if (Map.member arrayName (att st)) then
-        return $ (att st) Map.! arrayName
+        let (Array info) = ((att st) Map.! arrayName) in return info
       -- no array definition
       else
         liftEither $ throwError $ "Array named " ++ arrayName ++ 
@@ -139,7 +142,7 @@ insertRecordType (Record fieldDecls recordName)
         do
           insertRecordFields recordName fieldDecls 0
           put $ st { rtt = Map.insert recordName 
-                                      (recordSize, fieldDecls) 
+                                      (Record (recordSize, fieldDecls))
                                       (rtt st) 
                    }
 
@@ -150,7 +153,7 @@ getRecordType recordName
       st <- get
       -- get an record definition
       if (Map.member recordName (rtt st)) then
-        return $ (rtt st) Map.! recordName
+        let (Record info) = (rtt st) Map.! recordName in return info
       -- no record definition
       else
         liftEither $ throwError $ "Record named " ++ recordName ++ 
@@ -198,10 +201,11 @@ getTypeAlias typeName
   =
     do
       st <- get
-      if (Map.member typeName (rtt st)) then 
-        return (RecordVar typeName)
-      else if (Map.member typeName (att st)) then 
-        return (ArrayVar typeName)
+      if (Map.member typeName (att st)) then 
+        do
+          case (rtt st) Map.! typeName of 
+            (Record _) -> return (RecordVar typeName)
+            (Array  _) -> return (ArrayVar  typeName)
       else 
         liftEither $ throwError $ "Undefiend alias type: " ++ typeName
 
