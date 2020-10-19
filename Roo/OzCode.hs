@@ -10,7 +10,6 @@ module OzCode(writeCode) where
 writeCode :: () -> String
 writeCode _ = "writeCode"
 
--- DOUBLE CHECK PLZ --wenruiz
 type Register = Int
 
 -- data stackInstruction
