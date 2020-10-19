@@ -16,6 +16,7 @@ import RooAST
 
 -- ---------------------------------------------------------------------------
 -- Termonology:
+-- 0. st: symbol table
 -- 1. global type table: holds information about type aliases and the composite
 --    types then name;
 --     a) att: global alias type table
@@ -304,6 +305,18 @@ getVariableType varName
       else 
         liftEither $ throwError $ "Unknown variable name: " ++ varName
 
+getVarRecordField :: String -> String -> SymTableState (BaseType, Int)
+getVarRecordField varName fieldName
+  =
+    do
+      st <- get
+      cvt <- getCurVariableTable
+      (_, _, varType, _) <- getVariableType varName
+      case varType of
+        (RecordVar recordName) -> getRecordField recordName varName
+        _ -> liftEither $ throwError $ "Variable name: " ++ varName ++ 
+                                       " is not field type"
+
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
 -- --------------------------------------------------------------------------- 
@@ -376,24 +389,24 @@ insertVariable IntegerVar byValue varName
       updateNewVariableToLVT newSlotCounter 
                              varName 
                              (byValue, availableSlot, IntegerVar, 1)
-insertVariable recVar@(RecordVar typeName) byValue varName
+insertVariable recVar@(RecordVar recordName) byValue varName
   =
     do
       checkVariableNotDefined varName
       cvt <- getCurVariableTable
       let availableSlot = slotCounter cvt
-      (recordSize, _) <- getRecordType typeName
+      (recordSize, _) <- getRecordType recordName
       let newSlotCounter = availableSlot + recordSize
       updateNewVariableToLVT newSlotCounter 
                              varName 
                              (byValue, availableSlot, recVar, recordSize)
-insertVariable arr@(ArrayVar typeName) byValue varName
+insertVariable arr@(ArrayVar arrayName) byValue varName
   =
     do
       checkVariableNotDefined varName
       cvt <- getCurVariableTable
       let availableSlot = slotCounter cvt
-      (arraySize, arrayType) <- getArrayType typeName
+      (arraySize, arrayType) <- getArrayType arrayName
       case arrayType of
         BaseDataType _ ->
           do

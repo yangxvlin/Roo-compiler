@@ -29,7 +29,7 @@ semanticCheckRooProgram prog
       (_, mainProcedureStmts) <- getProcedure "main"
       -- Every program must contain a procedure of arity 0 named "main"
       checkArityProcedure "main" 0
-      -- start checking from "main" procedure
+      -- start checking from "main" procedure's statements
       checkStmts mainProcedureStmts
       st <- get
       return st
@@ -43,7 +43,6 @@ constructSymbolTable prog@(Program records arraies procedures)
       mapM_ insertRecordType records
       mapM_ insertArrayType arraies
       mapM_ insertProcedure procedures
-      -- mapM_ insertProcedureDefinition procedures
 
 -- all type aliases must be distinct, record and array has no overlapping name
 
