@@ -295,7 +295,6 @@ getCurVariableTable
       st <- get
       return $ last $ lvts st
 
-<<<<<<< HEAD
 putProcedureVar :: [Parameter] -> SymTableState ()
 putProcedureVar [] = []
 putProcedureVar formalParams
@@ -339,37 +338,6 @@ putProcedureVar formalParams
 --         do
 --           newLast <- Map.insert varName dataType lastVarTable
 --           put $ st { lvts = init (lvts st) ++ [newLast]  }
-=======
-updateCurVariableTable :: LocalVariableTable -> SymTableState ()
-updateCurVariableTable newLVT
-  =
-    do
-      popLocalVariableTable
-      st <- get
-      let newLvts = (lvts st) ++ [newLVT]
-      put $ st { lvts = newLvts }
-
--- check variable name not exist in the local variable table as key
-checkVariableNotDefined :: String -> SymTableState ()
-checkVariableNotDefined varName
-  =
-    do
-      cvt <- getCurVariableTable
-      if (Map.member varName (vtt cvt)) then 
-        liftEither $ throwError $ "Duplicated variable name: " ++ varName
-      else 
-        return ()
-
-getVariableType :: String -> SymTableState (Bool, Int, VariableType, Int)
-getVariableType varName
-  =
-    do
-      cvt <- getCurVariableTable
-      if (Map.member varName (vtt cvt)) then
-         return $ (vtt cvt) Map.! varName
-      else 
-        liftEither $ throwError $ "Unknown variable name: " ++ varName
->>>>>>> b907fdd20fc3739cb14c16d4312d255ba317c028
 
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
