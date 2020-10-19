@@ -16,19 +16,18 @@ import RooAST
 
 -- ---------------------------------------------------------------------------
 -- Termonology:
--- - global type table: holds information about type aliases and the composite
---   types then name;
---    - att: global alias type table
---    - rft: global record field table
--- - global procedure table: holds procedure parameter type, whether by 
---   reference information
---    - pt: global procedure table
---    - pdt: global procedure definition table, holds procedure's defintion
--- - local variable table: which provides information about formal parameters 
---   and variables in the procedure that is currently being processed.
---    - lts: stack of local variable tables
---    - vtt: variable type table
---    - cvt: current procedure's variable table
+-- 1. global type table: holds information about type aliases and the composite
+--    types then name;
+--     a) att: global alias type table
+--     b) rft: global record field table
+-- 2. global procedure table: holds procedure parameter type, whether by 
+--    reference information
+--    a) pt: global procedure table
+-- 3. local variable table: which provides information about formal parameters 
+--    and variables in the procedure that is currently being processed.
+--    a) lts: stack of local variable tables
+--    b) vtt: variable type table
+--    c) cvt: current procedure's variable table
 -- ---------------------------------------------------------------------------
 
 data CompositeKey = CompositeKey String String
@@ -70,15 +69,13 @@ data AliasTypeInfo
 -- 3. pt   :: global procedure table
 --            = map of procedure name with
 --                a) [true if pass by value, parameter's type]
---                b) procedure's definition
--- 4. pdt  :: global procedure definition table
--- 5. lvts :: stack of local variable table  
+--                b) procedure's statements
+-- 4. lvts :: stack of local variable table  
 data SymTable 
   = SymTable 
     { att :: Map String AliasTypeInfo
     , rft :: Map CompositeKey (BaseType, Int)
-    , pt  :: Map String ([(Bool, DataType)]) 
-    , pdt :: Map String (Procedure)
+    , pt  :: Map String ([(Bool, DataType)], [Stmt]) 
     , lvts :: [LocalVariableTable]
     , labelCounter :: Int
     }
@@ -87,7 +84,6 @@ initialSymTable :: SymTable
 initialSymTable = SymTable { att = Map.empty
                            , rft = Map.empty
                            , pt  = Map.empty
-                           , pdt = Map.empty
                            , lvts = []
                            , labelCounter = 0
                            }
@@ -217,13 +213,14 @@ getTypeAlias typeName
 -- ProcedureTable related helper methods
 -- ---------------------------------------------------------------------------
 insertProcedure :: Procedure -> SymTableState ()
-insertProcedure (Procedure (ProcedureHeader ident params) (ProcedureBody _ _ ))
+insertProcedure (Procedure (ProcedureHeader ident params) 
+                           (ProcedureBody _ stmts ))
   = do
     let formalParams = map createformalParam params
-    putProcedure ident formalParams
+    putProcedure ident formalParams stmts
 
-putProcedure :: String -> [(Bool, DataType)] -> SymTableState ()
-putProcedure procedureName formalParams
+putProcedure :: String -> [(Bool, DataType)] -> [Stmt] -> SymTableState ()
+putProcedure procedureName formalParams stmts
   = do
       st <- get
       -- duplicate procedure definition
@@ -232,11 +229,11 @@ putProcedure procedureName formalParams
                                   procedureName
       -- insert a procedure definition
       else
-        put $ st { pt =  Map.insert procedureName formalParams (pt st) }
+        put $ st {pt = Map.insert procedureName (formalParams, stmts) (pt st)}
 
--- get procedure's parameter by name
-getProcedureParams :: String -> SymTableState [(Bool, DataType)]
-getProcedureParams procedureName 
+-- get procedure's type info
+getProcedure :: String -> SymTableState ([(Bool, DataType)], [Stmt])
+getProcedure procedureName 
   = do
       st <- get
       if (Map.member procedureName (pt st)) then 
@@ -250,31 +247,6 @@ createformalParam :: Parameter -> (Bool, DataType)
 createformalParam (BooleanVal _) = (True, BaseDataType BooleanType)
 createformalParam (IntegerVal _) = (True, BaseDataType IntegerType)
 createformalParam (DataParameter dataType _) = (False, dataType)
-
-
-insertProcedureDefinition :: Procedure -> SymTableState ()
-insertProcedureDefinition p@(Procedure (ProcedureHeader procedureName _)  _)
-  = 
-    do
-      st <- get
-      -- duplicate procedure definition
-      if (Map.member procedureName (pdt st)) then 
-        liftEither $ throwError $ "Duplicated procedure name: " ++ 
-                                  procedureName
-      -- insert a procedure definition
-      else 
-        put $ st { pdt = Map.insert procedureName p (pdt st) }
-
-getProcedureDefinition :: String -> SymTableState Procedure
-getProcedureDefinition procedureName
-  =
-    do
-      st <- get
-      if (Map.member procedureName (pdt st)) then 
-        return $ (pdt st) Map.! procedureName
-      else 
-        liftEither $ throwError $ "Procedure named " ++ procedureName ++ 
-                                  " does not exist"
 
 -- ---------------------------------------------------------------------------
 -- VariableTable related helper methods
@@ -338,8 +310,7 @@ getVariableType varName
 
 insertProcedureVariable :: Procedure -> SymTableState ()
 insertProcedureVariable (Procedure (ProcedureHeader ident params) 
-                                   (ProcedureBody variableDecls _ )
-                        )
+                                   (ProcedureBody variableDecls _ ))
   =
     do
       pushLocalVariableTable
@@ -354,16 +325,13 @@ insertProcedureParameter (BooleanVal varName)
 insertProcedureParameter (IntegerVal varName) 
   = insertVariable IntegerVar True varName
 insertProcedureParameter (DataParameter (BaseDataType BooleanType) 
-                                        varName
-                         ) 
+                                        varName) 
   = insertVariable BooleanVar False varName
 insertProcedureParameter (DataParameter (BaseDataType IntegerType) 
-                                        varName
-                         ) 
+                                        varName) 
   = insertVariable IntegerVar False varName
 insertProcedureParameter (DataParameter (AliasDataType typeName) 
-                                        varName
-                         )
+                                        varName)
   =
     do
       aliasType <- getTypeAlias typeName
@@ -371,20 +339,17 @@ insertProcedureParameter (DataParameter (AliasDataType typeName)
 
 insertProcedureVariableDecl :: VariableDecl -> SymTableState ()
 insertProcedureVariableDecl (VariableDecl (BaseDataType BooleanType) 
-                                          variableNames
-                            )
+                                          variableNames)
   =
     do
       mapM_ (insertVariable BooleanVar False) variableNames
 insertProcedureVariableDecl (VariableDecl (BaseDataType IntegerType) 
-                                          variableNames
-                            )
+                                          variableNames)
   =
     do
       mapM_ (insertVariable IntegerVar False) variableNames
 insertProcedureVariableDecl (VariableDecl (AliasDataType typeName) 
-                                          variableNames
-                            )
+                                          variableNames)
   =
     do
       aliasType <- getTypeAlias typeName

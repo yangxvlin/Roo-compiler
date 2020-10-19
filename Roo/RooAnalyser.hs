@@ -26,11 +26,11 @@ semanticCheckRooProgram prog
   =
     do
       constructSymbolTable prog
-      mainProcedure <- getProcedureDefinition "main"
+      (_, mainProcedureStmts) <- getProcedure "main"
       -- Every program must contain a procedure of arity 0 named "main"
       checkArityProcedure "main" 0
       -- start checking from "main" procedure
-      checkStmts mainProcedure
+      checkStmts mainProcedureStmts
       st <- get
       return st
 
@@ -43,7 +43,7 @@ constructSymbolTable prog@(Program records arraies procedures)
       mapM_ insertRecordType records
       mapM_ insertArrayType arraies
       mapM_ insertProcedure procedures
-      mapM_ insertProcedureDefinition procedures
+      -- mapM_ insertProcedureDefinition procedures
 
 -- all type aliases must be distinct, record and array has no overlapping name
 
@@ -58,8 +58,8 @@ constructSymbolTable prog@(Program records arraies procedures)
 -- all defined procedures must have distinct names.
 
 
-checkStmts :: Procedure -> SymTableState ()
-checkStmts (Procedure _ pb@(ProcedureBody _ stmts))
+checkStmts :: [Stmt] -> SymTableState ()
+checkStmts stmts
   = 
     do
       pushLocalVariableTable
@@ -70,7 +70,7 @@ checkStmt :: Stmt -> SymTableState ()
 checkStmt (Call procedureName exps) 
   = 
     do
-      proParams <- getProcedureParams procedureName
+      (proParams, _) <- getProcedure procedureName
       let nParamsFound = length exps
       let nParamsExpected = length proParams
       -- the number of actual parameters in a call must be equal to the number 
@@ -171,7 +171,8 @@ checkArityProcedure procedureName arity
   = 
     do
       st <- get
-      let procedureArity = length $ (pt st) Map.! procedureName
+      let (procedureParams, _) = (pt st) Map.! procedureName
+      let procedureArity = length $ procedureParams
       if procedureArity == arity then 
         return ()
       else
