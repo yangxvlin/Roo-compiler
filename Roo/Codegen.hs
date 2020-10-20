@@ -4,16 +4,34 @@
 --  Implemented by Xulin Yangm, Wenrui Zhang             --
 --  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
-module Codegen(ozCode) where
+module Codegen(ozCode, Consequence(..)) where
 
-import Control.Monad
 import OzCode
-import SymbolTable
+import Control.Monad
+import Control.Monad.State
+import Control.Monad.Except
 import RooAST
+import SymbolTable
+import Data.Map (Map, (!))
+import qualified Data.Map as Map
+import Data.Either
 
+type Consequence = Either String [OzInstruction]
 
-ozCode :: SymTable -> Program -> ()
-ozCode _ _ = ()
+ozCode :: SymTable -> Program -> Consequence
+ozCode st prog = evalStateT (codeGeneration prog) st
+
+codeGeneration :: Program -> SymTableState [OzInstruction]
+codeGeneration prog
+    = 
+        do
+            let generatedCode = [StackInstruction]
+
+            st <- get
+            if (length (lvts st) > 0) then
+                liftEither $ throwError "symbol table has non-0 local variable tables"
+            else
+                return generatedCode
 
 
 

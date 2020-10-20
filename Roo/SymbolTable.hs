@@ -325,7 +325,6 @@ insertProcedureVariable (Procedure (ProcedureHeader ident params)
                                    (ProcedureBody variableDecls _ ))
   =
     do
-      pushLocalVariableTable
       mapM_ insertProcedureParameter params
       mapM_ insertProcedureVariableDecl variableDecls
 

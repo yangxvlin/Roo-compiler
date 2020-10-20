@@ -7,9 +7,6 @@
 
 module OzCode where
 
-writeCode :: () -> String
-writeCode _ = "writeCode"
-
 type Register = Int
 
 data StackInstruction
@@ -94,3 +91,6 @@ data OzInstruction
     | Comment String
     | Label String
     deriving (Show, Eq)
+
+writeCode :: [OzInstruction] -> String
+writeCode instructions = "writeCode"

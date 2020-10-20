@@ -9,7 +9,7 @@ import RooParser (ast)
 import PrettyRoo (pp)
 import RooAnalyser (analyse, Result(..))
 import OzCode (writeCode)
-import Codegen (ozCode)
+import Codegen (ozCode, Consequence(..))
 import System.Environment (getProgName, getArgs)
 import System.Exit (exitWith, ExitCode(..))
 
@@ -36,8 +36,16 @@ main
                              -> do putStrLn err
                                    exitWith (ExitFailure 2)
                            Right table
-                             -> do let code = ozCode table tree
-                                   putStrLn (writeCode code)
+                             -> do 
+                                  let code = ozCode table tree
+                                  case code of
+                                    Left err -> 
+                                      do 
+                                        putStrLn err 
+                                        exitWith (ExitFailure 2)
+                                    Right instructions ->
+                                      do
+                                        putStrLn (writeCode instructions)
                  Left err
                    -> do putStr "Parse error at "
                          print err
