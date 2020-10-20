@@ -56,9 +56,9 @@ data LogicInstruction
     deriving (Show, Eq)
 
 data OperationInstruction
-    = ArithmeticInstruction
-    | ComparisonInstruction
-    | LogicInstruction
+    = ArithmeticInstruction ArithmeticInstruction
+    | ComparisonInstruction ComparisonInstruction
+    | LogicInstruction LogicInstruction
     | Int2real Register Register
     | Move Register Register
       deriving (Show, Eq)
@@ -69,10 +69,10 @@ data BranchInstruction
     deriving (Show, Eq)
 
 data ProcedureInstruction
-    = Call String
-    | CallBuiltIn String
-    | Return
-    | Halt
+    = ICall String
+    | ICallBuiltIn String
+    | IReturn
+    | IHalt
     deriving (Show, Eq)
 
 data DebugInstruction
@@ -82,12 +82,12 @@ data DebugInstruction
     deriving (Show, Eq)
 
 data OzInstruction
-    = StackInstruction
-    | ConstantInstruction
-    | OperationInstruction
-    | BranchInstruction
-    | ProcedureInstruction
-    | DebugInstruction
+    = StackInstruction StackInstruction
+    | ConstantInstruction ConstantInstruction
+    | OperationInstruction OperationInstruction
+    | BranchInstruction BranchInstruction
+    | ProcedureInstruction ProcedureInstruction
+    | DebugInstruction DebugInstruction
     | Comment String
     | Label String
     deriving (Show, Eq)

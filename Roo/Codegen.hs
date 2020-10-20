@@ -25,27 +25,37 @@ codeGeneration :: Program -> SymTableState [OzInstruction]
 codeGeneration _
     = 
         do
-            let generatedCode = [StackInstruction]
+            let generatedCode = [ProcedureInstruction $ ICall "proc_main", 
+                                ProcedureInstruction $ IHalt]
             -- starts with main procedure
             (_, mainProc) <- getProcedure "main"
             codes <- generateProcedure mainProc
             return $ generatedCode ++ codes
 
 generateProcedure :: Procedure -> SymTableState [OzInstruction]
-generateProcedure p@(Procedure _ (ProcedureBody _ stmts))
+generateProcedure p@(Procedure (ProcedureHeader procID _) (ProcedureBody _ stmts))
     =
         do
-            let generatedCode = [StackInstruction]
+            let generatedCode = [Label procID] 
 
             -- 
             pushLocalVariableTable
             -- insert procedure's variable info to local variable table
             insertProcedureVariable p
-            -- start checking from "main" procedure's statements
-            -- checkStmts mainProcStmts
-            popLocalVariableTable
-            return generatedCode
+            -- generate code of procedure's statements
+            -- reg <- getRegisterCounter
+            -- generatedCode <- generatedCode ++ [StackInstruction $ Load $ reg 10] 
+            -- let code = foldM (++) generatedCode (mapM generateStatement stmts)
 
+            popLocalVariableTable
+
+            return $ generatedCode 
+
+generateStatement :: Stmt -> SymTableState [OzInstruction]
+generateStatement _ 
+    = 
+        do
+            return [Comment "this is a statment"]
 
 -- -- transfer operation from Exp in AST to Oz instruction
 -- getOzInstruction :: Exp -> OzInstruction

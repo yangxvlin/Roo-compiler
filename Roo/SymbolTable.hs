@@ -210,6 +210,15 @@ getTypeAlias typeName
       else 
         liftEither $ throwError $ "Undefiend alias type: " ++ typeName
 
+getlabelCounter :: SymTableState String
+getlabelCounter
+  = 
+    do
+      st <- get
+      let currentCount = (labelCounter st)
+      put st{labelCounter = currentCount + 1}
+      return $ "label_" ++ show currentCount   
+
 -- ---------------------------------------------------------------------------
 -- ProcedureTable related helper methods
 -- ---------------------------------------------------------------------------
@@ -315,6 +324,13 @@ getVarRecordField varName fieldName
         (RecordVar recordName) -> getRecordField recordName varName
         _ -> liftEither $ throwError $ "Variable name: " ++ varName ++ 
                                        " is not field type"
+
+-- return the current register counter and increase regiter counter by 1
+getRegisterCounter :: SymTableState Int
+getRegisterCounter 
+  = 
+    do
+      return 0
 
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
