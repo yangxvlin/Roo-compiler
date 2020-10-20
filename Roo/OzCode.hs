@@ -5,7 +5,7 @@
 --  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 
-module OzCode(writeCode) where
+module OzCode where
 
 writeCode :: () -> String
 writeCode _ = "writeCode"
@@ -23,9 +23,9 @@ data StackInstruction
     deriving (Show, Eq)
 
 data ConstantInstruction
-    = IntConst Register Int
-    | RealConst Register Float
-    | StringConst Register String
+    = OzIntConst Register Int
+    | OzRealConst Register Float
+    | OzStringConst Register String
     deriving (Show, Eq)
 
 data OpType 
@@ -84,7 +84,7 @@ data DebugInstruction
     | DebugStack
     deriving (Show, Eq)
 
-data Instruction
+data OzInstruction
     = StackInstruction
     | ConstantInstruction
     | OperationInstruction
