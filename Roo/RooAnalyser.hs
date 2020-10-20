@@ -16,11 +16,14 @@ import qualified Data.Map as Map
 import Data.Either
 
 type Result = Either String SymTable
+--中文注释最后删除--chinese comments will be deleted
+--main function  of semantic analysis
 
 analyse :: Program -> Result 
 analyse prog
   = evalStateT (semanticCheckRooProgram prog) initialSymTable
 
+--semantic analysis on a roo program
 semanticCheckRooProgram :: Program -> SymTableState SymTable
 semanticCheckRooProgram prog
   =
@@ -30,16 +33,23 @@ semanticCheckRooProgram prog
         getProcedure "main"
       -- Every program must contain a procedure of arity 0 named "main"
       checkArityProcedure "main" 0
+
+      --已在symboltable处检查了procedure name不会重复，同时保证了只有一个main 
+      
+
+      
       -- insert main procedure's local variable
       pushLocalVariableTable
       insertProcedureVariable mainProc
+
+      -- 下面检查所有procedure
       -- start checking from "main" procedure's statements
       checkStmts mainProcStmts
       popLocalVariableTable
       st <- get
       return st
 
--- construct global type tables
+-- construct global type tables 
 constructSymbolTable :: Program -> SymTableState ()
 constructSymbolTable prog@(Program records arraies procedures)
   = 
@@ -67,11 +77,94 @@ constructSymbolTable prog@(Program records arraies procedures)
 
 -- all defined procedures must have distinct names.
 -- soln: handled when insertProcedure as defined in SymbolTable.hs
+--------------------下面检查procedure---------------------
+------Semantic checking on one procedure------------------------
+checkProcedure::procedure -> SymTableState ()
+checkProcedure aproc
+--分两部分参数和stmt
+--第一部分已经在symtable检查了每个procedure的形参localvar不重复
+--第二部分逐步检查每个stmt，调用checkstmts
+--如果没有其他要检查的这个func可以直接用checkstmts代替
+  =return()
 
+----------------------checkstmt:---------------------------------
 checkStmts :: [Stmt] -> SymTableState ()
 checkStmts = mapM_ checkStmt
 
+--下面是检查所有类型的stmt，由于每个stmt都要检查所用var是否声明过，需要再写一个
+--checkVarDecl
+checkVarDecl::VariableDecl->SymTableState ()--不确定
+checkVarDecl varw
+  =return ()
+--还需要写一个检查每个类型是否正确,需要在stmt中检查每一种Expression,
+--array[e] e为正整数
+--
+-- The type rules for statements are as follows:
+-- • In assignment statements, an lvalue on the left-hand side must have the same type t as
+-- the expression on the right-hand side. If t is a record or array type, then the types of the
+-- two sides must have been provided as identical type aliases, and both must have reference
+-- mode.
+-- • Conditions in if and while statements must be of type boolean. Their bodies must be
+-- well-typed sequences of statements.
+-- • For each procedure call, the number of arguments must agree with the number of formal
+-- parameters used in the procedure definition, and the type of each actual parameter must
+-- be the type of the corresponding formal parameter.
+-- • The argument to read must be an lvalue of type boolean or integer.
+-- • The argument to write must be a well-typed expression of type boolean or integer, or
+-- a string literal. The same goes for writeln.
+
+
+
 checkStmt :: Stmt -> SymTableState ()
+--1.A variable must be declared (exactly once) before it is used.
+
+--2.checkAssignType is use to check assign type:
+--Boolean i----i<-0 wrong
+checkStmt (Assign lvalue exp) 
+  = 
+    do
+      return ()
+--write and read:
+--  write prints integer and boolean expressions to stdout in their standard syntactic forms, 
+--with no additional whitespace or newlines.
+--  If write is given a string, it prints out the characters of the string to stdout, with \" 
+--resulting in a double quote being printed, \n in a newline character being printed, and \t 
+--in a tab being printed.
+--  writeln behaves exactly like write, except it prints an additional, final newline character.
+--  Similarly, read reads an integer or boolean literal from stdin and assigns it to an lvalue.
+--If the user input is not valid, execution terminates.
+checkStmt (Read llvalue) 
+  = 
+    do
+      return ()
+
+checkStmt (Write exp) 
+  = 
+    do
+      return ()
+
+checkStmt (Writeln exp) 
+  = 
+    do
+      return ()  
+
+checkStmt (IfThen exp [stmt]) 
+  = 
+    do
+      return ()    
+
+
+checkStmt (IfThenElse exp [stmt1] [stmt2]) 
+  = 
+    do
+      return ()  
+
+checkStmt (While exp [stmt] ) 
+  = 
+    do
+      return ()                    
+------------------------call-------------------------------- 
+
 checkStmt (Call procedureName exps) 
   = 
     do
@@ -94,34 +187,38 @@ checkStmt (Call procedureName exps)
           let (Procedure _ (ProcedureBody _ procCalledStmts)) = procCalled
           checkStmts procCalledStmts
           popLocalVariableTable
+
 checkStmt _ = return ()
+-----------semantic check on all kinds of expression----
+checkExp::Exp->SymTableState ()
+checkExp (BoolConst bbool)
+  =return()
 
------------------------------------------------------------
---Static semantics
------------------------------------------------------------
---by value or by reference
------------------------------------------------------------
---If the formal parameter’s type is followed by the keyword val → it has value mode.
---                                                      If not  → it has reference mode.
 
---Any expression of boolean or integer type can be passed   by value, as an argument to a procedure
---Some expressions of boolean or integer type can be passed by reference,namely those that are “lvalues”.
---                                                lvalues:  -a variable x (of primitive type)
---                                                          -an array element id[e] (of primitive type)
---                                                          -a field reference x.a 
---                                                          -id[e].a.
+-----------semantic check on all operation------
+--The language is statically typed, that is, each variable and parameter has a fixed type, chosen
+--by the programmer. The type rules for expressions are as follows:
+-- • The type of a Boolean constant is boolean.
+-- • The type of an integer constant is integer.
+-- • The type of a string literal is string.
+-- • The type of an expression id is the variable id’s declared type. If the declaration uses a
+-- type alias, the type is the one given by the type definition for that alias.
+-- • For an expression lval .fname, lval must be of record type. The type of an expression
+-- lval .fname is the type associated with field name fname, as given in the record type
+-- associated with lval .
+-- • For an expression id[e], id must be of array type, and e must have type integer. The
+-- type of the expression is the array element type, as given in array type associated with id.
+-- • Arguments of the logical operators must be of type boolean. The result of applying these
+-- operators is of type boolean.
+-- • The two operands of a relational operator must have the same primitive type, either
+-- boolean or integer. The result is of type boolean.
+-- • The two operands of a binary arithmetic operator must have type integer, and the result
+-- is of type integer.
+-- • The operand of unary minus must be of type integer, and the result type is the same
 
---A formal parameter with value mode behaves exactly as if it were a local variable.So：
---A “by reference” formal parameter                       has reference mode, 
---while other formal parameters, and all local variables, have value mode.
 
---A record or an array may be passed as a whole, but in that case it must be passed by reference.
---Similarly, an assignment lval <- e, where e has record or array type, is only allowed if lval and e both have reference mode.
 
--- 该语言允许两种方式传递参数。 按值调用是一种复制机制。 对于每个由值传递的参数e，被调用的过程都将对应的形
--- 式参数v视为局部变量，并将该局部变量初始化为e的值。 通过关键字val指定按值调用。
--- 通过引用调用不涉及复制。
--- 而是为被调用的过程提供了实际参数的地址（该地址必须是变量z，字段引用x.a或数组元素a [e]，并且形式参数v被视为实际参数的同义词。
+
 
 -----------------------------------------------------------
 --procedure and variable
@@ -143,41 +240,9 @@ checkStmt _ = return ()
 --Each reference to an array variable must include exactly one index expression.
 
 -----------------------------------------------------------
---The language is statically typed, that is, each variable and parameter has a fixed type, chosen
---by the programmer. The type rules for expressions are as follows:
--- • The type of a Boolean constant is boolean.
--- • The type of an integer constant is integer.
--- • The type of a string literal is string.
--- • The type of an expression id is the variable id’s declared type. If the declaration uses a
--- type alias, the type is the one given by the type definition for that alias.
--- • For an expression lval .fname, lval must be of record type. The type of an expression
--- lval .fname is the type associated with field name fname, as given in the record type
--- associated with lval .
--- • For an expression id[e], id must be of array type, and e must have type integer. The
--- type of the expression is the array element type, as given in array type associated with id.
--- • Arguments of the logical operators must be of type boolean. The result of applying these
--- operators is of type boolean.
--- • The two operands of a relational operator must have the same primitive type, either
--- boolean or integer. The result is of type boolean.
--- • The two operands of a binary arithmetic operator must have type integer, and the result
--- is of type integer.
--- • The operand of unary minus must be of type integer, and the result type is the same.
 
--- The type rules for statements are as follows:
--- • In assignment statements, an lvalue on the left-hand side must have the same type t as
--- the expression on the right-hand side. If t is a record or array type, then the types of the
--- two sides must have been provided as identical type aliases, and both must have reference
--- mode.
--- • Conditions in if and while statements must be of type boolean. Their bodies must be
--- well-typed sequences of statements.
--- • For each procedure call, the number of arguments must agree with the number of formal
--- parameters used in the procedure definition, and the type of each actual parameter must
--- be the type of the corresponding formal parameter.
--- • The argument to read must be an lvalue of type boolean or integer.
--- • The argument to write must be a well-typed expression of type boolean or integer, or
--- a string literal. The same goes for writeln.
--- Every procedure in a program must be well-typed, that is, its body must be a sequence of
--- well-typed statements. Every program must contain a procedure of arity 0 named “main”.
+
+
 checkArityProcedure :: String -> Int -> SymTableState ()
 checkArityProcedure procedureName arity
   = 
@@ -208,15 +273,7 @@ checkArityProcedure procedureName arity
 --  Roo does not use short-circuit evaluation of Boolean expressions. 
 --  For example,‘5 < 8 or 5 > 8/0’ causes a runtime error, rather than evaluating to true.
 
---write and read:
---  write prints integer and boolean expressions to stdout in their standard syntactic forms, 
---with no additional whitespace or newlines.
---  If write is given a string, it prints out the characters of the string to stdout, with \" 
---resulting in a double quote being printed, \n in a newline character being printed, and \t 
---in a tab being printed.
---  writeln behaves exactly like write, except it prints an additional, final newline character.
---  Similarly, read reads an integer or boolean literal from stdin and assigns it to an lvalue.
---If the user input is not valid, execution terminates.
+
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
 
