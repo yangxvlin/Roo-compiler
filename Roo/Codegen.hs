@@ -22,17 +22,29 @@ ozCode :: SymTable -> Program -> Consequence
 ozCode st prog = evalStateT (codeGeneration prog) st
 
 codeGeneration :: Program -> SymTableState [OzInstruction]
-codeGeneration prog
+codeGeneration _
     = 
         do
             let generatedCode = [StackInstruction]
+            -- starts with main procedure
+            (_, mainProc) <- getProcedure "main"
+            codes <- generateProcedure mainProc
+            return $ generatedCode ++ codes
 
-            st <- get
-            if (length (lvts st) > 0) then
-                liftEither $ throwError "symbol table has non-0 local variable tables"
-            else
-                return generatedCode
+generateProcedure :: Procedure -> SymTableState [OzInstruction]
+generateProcedure p@(Procedure _ (ProcedureBody _ stmts))
+    =
+        do
+            let generatedCode = [StackInstruction]
 
+            -- 
+            pushLocalVariableTable
+            -- insert procedure's variable info to local variable table
+            insertProcedureVariable p
+            -- start checking from "main" procedure's statements
+            -- checkStmts mainProcStmts
+            popLocalVariableTable
+            return generatedCode
 
 
 -- -- transfer operation from Exp in AST to Oz instruction

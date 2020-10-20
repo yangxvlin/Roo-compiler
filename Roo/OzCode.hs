@@ -93,4 +93,4 @@ data OzInstruction
     deriving (Show, Eq)
 
 writeCode :: [OzInstruction] -> String
-writeCode instructions = "writeCode"
+writeCode instructions = concat $ map (\x -> (show x) ++ "\n") instructions
