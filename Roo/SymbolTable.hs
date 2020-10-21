@@ -13,6 +13,7 @@ import Data.Map (Map, (!))
 import qualified Data.Map as Map
 import Text.Parsec.Pos
 import RooAST
+import OzCode
 
 -- ---------------------------------------------------------------------------
 -- Termonology:
@@ -79,6 +80,7 @@ data SymTable
     , pt  :: Map String ([(Bool, DataType)], Procedure) 
     , lvts :: [LocalVariableTable]
     , labelCounter :: Int
+    , instructions :: [OzInstruction]
     }
 
 initialSymTable :: SymTable
@@ -87,6 +89,7 @@ initialSymTable = SymTable { att = Map.empty
                            , pt  = Map.empty
                            , lvts = []
                            , labelCounter = 0
+                           , instructions = []
                            }
 
 initialLocalVariableTable :: LocalVariableTable
@@ -466,3 +469,14 @@ updateNewVariableToLVT newSlotCounter
                            (byValue, availableSlot, varType, slotRequired)
                            (vtt cvt)
         }
+
+-- ---------------------------------------------------------------------------
+-- instructions related helper methods
+-- ---------------------------------------------------------------------------
+appendInstruction :: OzInstruction -> SymTableState ()
+appendInstruction newIns
+  =
+    do
+      st <- get
+      let oldIns = instructions st
+      put $ st { instructions = oldIns ++ [newIns] }
