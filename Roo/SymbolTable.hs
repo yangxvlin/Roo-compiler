@@ -332,9 +332,19 @@ getRegisterCounter
     do
       cvt <- getCurVariableTable
       let regCounter = registerCounter cvt
-      updateCurVariableTable cvt { registerCounter = regCounter + 1 }
+      if regCounter >= 1024 then
+        liftEither $ throwError $ "Register used > 1024"
+      else
+        do
+          updateCurVariableTable cvt { registerCounter = regCounter + 1 }
+          return regCounter
 
-      return regCounter
+setRegisterCounter :: Int -> SymTableState ()
+setRegisterCounter newReg
+  = 
+    do
+      cvt <- getCurVariableTable
+      updateCurVariableTable cvt { registerCounter = newReg }
 
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
