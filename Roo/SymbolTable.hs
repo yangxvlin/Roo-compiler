@@ -330,7 +330,11 @@ getRegisterCounter :: SymTableState Int
 getRegisterCounter 
   = 
     do
-      return 0
+      cvt <- getCurVariableTable
+      let regCounter = registerCounter cvt
+      updateCurVariableTable cvt { registerCounter = regCounter + 1 }
+
+      return regCounter
 
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
