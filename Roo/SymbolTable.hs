@@ -391,18 +391,18 @@ insertProcedureVariableDecl (VariableDecl (BaseDataType BooleanType)
                                           variableNames)
   =
     do
-      mapM_ (insertVariable BooleanVar False) variableNames
+      mapM_ (insertVariable BooleanVar True) variableNames
 insertProcedureVariableDecl (VariableDecl (BaseDataType IntegerType) 
                                           variableNames)
   =
     do
-      mapM_ (insertVariable IntegerVar False) variableNames
+      mapM_ (insertVariable IntegerVar True) variableNames
 insertProcedureVariableDecl (VariableDecl (AliasDataType typeName) 
                                           variableNames)
   =
     do
       aliasType <- getTypeAlias typeName
-      mapM_ (insertVariable aliasType False) variableNames
+      mapM_ (insertVariable aliasType True) variableNames
 
 insertVariable ::  VariableType -> Bool -> String -> SymTableState ()
 insertVariable BooleanVar byValue varName
