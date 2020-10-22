@@ -411,6 +411,8 @@ insertVariable BooleanVar byValue varName
     do
       checkVariableNotDefined varName
       availableSlot <- getSlotCounter
+      -- no matter it is pass by value or by reference, 1 slot required as it 
+      -- is boolean
       let newSlotCounter = availableSlot + 1
       updateNewVariableToLVT newSlotCounter 
                              varName 
@@ -420,6 +422,8 @@ insertVariable IntegerVar byValue varName
     do
       checkVariableNotDefined varName
       availableSlot <- getSlotCounter
+      -- no matter it is pass by value or by reference, 1 slot required as it 
+      -- is boolean
       let newSlotCounter = availableSlot + 1
       updateNewVariableToLVT newSlotCounter 
                              varName 
