@@ -1,7 +1,7 @@
 -----------------------------------------------------------
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
---  Implemented by Xulin Yang, Wenrui Zhang             --
+--  Implemented by Xulin Yang, Wenrui Zhang, Xu Shi      --
 --  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module RooAnalyser(analyse, Result(..)) where
@@ -23,7 +23,7 @@ analyse :: Program -> Result
 analyse prog
   = evalStateT (semanticCheckRooProgram prog) initialSymTable
 
---semantic analysis on a roo program
+--semantic analysis on a roo program  symtable->Either string (a,symtable)
 semanticCheckRooProgram :: Program -> SymTableState SymTable
 semanticCheckRooProgram prog
   =
@@ -36,28 +36,39 @@ semanticCheckRooProgram prog
 
       --已在symboltable处检查了procedure name不会重复，同时保证了只有一个main 
       
+      --get procedure table and check stmts of all procedures in procedure table
+      st <- get
+      checkAllProcedures (pt st)
 
-      
-      -- insert main procedure's local variable
-      pushLocalVariableTable
-      insertProcedureVariable mainProc
-
-      -- 下面检查所有procedure
-      -- start checking from "main" procedure's statements
-      checkStmts mainProcStmts
-      popLocalVariableTable
       st <- get
       return st
+--------------------下面检查procedure-----------------------
+------Semantic checking on all procedures------------------------
+--分两部分:参数和stmt
+--第一部分已经在symtable检查了每个procedure的形参localvar不重复
+--第二部分逐步检查每个stmt
+checkAllProcedures::Map String ([(Bool, DataType)], Procedure) ->SymTableState ()
+checkAllProcedures procedures 
+  =mapM_ checkOneProcedures procedures
+checkOneProcedures:: ([(Bool, DataType)], Procedure)->SymTableState ()
+checkOneProcedures procedure@((proParams, procCalled@(Procedure _ (ProcedureBody _ procStmts))))
+  =
+    do
+      pushLocalVariableTable
+      insertProcedureVariable procCalled 
 
--- construct global type tables 
+      checkStmts procStmts
+      popLocalVariableTable
+  
+-- construct global type tables 将prog中保存的三个元素存入symboltable
 constructSymbolTable :: Program -> SymTableState ()
 constructSymbolTable prog@(Program records arraies procedures)
   = 
     do
       st <- get
-      mapM_ insertRecordType records
-      mapM_ insertArrayType arraies
-      mapM_ insertProcedure procedures
+      mapM_ insertRecordType records    --att
+      mapM_ insertArrayType arraies     --att
+      mapM_ insertProcedure procedures  --pt
 
 -- all type aliases must be distinct, record and array has no overlapping name
 -- soln: handled when insertRecordType & insertArrayType as defined in 
@@ -77,15 +88,8 @@ constructSymbolTable prog@(Program records arraies procedures)
 
 -- all defined procedures must have distinct names.
 -- soln: handled when insertProcedure as defined in SymbolTable.hs
---------------------下面检查procedure---------------------
-------Semantic checking on one procedure------------------------
-checkProcedure::procedure -> SymTableState ()
-checkProcedure aproc
---分两部分参数和stmt
---第一部分已经在symtable检查了每个procedure的形参localvar不重复
---第二部分逐步检查每个stmt，调用checkstmts
---如果没有其他要检查的这个func可以直接用checkstmts代替
-  =return()
+
+
 
 ----------------------checkstmt:---------------------------------
 checkStmts :: [Stmt] -> SymTableState ()
@@ -113,6 +117,23 @@ checkVarDecl varw
 -- • The argument to write must be a well-typed expression of type boolean or integer, or
 -- a string literal. The same goes for writeln.
 
+--TODO
+--lvalue  ->varName
+getIdentoflvalue::LValue->Ident
+getIdentoflvalue (LId ident) = ident
+getIdentoflvalue (LDot _ ident) = ident--TODO
+getIdentoflvalue (LBrackets ident _) = ident
+getIdentoflvalue (LBracketsDot _ _ ident) = ident--TODO
+
+--TODO
+-- variable type ->what dataType is this var
+whatVartypeNeed::VariableType->DataType
+whatVartypeNeed (BooleanVar)=BaseDataType BooleanType
+whatVartypeNeed (IntegerVar)=BaseDataType IntegerType
+whatVartypeNeed (RecordVar string)=BaseDataType BooleanType--TODO
+whatVartypeNeed (ArrayVar string)=BaseDataType BooleanType--TODO
+
+
 
 
 checkStmt :: Stmt -> SymTableState ()
@@ -123,7 +144,22 @@ checkStmt :: Stmt -> SymTableState ()
 checkStmt (Assign lvalue exp) 
   = 
     do
-      return ()
+--      return ()
+      let identi = getIdentoflvalue lvalue
+      (bool1, in1, variableType1, int2)<-getVariableType identi
+       
+
+      
+      if  (whatVartypeNeed variableType1)/=(getExpType exp) then
+ --     if not (variableType==(getExpType exp)) then
+        liftEither $ throwError ("assign a wrong type") --TODO
+      else
+        return ()
+
+
+       
+
+      
 --write and read:
 --  write prints integer and boolean expressions to stdout in their standard syntactic forms, 
 --with no additional whitespace or newlines.
@@ -133,7 +169,7 @@ checkStmt (Assign lvalue exp)
 --  writeln behaves exactly like write, except it prints an additional, final newline character.
 --  Similarly, read reads an integer or boolean literal from stdin and assigns it to an lvalue.
 --If the user input is not valid, execution terminates.
-checkStmt (Read llvalue) 
+checkStmt (Read lvalue) 
   = 
     do
       return ()
@@ -148,26 +184,45 @@ checkStmt (Writeln exp)
     do
       return ()  
 
-checkStmt (IfThen exp [stmt]) 
+checkStmt (IfThen exp stmts) 
   = 
     do
-      return ()    
+      if not ((getExpType exp)==(BaseDataType BooleanType))then
+          liftEither $ throwError ("IF exp is not boolean type")
+      else
+        do
+          checkStmts stmts
+      
+        
+          
+         
 
 
-checkStmt (IfThenElse exp [stmt1] [stmt2]) 
+checkStmt (IfThenElse exp stmts1 stmts2) 
   = 
     do
-      return ()  
+      if not ((getExpType exp)==(BaseDataType BooleanType))then
+          liftEither $ throwError ("IF exp is not boolean type")
+      else
+        do
+          checkStmts stmts1
+          checkStmts stmts2
 
-checkStmt (While exp [stmt] ) 
+checkStmt (While exp stmts ) 
   = 
     do
-      return ()                    
+      if not ((getExpType exp)==(BaseDataType BooleanType))then
+          liftEither $ throwError ("IF exp is not boolean type")
+      else
+        do
+          checkStmts stmts
+                            
 ------------------------call-------------------------------- 
 
 checkStmt (Call procedureName exps) 
   = 
     do
+      --getProcedure will check if the procedure is exist
       (proParams, procCalled) <- getProcedure procedureName
       let nParamsFound = length exps
       let nParamsExpected = length proParams
@@ -179,16 +234,66 @@ checkStmt (Call procedureName exps)
         show nParamsFound ++ " parameters found")
       else
         do
-          -- TODO check type matched
-
+          if not (hasSameElem exps proParams) 
+          then liftEither $ throwError ("parameters' types are not matched with what you call")
+          else 
+            do
+              return ()
+              -- TODO check type matche
           -- keeps checking the proedure being called
-          pushLocalVariableTable
-          insertProcedureVariable procCalled
-          let (Procedure _ (ProcedureBody _ procCalledStmts)) = procCalled
-          checkStmts procCalledStmts
-          popLocalVariableTable
+          --不应该call一次检查一次stmt，只用检查call的名字和参数就行
+          --    pushLocalVariableTable
+          --    insertProcedureVariable procCalled
+          --    let (Procedure _ (ProcedureBody _ procCalledStmts)) = procCalled
+          --    checkStmts procCalledStmts
+          --    popLocalVariableTable
+          
+          
 
 checkStmt _ = return ()
+
+----TODO 补充完整
+getExpType::Exp->DataType
+
+getExpType (BoolConst _)=BaseDataType BooleanType
+getExpType (IntConst _)=BaseDataType IntegerType
+getExpType (StrConst a)=AliasDataType a--TODO
+getExpType (Op_or _ _)=BaseDataType BooleanType
+getExpType (Op_and _ _)=BaseDataType BooleanType
+getExpType (Op_eq  _ _)=BaseDataType BooleanType
+getExpType (Op_neq  _ _)=BaseDataType BooleanType
+getExpType (Op_less  _ _)=BaseDataType BooleanType
+getExpType (Op_less_eq  _ _)=BaseDataType BooleanType
+getExpType (Op_large _ _)=BaseDataType BooleanType
+getExpType (Op_large_eq _ _)=BaseDataType BooleanType
+getExpType (Op_not _)=BaseDataType BooleanType
+getExpType (Op_add _ _)=BaseDataType IntegerType
+getExpType (Op_sub _ _)=BaseDataType IntegerType
+getExpType (Op_mul _ _)=BaseDataType IntegerType
+getExpType (Op_div _ _)=BaseDataType IntegerType
+getExpType (Op_neg _)=BaseDataType IntegerType
+
+getExpType (Lval _ )=BaseDataType BooleanType--TODO
+
+
+-- data LValue 
+--   = LId Ident                     -- <id>
+--   | LDot Ident Ident              -- <id>.<id>
+--   | LBrackets Ident Exp           -- <id>[<exp>]
+--   | LBracketsDot Ident Exp Ident  -- <id>[<exp>].<id>
+--     deriving (Show, Eq)
+
+
+
+--call exp(parameter)==procedure table parameter   
+hasSameElem::[Exp]->[(Bool, DataType)]->Bool
+hasSameElem (x:xs) ((_,y):ys)=
+  if (getExpType x) == y 
+  then hasSameElem xs ys 
+  else False
+hasSameElem [] []=True
+hasSameElem _ _=True
+
 -----------semantic check on all kinds of expression----
 checkExp::Exp->SymTableState ()
 checkExp (BoolConst bbool)
@@ -290,3 +395,4 @@ checkArityProcedure procedureName arity
 -- 式参数v视为局部变量，并将该局部变量初始化为e的值。 通过关键字val指定按值调用。
 -- 通过引用调用不涉及复制。
 -- 而是为被调用的过程提供了实际参数的地址（该地址必须是变量z，字段引用x.a或数组元素a [e]，并且形式参数v被视为实际参数的同义词。
+
