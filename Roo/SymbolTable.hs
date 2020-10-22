@@ -328,6 +328,13 @@ getVarRecordField varName fieldName
         _ -> liftEither $ throwError $ "Variable name: " ++ varName ++ 
                                        " is not field type"
 
+getSlotCounter :: SymTableState Int
+getSlotCounter
+  =
+    do
+      cvt <- getCurVariableTable
+      return (slotCounter cvt)
+
 -- return the current register counter and increase regiter counter by 1
 getRegisterCounter :: SymTableState Int
 getRegisterCounter 

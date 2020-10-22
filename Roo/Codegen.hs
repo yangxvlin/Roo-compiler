@@ -24,16 +24,14 @@ ozCode :: SymTable -> Program -> Consequence
 ozCode st prog = evalStateT (codeGeneration prog) st
 
 codeGeneration :: Program -> SymTableState [OzInstruction]
-codeGeneration _
+codeGeneration (Program _ _ procedures)
     = 
         do
             let generatedCode = [ProcedureInstruction $ ICall "proc_main", 
                                 ProcedureInstruction $ IHalt]
 
             mapM_ appendInstruction generatedCode
-            -- starts with main procedure
-            (_, mainProc) <- getProcedure "main"
-            generateProcedure mainProc
+            mapM_ generateProcedure procedures
 
             st <- get
             return $ instructions st
@@ -48,9 +46,15 @@ generateProcedure p@(Procedure (ProcedureHeader procID _) (ProcedureBody _ stmts
             -- insert procedure's variable info to local variable table
             insertProcedureVariable p
             -- generate code of procedure's statements
-            -- reg <- getRegisterCounter
-            -- generatedCode <- generatedCode ++ [StackInstruction $ Load $ reg 10] 
+            slotNum <- getSlotCounter
+            appendInstruction (StackInstruction $ PushStackFrame slotNum)
+
+            -- appendInstruction $ StackInstruction
             mapM_ generateStatement stmts
+
+            -- end of the procedure
+            appendInstruction (StackInstruction $ PopStackFrame slotNum)
+            appendInstruction (ProcedureInstruction IReturn)
 
             popLocalVariableTable
 
@@ -67,7 +71,7 @@ generateStatement (Write exp)
             let cmd = case bType of Int -> "print_int"
                                     Bool -> "print_bool"
                                     String -> "print_string"
-            appendInstruction $ ProcedureInstruction $ ICallBuiltIn cmd
+            appendInstruction (ProcedureInstruction $ ICallBuiltIn cmd)
             setRegisterCounter reg
 
 generateStatement (Writeln exp)   
@@ -80,23 +84,23 @@ generateStatement (Writeln exp)
             let cmd = case bType of Int -> "print_int"
                                     Bool -> "print_bool"
                                     String -> "print_string"
-            appendInstruction $ ProcedureInstruction $ ICallBuiltIn cmd
-            appendInstruction $ ProcedureInstruction $ ICallBuiltIn "print_newline"
+            appendInstruction (ProcedureInstruction $ ICallBuiltIn cmd)
+            appendInstruction (ProcedureInstruction $ ICallBuiltIn "print_newline")
             setRegisterCounter reg
 -- need to update
 generateStatement _ 
-    = appendInstruction $ Comment "this is an undefined statment"
+    = appendInstruction (Comment "this is an undefined statment")
 
 -- load an expression to the given register
 loadExp :: Int -> Exp -> SymTableState ()
 loadExp reg (BoolConst vl) 
-    = appendInstruction $ ConstantInstruction $ OzIntConst reg $ boolToInt vl
+    = appendInstruction (ConstantInstruction $ OzIntConst reg $ boolToInt vl)
 loadExp reg (IntConst vl)
-    = appendInstruction $ ConstantInstruction $ OzIntConst reg vl
+    = appendInstruction (ConstantInstruction $ OzIntConst reg vl)
 loadExp reg (StrConst vl)
-    = appendInstruction $ ConstantInstruction $ OzStringConst reg vl
+    = appendInstruction (ConstantInstruction $ OzStringConst reg vl)
 loadExp reg _ 
-    = appendInstruction $ Comment "this is an undefined expression"
+    = appendInstruction (Comment "this is an undefined expression")
 
 
 -- -- transfer operation from Exp in AST to Oz instruction

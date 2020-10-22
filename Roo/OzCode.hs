@@ -11,7 +11,7 @@ type Register = Int
 
 data StackInstruction
     = PushStackFrame Int
-    | PopStachFrame Int
+    | PopStackFrame Int
     | Store Int Register
     | Load Register Int
     | LoadAddress Register Int
