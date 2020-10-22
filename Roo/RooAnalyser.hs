@@ -42,12 +42,13 @@ semanticCheckRooProgram prog
 
       st <- get
       return st
+
 --------------------下面检查procedure-----------------------
 ------Semantic checking on all procedures------------------------
 --分两部分:参数和stmt
 --第一部分已经在symtable检查了每个procedure的形参localvar不重复
 --第二部分逐步检查每个stmt
-checkAllProcedures::Map String ([(Bool, DataType)], Procedure) ->SymTableState ()
+checkAllProcedures :: Map String ([(Bool, DataType)], Procedure) ->SymTableState ()
 checkAllProcedures procedures 
   =mapM_ checkOneProcedures procedures
 checkOneProcedures:: ([(Bool, DataType)], Procedure)->SymTableState ()
@@ -128,8 +129,6 @@ jvartype (RecordVar _)=False
 jvartype (ArrayVar _)=False
 jvartype _=True
 
-
-
 getDatatypeoflvalue::LValue->SymTableState DataType
 -- <id>
 getDatatypeoflvalue (LId varname) 
@@ -183,10 +182,6 @@ checkStmt (Assign lvalue exp)
       else
         return ()
 
-
-      
-
-      
 --write and read:
 --  write prints integer and boolean expressions to stdout in their standard syntactic forms, 
 --with no additional whitespace or newlines.
@@ -219,12 +214,7 @@ checkStmt (IfThen exp stmts)
       else
         do
           checkStmts stmts
-      
-        
-          
-         
-
-
+  
 checkStmt (IfThenElse exp stmts1 stmts2) 
   = 
     do
@@ -277,7 +267,7 @@ checkStmt (Call procedureName exps)
           
           
 
-checkStmt _ = return ()
+-- checkStmt _ = return ()
 
 ----TODO 补充完整
 -- getExpType::Exp->SymTableState DataType
