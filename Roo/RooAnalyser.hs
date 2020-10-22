@@ -66,7 +66,7 @@ constructSymbolTable prog@(Program records arraies procedures)
   = 
     do
       st <- get
-      mapM_ insertRecordType records    --att
+      mapM_ insertRecordType records    --att -rft
       mapM_ insertArrayType arraies     --att
       mapM_ insertProcedure procedures  --pt
 
@@ -117,23 +117,54 @@ checkVarDecl varw
 -- • The argument to write must be a well-typed expression of type boolean or integer, or
 -- a string literal. The same goes for writeln.
 
---TODO
---lvalue  ->varName
-getIdentoflvalue::LValue->Ident
-getIdentoflvalue (LId ident) = ident
-getIdentoflvalue (LDot _ ident) = ident--TODO
-getIdentoflvalue (LBrackets ident _) = ident
-getIdentoflvalue (LBracketsDot _ _ ident) = ident--TODO
+----------------------Get the data type that can be assigned to lvalue-------------
+--get third element from state vartype
+getthird::(Bool, Int, VariableType, Int)->VariableType
+getthird (_,_,x,_)=x
 
---TODO
--- variable type ->what dataType is this var
+-- <id> cannot be <recordname> or <arrayname>
+jvartype::VariableType->Bool
+jvartype (RecordVar _)=False
+jvartype (ArrayVar _)=False
+jvartype _=True
+
+
+
+getDatatypeoflvalue::LValue->SymTableState DataType
+-- <id>
+getDatatypeoflvalue (LId varname) 
+  = do
+      a <- getVariableType varname
+      if jvartype (getthird a)then
+        let datatype = (whatVartypeNeed (getthird a))in return datatype
+      else
+        liftEither $ throwError ("can not assign value to <recordname> or <arrayname>")
+-- <id>.<id>
+getDatatypeoflvalue (LDot recordname fieldname) 
+  = do 
+      b <- getRecordField recordname fieldname 
+      let datatype = fst b in return (BaseDataType datatype)
+
+      
+-- <id> [Int]     
+getDatatypeoflvalue (LBrackets arrayname int) 
+  = do
+      a <- getArrayType arrayname
+      let datatype =snd a in return datatype
+-- <id> [Int]. <id>     
+getDatatypeoflvalue (LBracketsDot arrayname int fieldname) 
+  = do
+       a <- getArrayType arrayname
+       let AliasDataType recordname =snd a
+       b <- getRecordField recordname fieldname 
+       let datatype = fst b in return (BaseDataType datatype)
+       
+    
+
 whatVartypeNeed::VariableType->DataType
 whatVartypeNeed (BooleanVar)=BaseDataType BooleanType
 whatVartypeNeed (IntegerVar)=BaseDataType IntegerType
-whatVartypeNeed (RecordVar string)=BaseDataType BooleanType--TODO
-whatVartypeNeed (ArrayVar string)=BaseDataType BooleanType--TODO
-
-
+------------------------------------------------------------------------------------
 
 
 checkStmt :: Stmt -> SymTableState ()
@@ -145,19 +176,15 @@ checkStmt (Assign lvalue exp)
   = 
     do
 --      return ()
-      let identi = getIdentoflvalue lvalue
-      (bool1, in1, variableType1, int2)<-getVariableType identi
-       
-
-      
-      if  (whatVartypeNeed variableType1)/=(getExpType exp) then
+      identi <- getDatatypeoflvalue lvalue           
+      if  identi==(getExpType exp) then
  --     if not (variableType==(getExpType exp)) then
         liftEither $ throwError ("assign a wrong type") --TODO
       else
         return ()
 
 
-       
+      
 
       
 --write and read:
@@ -253,6 +280,37 @@ checkStmt (Call procedureName exps)
 checkStmt _ = return ()
 
 ----TODO 补充完整
+-- getExpType::Exp->SymTableState DataType
+
+-- getExpType (BoolConst _)= do 
+--   return (BaseDataType BooleanType)
+-- getExpType (IntConst _)= do return (BaseDataType IntegerType)
+-- getExpType (StrConst a)=do return (AliasDataType a)--TODO?
+-- getExpType (Op_or _ _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_and _ _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_eq  _ _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_neq  _ _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_less  _ _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_less_eq  _ _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_large _ _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_large_eq _ _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_not _)=do return (BaseDataType BooleanType)
+-- getExpType (Op_add _ _)=do return (BaseDataType IntegerType)
+-- getExpType (Op_sub _ _)=do return (BaseDataType IntegerType)
+-- getExpType (Op_mul _ _)=do return (BaseDataType IntegerType)
+-- getExpType (Op_div _ _)=do return (BaseDataType IntegerType)
+-- getExpType (Op_neg _)=do return (BaseDataType IntegerType)
+
+-- getExpType (Lval lvalue )=getDatatypeoflvalue lvalue--TODO
+
+
+-- data LValue 
+--   = LId Ident                     -- <id>
+--   | LDot Ident Ident              -- <id>.<id>
+--   | LBrackets Ident Exp           -- <id>[<exp>]
+--   | LBracketsDot Ident Exp Ident  -- <id>[<exp>].<id>
+--     deriving (Show, Eq)
+
 getExpType::Exp->DataType
 
 getExpType (BoolConst _)=BaseDataType BooleanType
@@ -273,17 +331,9 @@ getExpType (Op_mul _ _)=BaseDataType IntegerType
 getExpType (Op_div _ _)=BaseDataType IntegerType
 getExpType (Op_neg _)=BaseDataType IntegerType
 
-getExpType (Lval _ )=BaseDataType BooleanType--TODO
-
-
--- data LValue 
---   = LId Ident                     -- <id>
---   | LDot Ident Ident              -- <id>.<id>
---   | LBrackets Ident Exp           -- <id>[<exp>]
---   | LBracketsDot Ident Exp Ident  -- <id>[<exp>].<id>
---     deriving (Show, Eq)
-
-
+getExpType (Lval _ )=BaseDataType BooleanType
+---sDTtoDT::SymTableState DataType->DataType
+--sDTtoDT y@(SymTableState x) =x
 
 --call exp(parameter)==procedure table parameter   
 hasSameElem::[Exp]->[(Bool, DataType)]->Bool
