@@ -42,7 +42,8 @@ data VariableType = BooleanVar
                   | IntegerVar 
                   | RecordVar String 
                   | ArrayVar String
-
+             deriving (Show, Eq）
+        
 -- 1. available slot number
 -- 2. available register number
 -- 3. mapping of variable name with 
