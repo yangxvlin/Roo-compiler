@@ -300,10 +300,10 @@ getLValueName (LBrackets ident exp )=ident
 getLValueName (LBracketsDot ident exp ident2)=ident                 
 ------------------------------------------------------------------------------------
 getDataT::DataType->String
-getDataT (BaseDataType BooleanType) ="bool"
-getDataT (BaseDataType IntegerType) ="int"
-getDataT (BaseDataType StringType) ="str"
-getDataT (AliasDataType aliasType ) ="alias"
+getDataT (BaseDataType BooleanType) ="Boolean"
+getDataT (BaseDataType IntegerType) ="Integer"
+getDataT (BaseDataType StringType) ="String"
+getDataT (AliasDataType aliasType ) ="Alias"
 
 
 checkStmt :: Stmt -> SymTableState ()
@@ -324,7 +324,7 @@ checkStmt (Assign lvalue exp)
                  
       if  not (identi==exptype) then
  --     if not (variableType==(getExpType exp)) then
-        liftEither $ throwError $ "assign a wrong type "++a++b --TODO
+        liftEither $ throwError $ "assign a wrong type "++b++" to "++a --TODO
       else
         return ()
 
@@ -778,7 +778,6 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
-
 
 
 
