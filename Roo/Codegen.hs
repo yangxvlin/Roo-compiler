@@ -48,6 +48,24 @@ generateProcedure p@(Procedure (ProcedureHeader procID _) (ProcedureBody _ stmts
             slotNum <- getSlotCounter
             appendInstruction (StackInstruction $ PushStackFrame slotNum)
 
+            -- load parameters
+            let paraNum = length params
+            appendInstruction (Comment "load parameters")
+            mapM_ (\i ->
+                    do 
+                        appendInstruction(StackInstruction $ Store i i)
+                    ) [0..(paraNum -1)]
+            
+            -- init variables
+            reg_init <- getRegisterCounter
+            appendInstruction (Comment "initialise variables")
+            appendInstruction (ConstantInstruction $ OzIntConst reg_init 0)
+            mapM_ (\i ->
+                    do
+                        appendInstruction (StackInstruction $ Store i reg_init)
+                    ) [paraNum..(slotNum -1)]
+
+
             -- appendInstruction $ StackInstruction
             mapM_ generateStatement stmts
 
