@@ -151,10 +151,10 @@ checkLValue (LId varName)
         do
           varInfo <- (getVariableType varName)
           let (bool,int1,vartype,int2)=varInfo
-          if jvartype vartype then
-            return()
-          else
-            liftEither $ throwError $ "<id> in (lvalue <id>) cannot be Record name or array name: " ++ varName
+--          if jvartype vartype then
+          return()
+--          else
+ --           liftEither $ throwError $ "<id> in (lvalue <id>) cannot be Record name or array name: " ++ varName
 
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ varName
@@ -260,10 +260,10 @@ getDatatypeoflvalue (LId varname)
   = do
       varInfo <- getVariableType varname
       let (bool,int,vt,int2)=varInfo
-      if jvartype vt then
-        let datatype = (whatVartypeNeed vt )in return datatype
-      else
-        liftEither $ throwError ("can not assign value to <recordname> or <arrayname>")
+ --     if jvartype vt then
+      let datatype = (whatVartypeNeed vt )in return datatype
+  --    else
+ --       liftEither $ throwError ("can not assign value to <recordname> or <arrayname>")
 -- <id>.<id>
 getDatatypeoflvalue (LDot recordname fieldname) 
   = do 
@@ -778,11 +778,3 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
-
-
-
-
-
-
-
-
