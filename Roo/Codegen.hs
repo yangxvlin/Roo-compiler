@@ -41,13 +41,16 @@ generateProcedure p@(Procedure (ProcedureHeader procID params)
                                 (ProcedureBody _ stmts))
     =
         do
-            appendInstruction $ Label procID 
+            appendInstruction $ Label $ "proc_" ++ procID 
             pushLocalVariableTable
             insertProcedureVariable p
 
             -- generate code of procedure's statements
             slotNum <- getSlotCounter
-            appendInstruction (StackInstruction $ PushStackFrame slotNum)
+            if slotNum /= 0
+            then do
+                appendInstruction (StackInstruction $ PushStackFrame slotNum)
+            else return ()
 
             -- load parameters
             let paraNum = length params
@@ -65,13 +68,18 @@ generateProcedure p@(Procedure (ProcedureHeader procID params)
                     do
                         appendInstruction (StackInstruction $ Store i reg_init)
                     ) [paraNum..(slotNum -1)]
+            setRegisterCounter reg_init
 
 
             -- appendInstruction $ StackInstruction
             mapM_ generateStatement stmts
 
             -- end of the procedure
-            appendInstruction (StackInstruction $ PopStackFrame slotNum)
+            if slotNum /= 0
+            then do
+                appendInstruction (StackInstruction $ PopStackFrame slotNum)
+            else return ()
+
             appendInstruction (ProcedureInstruction IReturn)
 
             popLocalVariableTable
@@ -89,6 +97,9 @@ generateStatement (Assign lValue exp)
             reg <- getRegisterCounter
             loadExp reg exp
 
+
+            setRegisterCounter reg
+
 -- TODO: Read
 generateStatement (Read lValue)
     = 
@@ -99,7 +110,7 @@ generateStatement (Write exp)
     = 
         do
             appendInstruction $ Comment $ "Write " ++ show exp
-            let bType = getType exp
+            bType <- getType exp
             reg <- getRegisterCounter
             loadExp reg exp
             let cmd = case bType of Int -> "print_int"
@@ -112,7 +123,7 @@ generateStatement (Writeln exp)
     = 
         do 
             appendInstruction $ Comment $ "Writeln " ++ show exp
-            let bType = getType exp
+            bType <- getType exp
             reg <- getRegisterCounter
             loadExp reg exp
             let cmd = case bType of Int -> "print_int"
@@ -148,12 +159,23 @@ generateStatement (While exp stmts)
 
 -- load an expression to the given register
 loadExp :: Int -> Exp -> SymTableState ()
+loadExp reg (Lval (LId ident))
+    = 
+        do
+            (byValue, slotNum, _, _) <- getVariableType ident
+            if byValue
+            then appendInstruction (StackInstruction $ Load reg slotNum)
+            else do
+                appendInstruction (StackInstruction $ LoadAddress reg slotNum)
+                appendInstruction (StackInstruction $ LoadIndirect reg reg)
+
 loadExp reg (BoolConst vl) 
     = appendInstruction (ConstantInstruction $ OzIntConst reg $ boolToInt vl)
 loadExp reg (IntConst vl)
     = appendInstruction (ConstantInstruction $ OzIntConst reg vl)
 loadExp reg (StrConst vl)
     = appendInstruction (ConstantInstruction $ OzStringConst reg vl)
+-- TODO: other experssions
 loadExp reg _ 
     = appendInstruction (Comment "this is an undefined expression")
 
@@ -173,26 +195,34 @@ loadExp reg _
 
 -- AssignVar :: Int -> DVar -> Generator ()
 
-getType :: Exp -> Btype
-getType (BoolConst _) = Bool 
-getType (IntConst _) = Int
-getType (StrConst _) = String
-getType (Op_or _ _) = Bool 
-getType (Op_and _ _) = Bool
-getType (Op_eq _ _) = Bool 
-getType (Op_neq _ _) = Bool
-getType (Op_less _ _) = Bool
-getType (Op_less_eq _ _) = Bool
-getType (Op_large _ _) = Bool
-getType (Op_large_eq _ _) = Bool
-getType (Op_add _ _) = Int
-getType (Op_sub _ _) = Int
-getType (Op_mul _ _) = Int
-getType (Op_div _ _) = Int
-getType (Op_not _) = Bool
-getType (Op_neg _) = Int
+getType :: Exp -> SymTableState (Btype)
+getType (BoolConst _) = return Bool 
+getType (IntConst _) = return Int
+getType (StrConst _) = return String
+getType (Op_or _ _) = return Bool 
+getType (Op_and _ _) = return Bool
+getType (Op_eq _ _) = return Bool 
+getType (Op_neq _ _) = return Bool
+getType (Op_less _ _) = return Bool
+getType (Op_less_eq _ _) = return Bool
+getType (Op_large _ _) = return Bool
+getType (Op_large_eq _ _) = return Bool
+getType (Op_add _ _) = return Int
+getType (Op_sub _ _) = return Int
+getType (Op_mul _ _) = return Int
+getType (Op_div _ _) = return Int
+getType (Op_not _) = return Bool
+getType (Op_neg _) = return Int
 -- TODO: need to update later!!!!!!!!!!!!!
-getType (Lval _) = Int
+getType (Lval (LId ident))
+    = 
+        do
+            (_, _, varType, _) <- getVariableType ident
+            let result = case varType of BooleanVar -> Bool
+                                         IntegerVar -> Int
+            return result
+
+getType (Lval _) = return Int
 
 boolToInt :: Bool -> Int
 boolToInt True = 1

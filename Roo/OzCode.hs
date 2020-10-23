@@ -95,7 +95,7 @@ data OzInstruction
 instance Show StackInstruction where
     show (PushStackFrame size) = "push_stack_frame " ++ show (size)
     show (PopStackFrame size) = "pop_stack_frame " ++ show (size)
-    show (Store slotnum register) = "store r" ++ show (slotnum)
+    show (Store slotnum register) = "store " ++ show (slotnum)
         ++ ", r" ++ show (register)
     show (Load register slotnum) = "load r" ++ show (register) ++ ", "
         ++ show (slotnum)
