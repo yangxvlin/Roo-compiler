@@ -43,7 +43,7 @@ generateProcedure p@(Procedure (ProcedureHeader procID _) (ProcedureBody _ stmts
             appendInstruction $ Label procID 
             pushLocalVariableTable
             insertProcedureVariable p
-            
+
             -- generate code of procedure's statements
             slotNum <- getSlotCounter
             appendInstruction (StackInstruction $ PushStackFrame slotNum)
@@ -60,6 +60,12 @@ generateProcedure p@(Procedure (ProcedureHeader procID _) (ProcedureBody _ stmts
            
 
 generateStatement :: Stmt -> SymTableState ()
+-- TODO
+generateStatement (Assign lValue exp)
+    = 
+        do
+            appendInstruction $ Comment $ show exp ++ " <- " ++ show lValue 
+
 generateStatement (Write exp)
     = 
         do
