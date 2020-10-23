@@ -175,12 +175,12 @@ instance Show DebugInstruction where
     show (DebugStack) = "debug_stack"
 
 instance Show OzInstruction where
-    show (StackInstruction instruction) = show (instruction)
-    show (ConstantInstruction instruction) = show (instruction)
-    show (OperationInstruction instruction) = show (instruction)
-    show (BranchInstruction instruction) = show (instruction)
-    show (ProcedureInstruction instruction) = show (instruction)
-    show (DebugInstruction instruction) = show (instruction)
+    show (StackInstruction instruction) = "    " ++ show (instruction)
+    show (ConstantInstruction instruction) = "    " ++ show (instruction)
+    show (OperationInstruction instruction) = "    " ++ show (instruction)
+    show (BranchInstruction instruction) = "    " ++ show (instruction)
+    show (ProcedureInstruction instruction) = "    " ++ show (instruction)
+    show (DebugInstruction instruction) = "    " ++ show (instruction)
     show (Comment comment) = "# " ++ show (comment)
     show (Label label) = show (label) ++ ";"
 
