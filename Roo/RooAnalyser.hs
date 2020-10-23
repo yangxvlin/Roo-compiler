@@ -19,6 +19,10 @@ type Result = Either String SymTable
 --中文注释最后删除--chinese comments will be deleted
 --main function  of semantic analysis
 
+--TODO:
+
+------The scope of a declared variable (or of a formal procedure parameter) is the enclosing procedure definition.
+------Procedures can use (mutual) recursion.(?)
 analyse :: Program -> Result 
 analyse prog
   = evalStateT (semanticCheckRooProgram prog) initialSymTable
@@ -110,44 +114,115 @@ checkStmts :: [Stmt] -> SymTableState ()
 checkStmts = mapM_ checkStmt
 
 --下面是检查所有类型的stmt，由于每个stmt都要检查所用var是否声明过，需要再写一个
---checkVarDecl
+--checkLValue
 -- <id>
-checkVarDecl::LValue->SymTableState ()--不确定
-checkVarDecl (LId varName) 
+
+jvartype2::VariableType->Bool
+jvartype2 (RecordVar _)=False
+jvartype2 (ArrayVar _)=True
+jvartype2 _=False
+
+--if this array's Datatype is a record and this record has a 
+--fieldname:fieldName,return True
+jdtype::DataType->String->SymTableState Bool
+jdtype (AliasDataType alsName) fieldName
+  =
+    do
+      st <- get
+      let ck = CompositeKey alsName fieldName
+      -- get a (record name, field name) definition
+      if (Map.member ck (rft st)) then
+        return True 
+      -- no (record name, field name) definition
+      else
+        return False  
+jdtype _ _= do return False
+      
+
+--jdtype _="False"
+
+      
+checkLValue::LValue->SymTableState ()--不确定
+checkLValue (LId varName) 
   =
     do
       cvt <- getCurVariableTable
       if (Map.member varName (vtt cvt)) then
-         return ()
+        do
+          varInfo <- (getVariableType varName)
+          let (bool,int1,vartype,int2)=varInfo
+          if jvartype vartype then
+            return()
+          else
+            liftEither $ throwError $ "<id> in (lvalue <id>) cannot be Record name or array name: " ++ varName
+
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ varName
 
 -- <id>.<id>   <recordvarname> <fieldname>
-checkVarDecl (LDot recordVarname fieldname)
+checkLValue (LDot recordVarname fieldName)
   =
     do
       cvt <- getCurVariableTable
       if (Map.member recordVarname (vtt cvt)) then
-         return ()
+         do      
+           st <- get
+           let ck = CompositeKey recordVarname fieldName
+      -- get a (record name, field name) definition
+           if (Map.member ck (rft st)) then
+             return () 
+      -- no (record name, field name) definition
+           else
+              liftEither $ throwError $ "Record.field: " ++ 
+                                        recordVarname ++ "." ++ fieldName ++ 
+                                      " does not exist"
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ recordVarname
 -- <id>[index]  <arrayVarName> [index]
 
-checkVarDecl (LBrackets arrayName int) 
+checkLValue (LBrackets arrayName int) 
   =
     do
       cvt <- getCurVariableTable
       if (Map.member arrayName (vtt cvt)) then
-         return ()
+         do
+           varInfo <- (getVariableType arrayName)
+           let (bool,int1,vartype,arraysize)=varInfo
+           if jvartype2 vartype then
+             do
+
+               indextype<-getExpType2 int
+               if indextype==BaseDataType IntegerType then
+                 return()
+               else
+                 liftEither $ throwError $ "Array's index should be an integer type " 
+
+           else
+             liftEither $ throwError $  arrayName++" is not array variable name "
+
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ arrayName
 -- <id>[index].<id>  <arrayVarName> [index].<fieldname>
-checkVarDecl (LBracketsDot arrayName int fieldname) 
+checkLValue (LBracketsDot arrayName int fieldName) 
   =
     do
       cvt <- getCurVariableTable
       if (Map.member arrayName (vtt cvt)) then
-         return ()
+        do
+          artype<-getArrayType arrayName
+          let (intt, dataType)=artype
+          isRecordArray<-jdtype dataType fieldName 
+          if isRecordArray then
+            do
+              indextype<-getExpType2 int
+              if indextype==BaseDataType IntegerType then
+                return()
+              else
+                liftEither $ throwError $ "Array's index should be an integer type " 
+              
+          else
+            liftEither $ throwError $ "This array of record is not exist"
+
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ arrayName
 
@@ -178,13 +253,13 @@ jvartype::VariableType->Bool
 jvartype (RecordVar _)=False
 jvartype (ArrayVar _)=False
 jvartype _=True
-
+----still has bugs!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 getDatatypeoflvalue::LValue->SymTableState DataType
 -- <id>
 getDatatypeoflvalue (LId varname) 
   = do
-      a <- getVariableType varname
-      let (bool,int,vt,int2)=a
+      varInfo <- getVariableType varname
+      let (bool,int,vt,int2)=varInfo
       if jvartype vt then
         let datatype = (whatVartypeNeed vt )in return datatype
       else
@@ -214,6 +289,11 @@ getDatatypeoflvalue (LBracketsDot arrayname int fieldname)
 whatVartypeNeed::VariableType->DataType
 whatVartypeNeed (BooleanVar)=BaseDataType BooleanType
 whatVartypeNeed (IntegerVar)=BaseDataType IntegerType
+whatVartypeNeed (RecordVar alias)=AliasDataType alias
+whatVartypeNeed (ArrayVar alias)=AliasDataType alias
+
+  
+                 
 ------------------------------------------------------------------------------------
 
 
@@ -226,9 +306,10 @@ checkStmt (Assign lvalue exp)
   = 
     do
 --      return ()
-      checkVarDecl lvalue
+      checkLValue lvalue
+      checkExp exp
       identi <- getDatatypeoflvalue lvalue
-      exptype<-(getExpType2 exp)           
+      exptype<- getExpType2 exp           
       if  identi==exptype then
  --     if not (variableType==(getExpType exp)) then
         liftEither $ throwError ("assign a wrong type") --TODO
@@ -250,6 +331,7 @@ checkStmt (Assign lvalue exp)
 checkStmt (Read lvalue) 
   = 
     do
+      checkLValue lvalue
       lvaluetype <-getDatatypeoflvalue lvalue
       if (lvaluetype==BaseDataType BooleanType)||(lvaluetype==BaseDataType IntegerType)then        
         return ()
@@ -260,6 +342,7 @@ checkStmt (Read lvalue)
 checkStmt (Write exp) 
   = 
     do
+      checkExp exp
       exptype<-getExpType2 exp
       if (exptype==BaseDataType BooleanType)||(exptype==BaseDataType IntegerType)||(exptype==BaseDataType StringType)then        
         return ()
@@ -270,6 +353,7 @@ checkStmt (Write exp)
 checkStmt (Writeln exp) 
   = 
     do
+      checkExp exp
       exptype<-getExpType2 exp
       if (exptype==BaseDataType BooleanType)||(exptype==BaseDataType IntegerType)||(exptype==BaseDataType StringType)then        
         return ()
@@ -279,6 +363,7 @@ checkStmt (Writeln exp)
 checkStmt (IfThen exp stmts) 
   = 
     do
+      checkExp exp
       exptype<-getExpType2 exp
       if not (exptype==(BaseDataType BooleanType))then
           liftEither $ throwError ("IF exp is not boolean type")
@@ -289,6 +374,7 @@ checkStmt (IfThen exp stmts)
 checkStmt (IfThenElse exp stmts1 stmts2) 
   = 
     do
+      checkExp exp
       exptype<-getExpType2 exp
       if not (exptype==(BaseDataType BooleanType))then
           liftEither $ throwError ("IF exp is not boolean type")
@@ -300,6 +386,7 @@ checkStmt (IfThenElse exp stmts1 stmts2)
 checkStmt (While exp stmts ) 
   = 
     do
+      checkExp exp
       exptype<-getExpType2 exp
       if not (exptype==(BaseDataType BooleanType))then
           liftEither $ throwError ("IF exp is not boolean type")
@@ -312,6 +399,7 @@ checkStmt (While exp stmts )
 checkStmt (Call procedureName exps) 
   = 
     do
+      mapM_ checkExp exps
       --getProcedure will check if the procedure is exist
       (proParams, procCalled) <- getProcedure procedureName
       let nParamsFound = length exps
@@ -368,12 +456,7 @@ getExpType2 (Op_neg _)=do return (BaseDataType IntegerType)
 getExpType2 (Lval lvalue )=getDatatypeoflvalue lvalue
 
 
--- data LValue 
---   = LId Ident                     -- <id>
---   | LDot Ident Ident              -- <id>.<id>
---   | LBrackets Ident Exp           -- <id>[<exp>]
---   | LBracketsDot Ident Exp Ident  -- <id>[<exp>].<id>
---     deriving (Show, Eq)
+
 -- changeForm::SymTableState DataType->DataType
 -- changeForm a
 --   =do
@@ -430,6 +513,69 @@ checkExp::Exp->SymTableState ()
 checkExp (BoolConst bool)
   =return()
 
+checkExp (IntConst int)
+  =return()
+
+checkExp (StrConst string)
+  =return()
+
+checkExp (BoolConst bool)
+  =return()
+
+checkExp (Op_or exp exp2)
+  =return()
+
+checkExp (Op_and exp exp2)
+  =return()
+
+checkExp (Op_eq exp exp2)
+  =return()
+  
+checkExp (Op_neq exp exp2)
+  =return()
+  
+checkExp (Op_less exp exp2)
+  =return()
+    
+checkExp (Op_less_eq exp exp2)
+  =return()
+    
+checkExp (Op_add exp exp2)
+  =return()
+    
+checkExp (Op_sub exp exp2)
+  =return()
+      
+checkExp (Op_mul exp exp2)
+  =return()
+     
+checkExp (Op_div exp exp2)
+  =return()
+     
+checkExp (Op_not exp )
+  =return()
+       
+checkExp (Op_neg exp)
+  =return()
+
+checkExp (Lval lvalue)
+  =
+    do
+      checkLValue lvalue
+      
+
+
+
+
+
+
+
+-- data LValue 
+--   = LId Ident                     -- <id>
+--   | LDot Ident Ident              -- <id>.<id>
+--   | LBrackets Ident Exp           -- <id>[<exp>]
+--   | LBracketsDot Ident Exp Ident  -- <id>[<exp>].<id>
+--     deriving (Show, Eq)
 
 -----------semantic check on all operation------
 --The language is statically typed, that is, each variable and parameter has a fixed type, chosen
@@ -437,11 +583,11 @@ checkExp (BoolConst bool)
 -- • The type of a Boolean constant is boolean.
 -- • The type of an integer constant is integer.
 -- • The type of a string literal is string.
--- • The type of an expression id is the variable id’s declared type. If the declaration uses a
--- type alias, the type is the one given by the type definition for that alias.
+-- -- -- • The type of an expression id is the variable id’s declared type. If the declaration uses a
+-- -- -- type alias, the type is the one given by the type definition for that alias.
 -- • For an expression lval .fname, lval must be of record type. The type of an expression
 -- lval .fname is the type associated with field name fname, as given in the record type
--- associated with lval .
+-- associated with lval .(handled)
 -- • For an expression id[e], id must be of array type, and e must have type integer. The
 -- type of the expression is the array element type, as given in array type associated with id.
 -- • Arguments of the logical operators must be of type boolean. The result of applying these
@@ -464,21 +610,21 @@ checkExp (BoolConst bool)
 --the definition of a procedure does not have to precede the (textually) first call to the procedure.
 
 
-------Procedures can use (mutual) recursion.
-------the number of actual parameters in a call must be equal to the number of formal parameters in the procedure’s definition.
+------Procedures can use (mutual) recursion.(?)
+------the number of actual parameters in a call must be equal to the number of formal parameters in the procedure’s definition.(handled)
 
 
 ------The scope of a declared variable (or of a formal procedure parameter) is the enclosing procedure definition.
 
 
-------A variable must be declared (exactly once) before it is used.
+------A variable must be declared (exactly once) before it is used.(handled)
 
 --a list of formal parameters must all be distinct(handled)
 --the same variable/parameter name can be used in different procedures.(handled)
 
 --In a record type definition, all field names must be given types boolean or integer.(handled)
 --In an array type definition array [n] ..., n must be a positive integer.(已检查不等于0)
-------Each reference to an array variable must include exactly one index expression.
+------Each reference to an array variable must include exactly one index expression.(不会在这个文件中体现)
 
 -----------------------------------------------------------
 
@@ -519,6 +665,8 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
+
+
 
 
 
