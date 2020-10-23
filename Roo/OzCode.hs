@@ -160,12 +160,12 @@ instance Show OperationInstruction where
 
 instance Show BranchInstruction where
     show (Cond bool register label) = "branch_on_" ++ show (bool) 
-        ++ " " ++ show (register) ++ " " ++ show (label)
+        ++ " " ++ show (register) ++ " " ++ id (label)
     show (Uncond label) = "branch_uncond " ++ show (label)
 
 instance Show ProcedureInstruction where
-    show (ICall label) = "call " ++ show (label) 
-    show (ICallBuiltIn label) = "call_builtin " ++ show (label) 
+    show (ICall label) = "call " ++ id (label) 
+    show (ICallBuiltIn func) = "call_builtin " ++ id (func)
     show (IReturn) = "return"
     show (IHalt) = "halt"
 
@@ -181,8 +181,8 @@ instance Show OzInstruction where
     show (BranchInstruction instruction) = "    " ++ show (instruction)
     show (ProcedureInstruction instruction) = "    " ++ show (instruction)
     show (DebugInstruction instruction) = "    " ++ show (instruction)
-    show (Comment comment) = "# " ++ show (comment)
-    show (Label label) = show (label) ++ ";"
+    show (Comment comment) = "# " ++ id (comment)
+    show (Label label) = id (label) ++ ":"
 
 writeCode :: [OzInstruction] -> String
 writeCode instructions = concat $ map (\x -> (show x) ++ "\n") instructions
