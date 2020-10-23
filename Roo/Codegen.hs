@@ -104,7 +104,16 @@ generateStatement (Assign lValue exp)
 generateStatement (Read lValue)
     = 
         do
-            return()
+            appendInstruction $ Comment $ "Read " ++ show lValue
+            bType <- getType $ Lval lValue
+            reg <- getRegisterCounter 
+            let cmd = case bType of Int -> "read_int"
+                                    Bool -> "read_bool"
+                                    String -> "read_string"
+            appendInstruction (ProcedureInstruction $ ICallBuiltIn cmd)
+            storeVal reg lValue
+            setRegisterCounter reg
+            
 
 generateStatement (Write exp)
     = 
@@ -159,16 +168,7 @@ generateStatement (While exp stmts)
 
 -- load an expression to the given register
 loadExp :: Int -> Exp -> SymTableState ()
-loadExp reg (Lval (LId ident))
-    = 
-        do
-            (byValue, slotNum, _, _) <- getVariableType ident
-            if byValue
-            then appendInstruction (StackInstruction $ Load reg slotNum)
-            else do
-                appendInstruction (StackInstruction $ LoadAddress reg slotNum)
-                appendInstruction (StackInstruction $ LoadIndirect reg reg)
-
+loadExp reg (Lval lValue) = loadVal reg lValue
 loadExp reg (BoolConst vl) 
     = appendInstruction (ConstantInstruction $ OzIntConst reg $ boolToInt vl)
 loadExp reg (IntConst vl)
@@ -179,6 +179,36 @@ loadExp reg (StrConst vl)
 loadExp reg _ 
     = appendInstruction (Comment "this is an undefined expression")
 
+loadVal :: Int -> LValue -> SymTableState ()
+loadVal reg (LId ident)
+    = 
+        do
+            (byValue, slotNum, _, _) <- getVariableType ident
+            if byValue
+            then appendInstruction (StackInstruction $ Load reg slotNum)
+            else do
+                appendInstruction (StackInstruction $ LoadAddress reg slotNum)
+                appendInstruction (StackInstruction $ LoadIndirect reg reg)
+
+-- TODO: other left values
+loadVal reg _ 
+    = appendInstruction (Comment "this is an undefined left value")
+
+
+
+storeVal :: Int -> LValue -> SymTableState ()
+storeVal reg (LId ident)
+    = 
+        do
+            reg_1 <- getRegisterCounter
+            (_, slotNum, _, _) <- getVariableType ident
+            appendInstruction (StackInstruction $ LoadAddress reg_1 slotNum)
+            appendInstruction (StackInstruction $ StoreIndirect reg_1 reg)
+            setRegisterCounter reg_1
+-- TODO: other left values
+storeVal reg _ 
+    = appendInstruction (Comment "this is an undefined left value")
+            
 
 -- -- transfer operation from Exp in AST to Oz instruction
 -- getOzInstruction :: Exp -> OzInstruction
