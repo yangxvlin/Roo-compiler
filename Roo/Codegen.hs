@@ -57,14 +57,24 @@ generateProcedure p@(Procedure (ProcedureHeader procID _) (ProcedureBody _ stmts
 
             popLocalVariableTable
 
-           
+-- ---------------------------------------------------------------------------
+-- Generate Statement
+-- ---------------------------------------------------------------------------            
 
 generateStatement :: Stmt -> SymTableState ()
--- TODO
+-- TODO: Assign
 generateStatement (Assign lValue exp)
     = 
         do
-            appendInstruction $ Comment $ show exp ++ " <- " ++ show lValue 
+            appendInstruction $ Comment $ show exp ++ " <- " ++ show lValue
+            reg <- getRegisterCounter
+            loadExp reg exp
+
+-- TODO: Read
+generateStatement (Read lValue)
+    = 
+        do
+            return()
 
 generateStatement (Write exp)
     = 
@@ -92,9 +102,30 @@ generateStatement (Writeln exp)
             appendInstruction (ProcedureInstruction $ ICallBuiltIn cmd)
             appendInstruction (ProcedureInstruction $ ICallBuiltIn "print_newline")
             setRegisterCounter reg
--- need to update
-generateStatement _ 
-    = appendInstruction (Comment "this is an undefined statment")
+
+-- TODO: Call
+generateStatement (Call procedureName exps)
+    = 
+        do 
+            return()
+
+-- TODO: If then
+generateStatement (IfThen exp stmts) 
+    = 
+        do 
+            return()
+
+-- TODO: If then else
+generateStatement (IfThenElse exp stmts1 stmts2) 
+    = 
+        do 
+            return()
+
+-- TODO: While
+generateStatement (While exp stmts) 
+    = 
+        do 
+            return()
 
 -- load an expression to the given register
 loadExp :: Int -> Exp -> SymTableState ()
@@ -121,6 +152,7 @@ loadExp reg _
 -- getOzInstruction Op_large_eq  = Ge
 -- getOzInstruction Op_neg  = Neg
 
+-- AssignVar :: Int -> DVar -> Generator ()
 
 getType :: Exp -> Btype
 getType (BoolConst _) = Bool 
