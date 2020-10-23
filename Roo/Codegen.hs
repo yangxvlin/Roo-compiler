@@ -37,7 +37,8 @@ codeGeneration (Program _ _ procedures)
             return $ instructions st
 
 generateProcedure :: Procedure -> SymTableState ()
-generateProcedure p@(Procedure (ProcedureHeader procID _) (ProcedureBody _ stmts))
+generateProcedure p@(Procedure (ProcedureHeader procID params) 
+                                (ProcedureBody _ stmts))
     =
         do
             appendInstruction $ Label procID 
