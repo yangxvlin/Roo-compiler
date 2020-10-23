@@ -41,11 +41,12 @@ generateProcedure p@(Procedure (ProcedureHeader procID params)
                                 (ProcedureBody _ stmts))
     =
         do
-            appendInstruction $ Label $ "proc_" ++ procID 
+            appendInstruction (Label $ "proc_" ++ procID)
             pushLocalVariableTable
             insertProcedureVariable p
 
             -- generate code of procedure's statements
+            appendInstruction (Comment "prologue")
             slotNum <- getSlotCounter
             if slotNum /= 0
             then do
@@ -70,11 +71,10 @@ generateProcedure p@(Procedure (ProcedureHeader procID params)
                     ) [paraNum..(slotNum -1)]
             setRegisterCounter reg_init
 
-
-            -- appendInstruction $ StackInstruction
             mapM_ generateStatement stmts
 
             -- end of the procedure
+            appendInstruction (Comment "epilogue")
             if slotNum /= 0
             then do
                 appendInstruction (StackInstruction $ PopStackFrame slotNum)
@@ -93,18 +93,16 @@ generateStatement :: Stmt -> SymTableState ()
 generateStatement (Assign lValue exp)
     = 
         do
-            appendInstruction $ Comment $ show exp ++ " <- " ++ show lValue
+            appendInstruction (Comment $ show lValue ++ " <- " ++ show exp)
             reg <- getRegisterCounter
             loadExp reg exp
-
-
+            storeVal reg lValue
             setRegisterCounter reg
 
--- TODO: Read
 generateStatement (Read lValue)
     = 
         do
-            appendInstruction $ Comment $ "Read " ++ show lValue
+            appendInstruction (Comment $ "Read " ++ show lValue)
             bType <- getType $ Lval lValue
             reg <- getRegisterCounter 
             let cmd = case bType of Int -> "read_int"
@@ -118,7 +116,7 @@ generateStatement (Read lValue)
 generateStatement (Write exp)
     = 
         do
-            appendInstruction $ Comment $ "Write " ++ show exp
+            appendInstruction (Comment $ "Write " ++ show exp)
             bType <- getType exp
             reg <- getRegisterCounter
             loadExp reg exp
@@ -131,7 +129,7 @@ generateStatement (Write exp)
 generateStatement (Writeln exp)   
     = 
         do 
-            appendInstruction $ Comment $ "Writeln " ++ show exp
+            appendInstruction (Comment $ "Writeln " ++ show exp)
             bType <- getType exp
             reg <- getRegisterCounter
             loadExp reg exp
