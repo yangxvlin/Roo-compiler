@@ -41,10 +41,9 @@ generateProcedure p@(Procedure (ProcedureHeader procID _) (ProcedureBody _ stmts
     =
         do
             appendInstruction $ Label procID 
-
             pushLocalVariableTable
-            -- insert procedure's variable info to local variable table
             insertProcedureVariable p
+            
             -- generate code of procedure's statements
             slotNum <- getSlotCounter
             appendInstruction (StackInstruction $ PushStackFrame slotNum)
@@ -135,9 +134,11 @@ getType (Op_mul _ _) = Int
 getType (Op_div _ _) = Int
 getType (Op_not _) = Bool
 getType (Op_neg _) = Int
--- need to update later!!!!!!!!!!!!!
+-- TODO: need to update later!!!!!!!!!!!!!
 getType (Lval _) = Int
 
 boolToInt :: Bool -> Int
 boolToInt True = 1
 boolToInt False = 0
+
+
