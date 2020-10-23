@@ -96,43 +96,43 @@ instance Show StackInstruction where
     show (PushStackFrame size) = "push_stack_frame " ++ show (size)
     show (PopStackFrame size) = "pop_stack_frame " ++ show (size)
     show (Store slotnum register) = "store r" ++ show (slotnum)
-        ++ " r" ++ show (register)
-    show (Load register slotnum) = "load r" ++ show (register) ++ " "
+        ++ ", r" ++ show (register)
+    show (Load register slotnum) = "load r" ++ show (register) ++ ", "
         ++ show (slotnum)
     show (LoadAddress register slotnum) = "load_address r" 
-        ++ show (register) ++ " "++ show (slotnum)
+        ++ show (register) ++ ", "++ show (slotnum)
     show (LoadIndirect register1 register2) = "load_indirect r" 
-        ++ show (register1) ++ " r" ++ show (register2)
+        ++ show (register1) ++ ", r" ++ show (register2)
     show (StoreIndirect register1 register2) = "store_indirect r" 
-        ++ show (register1) ++ " r" ++ show (register2)
+        ++ show (register1) ++ ", r" ++ show (register2)
 
 instance Show ConstantInstruction where
     show (OzIntConst register int) = "int_const r" ++ show (register)
-        ++ " " ++ show (int)
+        ++ ", " ++ show (int)
     show (OzRealConst register float) = "real_const r" ++ show (register)
-        ++ " " ++ show (float)
+        ++ ", " ++ show (float)
     show (OzStringConst register string) = "string_const r" ++ show (register)
-        ++ " " ++ show (string)
+        ++ ", " ++ show (string)
 
 instance Show OpType where
     show OpInt = "int"
     show OpReal = "real"
 
 instance Show ArithmeticInstruction where
-    show (Add opType r1 r2 r3) = "add_" ++ show (opType) ++ " r"
-        ++ show (r1) ++ " r" ++ show (r2) ++ " r" ++ show (r3)
+    show (Add opType r1 r2 r3) = "add_" ++ show (opType) ++ ", r"
+        ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
     show (AddOff r1 r2 r3) = "add_offset r"
-        ++ show (r1) ++ " r" ++ show (r2) ++ " r" ++ show (r3)
-    show (Sub opType r1 r2 r3) = "sub_" ++ show (opType) ++ " r"
-        ++ show (r1) ++ " r" ++ show (r2) ++ " r" ++ show (r3)
+        ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
+    show (Sub opType r1 r2 r3) = "sub_" ++ show (opType) ++ ", r"
+        ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
     show (SubOff r1 r2 r3) = "sub_offset r"
-        ++ show (r1) ++ " r" ++ show (r2) ++ " r" ++ show (r3)
-    show (Mul opType r1 r2 r3) = "mul_" ++ show (opType) ++ " r"
-        ++ show (r1) ++ " r" ++ show (r2) ++ " r" ++ show (r3)
-    show (Div opType r1 r2 r3) = "div_" ++ show (opType) ++ " r"
-        ++ show (r1) ++ " r" ++ show (r2) ++ " r" ++ show (r3)
-    show (Neg opType r1 r2) = "neg_" ++ show (opType) ++ " r"
-        ++ show (r1) ++ " r" ++ show (r2)
+        ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
+    show (Mul opType r1 r2 r3) = "mul_" ++ show (opType) ++ ", r"
+        ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
+    show (Div opType r1 r2 r3) = "div_" ++ show (opType) ++ ", r"
+        ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
+    show (Neg opType r1 r2) = "neg_" ++ show (opType) ++ ", r"
+        ++ show (r1) ++ ", r" ++ show (r2)
 
 instance Show ComparisonOperator where
     show Eq = "cmp_eq"
@@ -144,23 +144,23 @@ instance Show ComparisonOperator where
 
 instance Show ComparisonInstruction where
     show (CmpInstruction comparisonOp opType r1 r2 r3) = 
-        show (comparisonOp) ++ show (opType) ++ " r" 
-        ++ show (r1) ++ " r" ++ show (r2) ++ " r" ++ show (r3)
+        show (comparisonOp) ++ show (opType) ++ ", r" 
+        ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
 
 instance Show LogicInstruction where
     show (LogicAnd r1 r2 r3) = "and r" ++ show (r1) 
-        ++ " r" ++ show (r2) ++ " r" ++ show (r3)
+        ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
     show (LogicOr r1 r2 r3) = "or r" ++ show (r1) 
-        ++ " r" ++ show (r2) ++ " r" ++ show (r3)
-    show (LogicNot r1 r2) = "not r" ++ show (r1) ++ " r" ++ show (r2)
+        ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
+    show (LogicNot r1 r2) = "not r" ++ show (r1) ++ ", r" ++ show (r2)
 
 instance Show OperationInstruction where
-    show (IntToReal r1 r2) = "int_to_real r" ++ show (r1) ++ " r" ++ show (r2)
-    show (Move r1 r2) = "move r" ++ show (r1) ++ " r" ++ show (r2)
+    show (IntToReal r1 r2) = "int_to_real r" ++ show (r1) ++ ", r" ++ show (r2)
+    show (Move r1 r2) = "move r" ++ show (r1) ++ ", r" ++ show (r2)
 
 instance Show BranchInstruction where
     show (Cond bool register label) = "branch_on_" ++ show (bool) 
-        ++ " r" ++ show (register) ++ " " ++ id (label)
+        ++ ", r" ++ show (register) ++ ", " ++ id (label)
     show (Uncond label) = "branch_uncond " ++ show (label)
 
 instance Show ProcedureInstruction where
