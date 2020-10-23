@@ -185,6 +185,21 @@ loadExp reg (IntConst vl)
     = appendInstruction (ConstantInstruction $ OzIntConst reg vl)
 loadExp reg (StrConst vl)
     = appendInstruction (ConstantInstruction $ OzStringConst reg vl)
+-- TODO
+loadExp reg (Op_or lExp rExp)
+    = return ()
+loadExp reg (Op_and lExp rExp)
+    = return ()
+loadExp reg (Op_eq lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            -- ozCode structure有问题！！！
+            -- appendInstruction ()
+            setRegisterCounter reg_1
+
 -- TODO: other experssions
 loadExp reg _ 
     = appendInstruction (Comment "this is an undefined expression")
