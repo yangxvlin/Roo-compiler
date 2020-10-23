@@ -293,8 +293,17 @@ whatVartypeNeed (RecordVar alias)=AliasDataType alias
 whatVartypeNeed (ArrayVar alias)=AliasDataType alias
 
   
-                 
+getLValueName::LValue->String
+getLValueName (LId ident)=ident  
+getLValueName (LDot ident ident2)=ident  
+getLValueName (LBrackets ident exp )=ident  
+getLValueName (LBracketsDot ident exp ident2)=ident                 
 ------------------------------------------------------------------------------------
+getDataT::DataType->String
+getDataT (BaseDataType BooleanType) ="bool"
+getDataT (BaseDataType IntegerType) ="int"
+getDataT (BaseDataType StringType) ="str"
+getDataT (AliasDataType aliasType ) ="alias"
 
 
 checkStmt :: Stmt -> SymTableState ()
@@ -306,13 +315,16 @@ checkStmt (Assign lvalue exp)
   = 
     do
 --      return ()
+      let a=getLValueName lvalue
       checkLValue lvalue
       checkExp exp
       identi <- getDatatypeoflvalue lvalue
-      exptype<- getExpType2 exp           
-      if  identi==exptype then
+      exptype<- getExpType2 exp 
+      let b=getDataT exptype
+                 
+      if  not (identi==exptype) then
  --     if not (variableType==(getExpType exp)) then
-        liftEither $ throwError ("assign a wrong type") --TODO
+        liftEither $ throwError $ "assign a wrong type "++a++b --TODO
       else
         return ()
 
