@@ -238,7 +238,7 @@ checkStmt (Assign lvalue exp)
 --write and read:
 -- • The argument to read must be an lvalue of type boolean or integer.(handled)
 -- • The argument to write must be a well-typed expression of type boolean or integer, or
--- a string literal. The same goes for writeln.
+-- a string literal. The same goes for writeln.(handled)
 --  write prints integer and boolean expressions to stdout in their standard syntactic forms, 
 --with no additional whitespace or newlines.
 --  If write is given a string, it prints out the characters of the string to stdout, with \" 
@@ -260,12 +260,21 @@ checkStmt (Read lvalue)
 checkStmt (Write exp) 
   = 
     do
-      return ()
+      exptype<-getExpType2 exp
+      if (exptype==BaseDataType BooleanType)||(exptype==BaseDataType IntegerType)||(exptype==BaseDataType StringType)then        
+        return ()
+      else
+        liftEither $ throwError ("The argument to write must be a well-typed expression of type boolean or integer, or a string literal.")
+      
 
 checkStmt (Writeln exp) 
   = 
     do
-      return ()  
+      exptype<-getExpType2 exp
+      if (exptype==BaseDataType BooleanType)||(exptype==BaseDataType IntegerType)||(exptype==BaseDataType StringType)then        
+        return ()
+      else
+        liftEither $ throwError ("The argument to writeln must be a well-typed expression of type boolean or integer, or a string literal.") 
 
 checkStmt (IfThen exp stmts) 
   = 
@@ -340,7 +349,7 @@ getExpType2::Exp->SymTableState DataType
 getExpType2 (BoolConst _)= do 
   return (BaseDataType BooleanType)
 getExpType2 (IntConst _)= do return (BaseDataType IntegerType)
-getExpType2 (StrConst a)=do return (AliasDataType a)--TODO?
+getExpType2 (StrConst a)=do return (BaseDataType StringType)
 getExpType2 (Op_or _ _)=do return (BaseDataType BooleanType)
 getExpType2 (Op_and _ _)=do return (BaseDataType BooleanType)
 getExpType2 (Op_eq  _ _)=do return (BaseDataType BooleanType)
@@ -356,7 +365,7 @@ getExpType2 (Op_mul _ _)=do return (BaseDataType IntegerType)
 getExpType2 (Op_div _ _)=do return (BaseDataType IntegerType)
 getExpType2 (Op_neg _)=do return (BaseDataType IntegerType)
 
-getExpType2 (Lval lvalue )=getDatatypeoflvalue lvalue--TODO
+getExpType2 (Lval lvalue )=getDatatypeoflvalue lvalue
 
 
 -- data LValue 
@@ -418,7 +427,7 @@ hasSameElem _ _=do return True
 -- hasSameElem _ _=True
 -----------semantic check on all kinds of expression----
 checkExp::Exp->SymTableState ()
-checkExp (BoolConst bbool)
+checkExp (BoolConst bool)
   =return()
 
 
