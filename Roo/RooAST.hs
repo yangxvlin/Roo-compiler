@@ -27,6 +27,7 @@ type Ident = String
 data BaseType
   = BooleanType
   | IntegerType
+  | StringType  --Add Stringtype ,because exp has string type
     deriving (Show, Eq)
 
 -- User custermized record type, stored as string
