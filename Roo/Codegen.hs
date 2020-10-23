@@ -140,11 +140,17 @@ generateStatement (Writeln exp)
             appendInstruction (ProcedureInstruction $ ICallBuiltIn "print_newline")
             setRegisterCounter reg
 
--- TODO: Call
-generateStatement (Call procedureName exps)
+generateStatement (Call procID params)
     = 
         do 
-            return()
+            appendInstruction (Comment $ "Call " ++ show procID)
+            mapM_ (\param ->
+                    do
+                        reg <- getRegisterCounter
+                        loadExp reg param 
+                    ) params
+            appendInstruction (ProcedureInstruction $ ICall $ "proc_" ++ procID)
+            setRegisterCounter 0
 
 -- TODO: If then
 generateStatement (IfThen exp stmts) 
@@ -183,9 +189,12 @@ loadVal reg (LId ident)
         do
             (byValue, slotNum, _, _) <- getVariableType ident
             if byValue
+            -- when slot stores the value, simply load the value to register
             then appendInstruction (StackInstruction $ Load reg slotNum)
+            -- when slot stores the reference (address), 
+            -- load the address stored to register and load value indirectly
             else do
-                appendInstruction (StackInstruction $ LoadAddress reg slotNum)
+                appendInstruction (StackInstruction $ Load reg slotNum)
                 appendInstruction (StackInstruction $ LoadIndirect reg reg)
 
 -- TODO: other left values
@@ -195,12 +204,19 @@ loadVal reg _
 
 
 storeVal :: Int -> LValue -> SymTableState ()
+-- 目前不管是value还是reference都是按照store_indirect来做（参考Appendix B）
 storeVal reg (LId ident)
     = 
         do
             reg_1 <- getRegisterCounter
-            (_, slotNum, _, _) <- getVariableType ident
-            appendInstruction (StackInstruction $ LoadAddress reg_1 slotNum)
+            (byValue, slotNum, _, _) <- getVariableType ident
+            if byValue
+            -- when slot store the value, load the address of the slot
+            -- and store value indirectly
+            then appendInstruction (StackInstruction $ LoadAddress reg_1 slotNum)
+            -- when slot store the address, load the address stored 
+            -- and store value indirectly
+            else appendInstruction (StackInstruction $ Load reg_1 slotNum)
             appendInstruction (StackInstruction $ StoreIndirect reg_1 reg)
             setRegisterCounter reg_1
 -- TODO: other left values
