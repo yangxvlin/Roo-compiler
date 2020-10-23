@@ -89,7 +89,6 @@ generateProcedure p@(Procedure (ProcedureHeader procID params)
 -- ---------------------------------------------------------------------------            
 
 generateStatement :: Stmt -> SymTableState ()
--- TODO: Assign
 generateStatement (Assign lValue exp)
     = 
         do
@@ -144,11 +143,18 @@ generateStatement (Call procID params)
     = 
         do 
             appendInstruction (Comment $ "Call " ++ show procID)
-            mapM_ (\param ->
+            let paraNum = length params 
+            (formalParams, _) <- getProcedure procID
+            mapM_ (\i ->
                     do
                         reg <- getRegisterCounter
-                        loadExp reg param 
-                    ) params
+                        let (byValue, _) = formalParams !! i
+                        case byValue of 
+                            True -> loadExp reg $ params !! i
+                            False -> case (params !! i) of
+                                            Lval lValue -> loadVarAdress reg lValue
+                                            _ -> return ()
+                    ) [0..(paraNum - 1)]
             appendInstruction (ProcedureInstruction $ ICall $ "proc_" ++ procID)
             setRegisterCounter 0
 
@@ -222,7 +228,21 @@ storeVal reg (LId ident)
 -- TODO: other left values
 storeVal reg _ 
     = appendInstruction (Comment "this is an undefined left value")
-            
+
+loadVarAdress :: Int -> LValue -> SymTableState ()
+loadVarAdress reg (LId ident)
+    =
+        do
+            (byValue, slotNum, _, _) <- getVariableType ident
+            if byValue
+            -- load the address of the slot use loadAddress
+            then appendInstruction (StackInstruction $ LoadAddress reg slotNum)
+            -- load the address directly as the slot store reference(address)
+            else appendInstruction (StackInstruction $ Load reg slotNum)
+
+-- TODO: other left values
+loadVarAdress reg _ 
+    = appendInstruction (Comment "this is an undefined left value")         
 
 -- -- transfer operation from Exp in AST to Oz instruction
 -- getOzInstruction :: Exp -> OzInstruction
