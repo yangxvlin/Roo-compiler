@@ -509,54 +509,155 @@ hasSameElem _ _=do return True
 -- hasSameElem [] []=True
 -- hasSameElem _ _=True
 -----------semantic check on all kinds of expression----
+jexpdatatype::DataType->Bool
+jexpdatatype (BaseDataType IntegerType)=True
+jexpdatatype _=False
+
+jexpdatatype2::DataType->Bool
+jexpdatatype2 (BaseDataType BooleanType)=True
+jexpdatatype2 _=False
 checkExp::Exp->SymTableState ()
 checkExp (BoolConst bool)
-  =return()
+  =do return()
 
 checkExp (IntConst int)
-  =return()
+  =do return()
 
 checkExp (StrConst string)
-  =return()
-
-checkExp (BoolConst bool)
-  =return()
+  =do return()
 
 checkExp (Op_or exp exp2)
-  =return()
+  =do 
+    checkExp exp 
+    checkExp exp2
+    type1 <- getExpType2 exp
+    type2 <- getExpType2 exp2
+    if (jexpdatatype2 type1)&&(jexpdatatype2 type2) then
+      return ()
+    else
+      liftEither $ throwError $ "two exps in or operation must be in boolean type"
+
 
 checkExp (Op_and exp exp2)
-  =return()
-
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype2 type1)&&(jexpdatatype2 type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in and operation must be in boolean type"
+-- ?
 checkExp (Op_eq exp exp2)
-  =return()
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype type1)&&(jexpdatatype type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in eq operation must be in integer type"
   
 checkExp (Op_neq exp exp2)
-  =return()
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype type1)&&(jexpdatatype type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in neq operation must be in integer type"
   
 checkExp (Op_less exp exp2)
-  =return()
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype type1)&&(jexpdatatype type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in < operation must be in integer type"
     
 checkExp (Op_less_eq exp exp2)
-  =return()
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype type1)&&(jexpdatatype type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in <= operation must be in integer type"
     
 checkExp (Op_add exp exp2)
-  =return()
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype type1)&&(jexpdatatype type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in add operation must be in integer type"
     
 checkExp (Op_sub exp exp2)
-  =return()
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype type1)&&(jexpdatatype type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in sub operation must be in integer type"
       
 checkExp (Op_mul exp exp2)
-  =return()
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype type1)&&(jexpdatatype type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in mul operation must be in integer type"
      
 checkExp (Op_div exp exp2)
-  =return()
+  =do 
+  checkExp exp 
+  checkExp exp2
+  type1 <- getExpType2 exp
+  type2 <- getExpType2 exp2
+  if (jexpdatatype type1)&&(jexpdatatype type2) then
+    return ()
+  else
+    liftEither $ throwError $ "two exps in div operation must be in integer type"
      
 checkExp (Op_not exp )
-  =return()
+  =do 
+  checkExp exp 
+  
+  type1 <- getExpType2 exp
+  
+  if (jexpdatatype2 type1) then
+    return ()
+  else
+    liftEither $ throwError $ " exp after not operation must be in boolean type"
        
 checkExp (Op_neg exp)
-  =return()
+  =do 
+  checkExp exp 
+  
+  type1 <- getExpType2 exp
+  
+  if (jexpdatatype type1) then
+    return ()
+  else
+    liftEither $ throwError $ "exp after neg operation must be in integer type"
 
 checkExp (Lval lvalue)
   =
@@ -665,6 +766,10 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
+
+
+
+
 
 
 
