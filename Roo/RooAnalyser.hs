@@ -124,18 +124,18 @@ jvartype2 _=False
 
 --if this array's Datatype is a record and this record has a 
 --fieldname:fieldName,return True
-jdtype::DataType->String->SymTableState Bool
-jdtype (AliasDataType alsName) fieldName
-  =
-    do
-      st <- get
-      let ck = CompositeKey alsName fieldName
-      -- get a (record name, field name) definition
-      if (Map.member ck (rft st)) then
-        return True 
-      -- no (record name, field name) definition
-      else
-        return False  
+-- jdtype::DataType->String->SymTableState Bool
+-- jdtype (AliasDataType alsName) fieldName
+--   =
+--     do
+--       st <- get
+--       let ck = CompositeKey alsName fieldName
+--       -- get a (record name, field name) definition
+--       if (Map.member ck (rft st)) then
+--         return True 
+--       -- no (record name, field name) definition
+--       else
+--         return False  
 --jdtype _ _= do return False
       
 
@@ -168,6 +168,7 @@ checkLValue (LDot recordVarname fieldName)
          do      
            st <- get
            let ck = CompositeKey recordVarname fieldName
+           
       -- get a (record name, field name) definition
            if (Map.member ck (rft st)) then
              return () 
@@ -214,8 +215,13 @@ checkLValue (LBracketsDot arrayName int fieldName)
           let (ArrayVar arrayType)=variableType
           artype<-getArrayType arrayType
           let (intt, dataType)=artype
-          isRecordArray<-jdtype dataType fieldName 
-          if isRecordArray then
+--          isRecordArray<-jdtype dataType fieldName 
+
+          let (AliasDataType alsName)=dataType
+          st <- get
+          let ck = CompositeKey alsName fieldName
+          --liftEither $ throwError $ (show ck)++"wrong"
+          if (Map.member ck (rft st)) then
             do
               indextype<-getExpType2 int
               if indextype==BaseDataType IntegerType then
@@ -224,7 +230,7 @@ checkLValue (LBracketsDot arrayName int fieldName)
                 liftEither $ throwError $ "Array's index should be an integer type " 
               
           else
-            liftEither $ throwError $ "This array of record is not exist "++(show dataType)++fieldName++(show isRecordArray)
+            liftEither $ throwError $ "This array of record is not exist "++(show dataType)++fieldName
 
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ arrayName
@@ -793,3 +799,10 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
+
+
+
+
+
+
+
