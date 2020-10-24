@@ -42,6 +42,13 @@ semanticCheckRooProgram prog
       
       --get procedure table and check stmts of all procedures in procedure table
       st <- get
+      -- let ck = CompositeKey "account" "client_number"
+      -- if (Map.member ck (rft st)) then
+      --   liftEither $ throwError $ "1 "
+      -- else
+      --   liftEither $ throwError $ "2"
+
+
       let procedures=pt st
       let procWithoutMain =delete "main" procedures 
       pushLocalVariableTable
@@ -243,7 +250,7 @@ checkLValue (LBracketsDot arrayName int fieldName)
 -- The type rules for statements are as follows:
 -- • In assignment statements, an lvalue on the left-hand side must have the same type t as
 -- the expression on the right-hand side. If t is a record or array type, then the types of the
--- two sides must have been provided as identical type aliases, and both must have reference
+-- two sides must have been provided as identical type aliases, ---and both must have reference!!!!!!
 -- mode. -----(handled?)
 -- • Conditions in if and while statements must be of type boolean. --Their bodies must be
 -- well-typed sequences of statements.(handled)
@@ -799,7 +806,6 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
-
 
 
 
