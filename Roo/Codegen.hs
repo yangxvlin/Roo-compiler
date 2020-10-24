@@ -396,6 +396,26 @@ loadVarAddress reg (LId ident)
             -- load the address directly as the slot store reference(address)
             else appendInstruction (StackInstruction $ Load reg slotNum)
 
+loadVarAddress reg (LBrackets ident exp)
+    = 
+        do
+            loadExp reg exp 
+            reg_1 <- getRegisterCounter
+            loadVarAddress reg_1 (LId ident)
+            (_, _, variableType, totalSlot) <- getVariableType ident
+            case variableType of 
+                (ArrayVar alias) -> 
+                    do
+                        (size, dataType) <- getArrayType alias 
+                        reg_2 <- getRegisterCounter
+                        appendInstruction (ConstantInstruction
+                            $ OzIntConst reg_2 (totalSlot))
+                        appendInstruction (ArithmeticInstruction
+                            $ Mul OpInt reg reg reg_2)
+                        appendInstruction (ArithmeticInstruction
+                            $ SubOff reg reg_1 reg)
+                _ -> liftEither $ throwError $ "Expect Array as type"
+
 -- TODO: other left values
 loadVarAddress reg _ 
     = appendInstruction (Comment "this is an undefined left value")         
@@ -433,7 +453,7 @@ getType (Op_mul _ _) = return Int
 getType (Op_div _ _) = return Int
 getType (Op_not _) = return Bool
 getType (Op_neg _) = return Int
--- TODO: need to update later!!!!!!!!!!!!!
+
 getType (Lval (LId ident))
     = 
         do
@@ -441,6 +461,20 @@ getType (Lval (LId ident))
             let result = case varType of BooleanVar -> Bool
                                          IntegerVar -> Int
             return result
+-- TODO: need to update later!!!!!!!!!!!!!
+getType (Lval (LBrackets ident _))
+    = 
+        do
+            (_, _, variableType, _) <- getVariableType ident
+            case variableType of 
+                (ArrayVar alias) -> 
+                    do
+                        (_, dataType) <- getArrayType alias 
+                        case dataType of 
+                            (BaseDataType BooleanType) -> return Bool
+                            (BaseDataType IntegerType) -> return Int
+                            _ -> liftEither $ throwError $ "Expect Int/Bool"
+                _ -> liftEither $ throwError $ "Expect Array as type"
 
 getType (Lval _) = return Int
 
