@@ -18,7 +18,10 @@ import Data.Either
 
 type Consequence = Either String [OzInstruction]
 
-data Btype = Int | Bool | String
+data Btype = Int 
+            | Bool 
+            | String
+            | BRecord String
 
 ozCode :: SymTable -> Program -> Consequence
 ozCode st prog = evalStateT (codeGeneration prog) st
@@ -158,7 +161,6 @@ generateStatement (Call procID params)
             appendInstruction (ProcedureInstruction $ ICall $ "proc_" ++ procID)
             setRegisterCounter 0
 
--- TODO: If then
 generateStatement (IfThen exp stmts) 
     = 
         do 
@@ -181,8 +183,6 @@ generateStatement (IfThen exp stmts)
             -- after if then
             appendInstruction (Label falseLabel)
 
-
--- TODO: If then else
 generateStatement (IfThenElse exp stmts1 stmts2) 
     = 
         do 
@@ -212,7 +212,6 @@ generateStatement (IfThenElse exp stmts1 stmts2)
             -- after if then else
             appendInstruction (Label endLabel)
 
--- TODO: While
 generateStatement (While exp stmts) 
     = 
         do 
@@ -246,7 +245,6 @@ loadExp reg (IntConst vl)
     = appendInstruction (ConstantInstruction $ OzIntConst reg vl)
 loadExp reg (StrConst vl)
     = appendInstruction (ConstantInstruction $ OzStringConst reg vl)
--- TODO
 loadExp reg (Op_or lExp rExp)
     = 
         do
@@ -396,44 +394,66 @@ loadVarAddress reg (LId ident)
             -- load the address directly as the slot store reference(address)
             else appendInstruction (StackInstruction $ Load reg slotNum)
 
-loadVarAddress reg (LBrackets ident exp)
+loadVarAddress reg (LBrackets arrayID exp)
     = 
         do
             loadExp reg exp 
             reg_1 <- getRegisterCounter
-            loadVarAddress reg_1 (LId ident)
-            (_, _, variableType, totalSlot) <- getVariableType ident
-            case variableType of 
+            loadVarAddress reg_1 (LId arrayID)
+            (_, _, varType, totalSlot) <- getVariableType arrayID
+            case varType of 
                 (ArrayVar alias) -> 
                     do
                         (size, dataType) <- getArrayType alias 
                         reg_2 <- getRegisterCounter
                         appendInstruction (ConstantInstruction
-                            $ OzIntConst reg_2 (totalSlot))
+                            $ OzIntConst reg_2 $ div totalSlot size)
                         appendInstruction (ArithmeticInstruction
                             $ Mul OpInt reg reg reg_2)
                         appendInstruction (ArithmeticInstruction
                             $ SubOff reg reg_1 reg)
                 _ -> liftEither $ throwError $ "Expect Array as type"
+            setRegisterCounter reg_1
 
--- TODO: other left values
-loadVarAddress reg _ 
-    = appendInstruction (Comment "this is an undefined left value")         
+loadVarAddress reg (LDot recordID fieldID)
+    = 
+        do 
+            loadVarAddress reg (LId recordID)
+            (_, _, varType, _) <- getVariableType recordID
+            case varType of
+                (RecordVar alias) -> 
+                    do
+                        (_, offset) <- getRecordField alias fieldID
+                        reg_1 <- getRegisterCounter
+                        appendInstruction (ConstantInstruction
+                            $ OzIntConst reg_1 $ offset)
+                        appendInstruction (ArithmeticInstruction
+                            $ SubOff reg reg reg_1)
+                        setRegisterCounter reg_1
+                _ -> liftEither $ throwError $ "Expect Record as type"
 
--- -- transfer operation from Exp in AST to Oz instruction
--- getOzInstruction :: Exp -> OzInstruction
--- getOzInstruction Op_add = Add
--- getOzInstruction Op_sub = Sub
--- getOzInstruction Op_mul = Mul
--- getOzInstruction Op_div = Div
--- getOzInstruction Op_eq  = Eq
--- getOzInstruction Op_less  = Lt
--- getOzInstruction Op_less_eq  = Le
--- getOzInstruction Op_large  = Gt
--- getOzInstruction Op_large_eq  = Ge
--- getOzInstruction Op_neg  = Neg
-
--- AssignVar :: Int -> DVar -> Generator ()
+loadVarAddress reg (LBracketsDot arrayID exp fieldID)
+    = 
+        do
+            loadVarAddress reg (LBrackets arrayID exp)
+            (_, _, varType, _) <- getVariableType arrayID
+            case varType of 
+                (ArrayVar alias) -> 
+                    do
+                        (size, dataType) <- getArrayType alias 
+                        case dataType of
+                            (AliasDataType recordName) ->
+                                do
+                                    (_, offset) <- getRecordField recordName fieldID
+                                    reg_1 <- getRegisterCounter
+                                    appendInstruction (ConstantInstruction
+                                        $ OzIntConst reg_1 $ offset)
+                                    appendInstruction (ArithmeticInstruction
+                                        $ SubOff reg reg reg_1)
+                                    setRegisterCounter reg_1
+                            _ -> liftEither $ throwError 
+                                    $ "Expect record as type"
+                _ -> liftEither $ throwError $ "Expect Array as type"
 
 getType :: Exp -> SymTableState (Btype)
 getType (BoolConst _) = return Bool 
@@ -461,22 +481,50 @@ getType (Lval (LId ident))
             let result = case varType of BooleanVar -> Bool
                                          IntegerVar -> Int
             return result
--- TODO: need to update later!!!!!!!!!!!!!
-getType (Lval (LBrackets ident _))
+
+getType (Lval (LBrackets arrayID _))
     = 
         do
-            (_, _, variableType, _) <- getVariableType ident
-            case variableType of 
+            (_, _, varType, _) <- getVariableType arrayID
+            case varType of 
                 (ArrayVar alias) -> 
                     do
                         (_, dataType) <- getArrayType alias 
                         case dataType of 
                             (BaseDataType BooleanType) -> return Bool
                             (BaseDataType IntegerType) -> return Int
+                            (AliasDataType alias) -> return (BRecord alias)
                             _ -> liftEither $ throwError $ "Expect Int/Bool"
                 _ -> liftEither $ throwError $ "Expect Array as type"
 
-getType (Lval _) = return Int
+getType (Lval (LDot recordID fieldID))
+    = 
+        do
+            (_, _, varType, _) <- getVariableType recordID
+            case varType of 
+                (RecordVar alias) -> 
+                    do
+                        (baseType, _) <- getRecordField alias fieldID
+                        case baseType of 
+                            BooleanType -> return Bool
+                            IntegerType -> return Int
+                            _ -> liftEither $ throwError $ "Expect Int/Bool"
+                _ -> liftEither $ throwError $ "Expect Record as type"
+
+getType (Lval (LBracketsDot arrayID exp fieldID))
+    =
+        do
+            varType <- getType (Lval (LBrackets arrayID exp))
+            case varType of
+                (BRecord alias) ->
+                    do
+                        (baseType, _) <- getRecordField alias fieldID
+                        case baseType of 
+                            BooleanType -> return Bool
+                            IntegerType -> return Int
+                            _ -> liftEither $ throwError $ "Expect Int/Bool"
+                _ -> liftEither $ throwError $ "Expect Record as type"
+
 
 boolToInt :: Bool -> Int
 boolToInt True = 1
