@@ -50,8 +50,7 @@ data VariableType = BooleanVar
 --    a) true if it is pass by value and
 --    b) allocated slot number and
 --    c) its type and
---    d) #elements for array, #fields for record, 
---       1 for boolean/integer/pass by reference
+--    d) #elements for array, #fields for record, 1 for boolean/integer
 data LocalVariableTable
   = LocalVariableTable
     { slotCounter :: Int
@@ -434,50 +433,48 @@ insertVariable recVar@(RecordVar recordName) byValue varName
     do
       checkVariableNotDefined varName
       availableSlot <- getSlotCounter
+      (recordSize, _) <- getRecordType recordName
       if byValue then
-        do
-          (recordSize, _) <- getRecordType recordName
-          let newSlotCounter = availableSlot + recordSize
-          updateNewVariableToLVT newSlotCounter 
-                                 varName 
-                                 (byValue, availableSlot, recVar, recordSize)
-      else -- pass by reference, 1 slot for reference record 
-        do
-          let newSlotCounter = availableSlot + 1
-          updateNewVariableToLVT newSlotCounter 
-                                 varName 
-                                 (byValue, availableSlot, recVar, 1)
+        updateNewVariableToLVT (availableSlot + recordSize)
+                               varName 
+                               (byValue, availableSlot, recVar, recordSize)
+      else -- pass by reference, only allocate 1 slot
+        updateNewVariableToLVT (availableSlot + 1 )
+                               varName 
+                               (byValue, availableSlot, recVar, recordSize)
 insertVariable arr@(ArrayVar arrayName) byValue varName
   =
     do
       checkVariableNotDefined varName
       availableSlot <- getSlotCounter
       (arraySize, arrayType) <- getArrayType arrayName
-      if byValue then
-        case arrayType of
-          BaseDataType _ ->
-            do
-              let newSlotCounter = availableSlot + arraySize
-              updateNewVariableToLVT newSlotCounter 
-                                    varName 
-                                    (byValue, availableSlot, arr, arraySize)
-          -- as an array cannot has alias type: array 
-          AliasDataType recordName ->
-            do
-              (recordSize, _) <- getRecordType recordName
-              -- array size * #record's fields
-              let nSlotsRequired = recordSize * arraySize
-              let newSlotCounter = availableSlot + nSlotsRequired
-              updateNewVariableToLVT newSlotCounter 
+      case arrayType of
+        BaseDataType _ ->
+          do
+            if byValue then
+              updateNewVariableToLVT (availableSlot + arraySize)
+                                     varName 
+                                     (byValue, availableSlot, arr, arraySize)
+            else -- pass by reference, only allocate 1 slot
+              updateNewVariableToLVT (availableSlot + 1)
+                                     varName 
+                                     (byValue, availableSlot, arr, arraySize)
+        -- as an array cannot has alias type: array 
+        AliasDataType recordName ->
+          do
+            (recordSize, _) <- getRecordType recordName
+            -- array size * #record's fields
+            let nSlotsRequired = recordSize * arraySize
+            if byValue then
+              updateNewVariableToLVT (availableSlot + nSlotsRequired)
                                      varName 
                                      (byValue, availableSlot, arr, 
-                                      nSlotsRequired)
-      else -- pass by reference, 1 slot for reference array
-        do
-          let newSlotCounter = availableSlot + 1
-          updateNewVariableToLVT newSlotCounter 
-                                 varName 
-                                 (byValue, availableSlot, arr, 1)
+                                     nSlotsRequired)
+            else -- pass by reference, only allocate 1 slot
+              updateNewVariableToLVT (availableSlot + 1)
+                                     varName 
+                                     (byValue, availableSlot, arr, 
+                                     nSlotsRequired)
 
 
 updateNewVariableToLVT :: Int -> String -> (Bool, Int, VariableType, Int) 
