@@ -136,7 +136,7 @@ jdtype (AliasDataType alsName) fieldName
       -- no (record name, field name) definition
       else
         return False  
-jdtype _ _= do return False
+--jdtype _ _= do return False
       
 
 --jdtype _="False"
@@ -151,10 +151,10 @@ checkLValue (LId varName)
         do
           varInfo <- (getVariableType varName)
           let (bool,int1,vartype,int2)=varInfo
---          if jvartype vartype then
-          return()
---          else
- --           liftEither $ throwError $ "<id> in (lvalue <id>) cannot be Record name or array name: " ++ varName
+          if jvartype vartype then
+           return()
+          else
+            liftEither $ throwError $ "<id> in (lvalue <id>) cannot be Record name or array name: " ++ varName
 
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ varName
@@ -209,7 +209,10 @@ checkLValue (LBracketsDot arrayName int fieldName)
       cvt <- getCurVariableTable
       if (Map.member arrayName (vtt cvt)) then
         do
-          artype<-getArrayType arrayName
+          c<-getVariableType arrayName
+          let (bool, int1, variableType, int2)=c
+          let (ArrayVar arrayType)=variableType
+          artype<-getArrayType arrayType
           let (intt, dataType)=artype
           isRecordArray<-jdtype dataType fieldName 
           if isRecordArray then
@@ -221,7 +224,7 @@ checkLValue (LBracketsDot arrayName int fieldName)
                 liftEither $ throwError $ "Array's index should be an integer type " 
               
           else
-            liftEither $ throwError $ "This array of record is not exist"
+            liftEither $ throwError $ "This array of record is not exist "++(show dataType)++fieldName++(show isRecordArray)
 
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ arrayName
@@ -260,10 +263,10 @@ getDatatypeoflvalue (LId varname)
   = do
       varInfo <- getVariableType varname
       let (bool,int,vt,int2)=varInfo
- --     if jvartype vt then
-      let datatype = (whatVartypeNeed vt )in return datatype
-  --    else
- --       liftEither $ throwError ("can not assign value to <recordname> or <arrayname>")
+      if jvartype vt then
+        let datatype = (whatVartypeNeed vt )in return datatype
+      else
+        liftEither $ throwError ("can not assign value to <recordname> or <arrayname>")
 -- <id>.<id>
 getDatatypeoflvalue (LDot recordname fieldname) 
   = do 
@@ -274,13 +277,20 @@ getDatatypeoflvalue (LDot recordname fieldname)
 -- <id> [Int]     
 getDatatypeoflvalue (LBrackets arrayname int) 
   = do
-      a <- getArrayType arrayname
+      c<-getVariableType arrayname
+      let (bool, int, variableType, int2)=c
+      let (ArrayVar arrayType)=variableType
+      a <- getArrayType arrayType
       let datatype =snd a in return datatype
 -- <id> [Int]. <id>     
 getDatatypeoflvalue (LBracketsDot arrayname int fieldname) 
   = do
-       a <- getArrayType arrayname
+       c<-getVariableType arrayname
+       let (bool, int, variableType, int2)=c
+       let (ArrayVar arrayType)=variableType
+       a <- getArrayType arrayType
        let AliasDataType recordname =snd a
+       
        b <- getRecordField recordname fieldname 
        let datatype = fst b in return (BaseDataType datatype)
        
@@ -327,7 +337,7 @@ checkStmt (Assign lvalue exp)
         liftEither $ throwError $ "assign a wrong type "++b++" to "++a --TODO
       else
         return ()
-
+--jdatatype (BaseDataType IntegerType)=True
 --write and read:
 -- • The argument to read must be an lvalue of type boolean or integer.(handled)
 -- • The argument to write must be a well-typed expression of type boolean or integer, or
@@ -521,6 +531,11 @@ hasSameElem _ _=do return True
 -- hasSameElem [] []=True
 -- hasSameElem _ _=True
 -----------semantic check on all kinds of expression----
+jdatatype::DataType->Bool
+jdatatype (BaseDataType IntegerType)=True
+jdatatype (BaseDataType BooleanType)=True
+jdatatype _=False
+
 jexpdatatype::DataType->Bool
 jexpdatatype (BaseDataType IntegerType)=True
 jexpdatatype _=False
