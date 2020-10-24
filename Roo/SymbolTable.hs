@@ -146,11 +146,11 @@ insertRecordType (Record fieldDecls recordName)
       -- insert a record definition
       else
         do
-          insertRecordFields recordName fieldDecls 0
           put $ st { att = Map.insert recordName 
                                       (RecordInfo (recordSize, fieldDecls))
                                       (att st) 
                    }
+          insertRecordFields recordName fieldDecls 0
 
 getRecordType :: String -> SymTableState (Int, [FieldDecl])
 getRecordType recordName

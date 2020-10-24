@@ -42,6 +42,13 @@ semanticCheckRooProgram prog
       
       --get procedure table and check stmts of all procedures in procedure table
       st <- get
+      -- let ck = CompositeKey "account" "client_number"
+      -- if (Map.member ck (rft st)) then
+      --   liftEither $ throwError $ "1 "
+      -- else
+      --   liftEither $ throwError $ "2"
+
+
       let procedures=pt st
       let procWithoutMain =delete "main" procedures 
       pushLocalVariableTable
@@ -167,7 +174,10 @@ checkLValue (LDot recordVarname fieldName)
       if (Map.member recordVarname (vtt cvt)) then
          do      
            st <- get
-           let ck = CompositeKey recordVarname fieldName
+           c<-getVariableType recordVarname
+           let (bool, int1, variableType, int2)=c
+           let (RecordVar recordType)=variableType
+           let ck = CompositeKey recordType fieldName
            
       -- get a (record name, field name) definition
            if (Map.member ck (rft st)) then
@@ -176,7 +186,7 @@ checkLValue (LDot recordVarname fieldName)
            else
               liftEither $ throwError $ "Record.field: " ++ 
                                         recordVarname ++ "." ++ fieldName ++ 
-                                      " does not exist"
+                                      " does not exist"++ recordType
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ recordVarname
 -- <id>[index]  <arrayVarName> [index]
@@ -243,7 +253,7 @@ checkLValue (LBracketsDot arrayName int fieldName)
 -- The type rules for statements are as follows:
 -- • In assignment statements, an lvalue on the left-hand side must have the same type t as
 -- the expression on the right-hand side. If t is a record or array type, then the types of the
--- two sides must have been provided as identical type aliases, and both must have reference
+-- two sides must have been provided as identical type aliases, ---and both must have reference!!!!!!
 -- mode. -----(handled?)
 -- • Conditions in if and while statements must be of type boolean. --Their bodies must be
 -- well-typed sequences of statements.(handled)
@@ -275,8 +285,11 @@ getDatatypeoflvalue (LId varname)
         liftEither $ throwError ("can not assign value to <recordname> or <arrayname>")
 -- <id>.<id>
 getDatatypeoflvalue (LDot recordname fieldname) 
-  = do 
-      b <- getRecordField recordname fieldname 
+  = do
+      c<-getVariableType recordname
+      let (bool, int1, variableType, int2)=c
+      let (RecordVar recordType)=variableType 
+      b <- getRecordField recordType fieldname 
       let datatype = fst b in return (BaseDataType datatype)
 
       
@@ -799,6 +812,10 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
+
+
+
+
 
 
 
