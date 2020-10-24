@@ -220,21 +220,92 @@ loadExp reg (Op_neq lExp rExp)
             appendInstruction (ComparisonInstruction 
                 $ CmpInstruction Ne OpInt reg reg reg_1)
             setRegisterCounter reg_1
+loadExp reg (Op_less lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ComparisonInstruction 
+                $ CmpInstruction Lt OpInt reg reg reg_1)
+            setRegisterCounter reg_1
+loadExp reg (Op_less_eq lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ComparisonInstruction 
+                $ CmpInstruction Le OpInt reg reg reg_1)
+            setRegisterCounter reg_1
+loadExp reg (Op_large lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ComparisonInstruction 
+                $ CmpInstruction Gt OpInt reg reg reg_1)
+            setRegisterCounter reg_1   
+loadExp reg (Op_large_eq lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ComparisonInstruction 
+                $ CmpInstruction Ge OpInt reg reg reg_1)
+            setRegisterCounter reg_1            
+loadExp reg (Op_add lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ArithmeticInstruction
+                $ Add OpInt reg reg reg_1)
+            setRegisterCounter reg_1
+loadExp reg (Op_sub lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ArithmeticInstruction
+                $ Sub OpInt reg reg reg_1)
+            setRegisterCounter reg_1 
+loadExp reg (Op_mul lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ArithmeticInstruction
+                $ Mul OpInt reg reg reg_1)
+            setRegisterCounter reg_1    
+loadExp reg (Op_div lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ArithmeticInstruction
+                $ Div OpInt reg reg reg_1)
+            setRegisterCounter reg_1         
+loadExp reg (Op_not exp)
+    = 
+        do
+            loadExp reg exp
+            appendInstruction (LogicInstruction
+                $ LogicNot reg reg)
+loadExp reg (Op_neg exp)
+    = 
+        do
+            loadExp reg exp
+            appendInstruction (ArithmeticInstruction
+                $ Neg OpInt reg reg)
 
---  loadExp reg (Op_less lExp lExp)          -- <exp> <binop: "<"> <exp>
---   | Op_less_eq  Exp Exp       -- <exp> <binop: "<="> <exp>
---   | Op_large  Exp Exp         -- <exp> <binop: ">"> <exp>
---   | Op_large_eq  Exp Exp      -- <exp> <binop: ">="> <exp>
---   | Op_add  Exp Exp           -- <exp> <binop: "+"> <exp>
---   | Op_sub  Exp Exp           -- <exp> <binop: "-"> <exp>
---   | Op_mul  Exp Exp           -- <exp> <binop: "*"> <exp>
---   | Op_div  Exp Exp           -- <exp> <binop: "/"> <exp>
---   | Op_not Exp                -- <unop: not> <exp>
---   | Op_neg Exp                -- <unop: "-"> <exp>
-
--- TODO: other experssions
-loadExp reg _ 
-    = appendInstruction (Comment "this is an undefined expression")
+                
 
 loadVal :: Int -> LValue -> SymTableState ()
 loadVal reg lValue
