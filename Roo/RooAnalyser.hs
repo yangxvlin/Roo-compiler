@@ -174,7 +174,10 @@ checkLValue (LDot recordVarname fieldName)
       if (Map.member recordVarname (vtt cvt)) then
          do      
            st <- get
-           let ck = CompositeKey recordVarname fieldName
+           c<-getVariableType recordVarname
+           let (bool, int1, variableType, int2)=c
+           let (RecordVar recordType)=variableType
+           let ck = CompositeKey recordType fieldName
            
       -- get a (record name, field name) definition
            if (Map.member ck (rft st)) then
@@ -183,7 +186,7 @@ checkLValue (LDot recordVarname fieldName)
            else
               liftEither $ throwError $ "Record.field: " ++ 
                                         recordVarname ++ "." ++ fieldName ++ 
-                                      " does not exist"
+                                      " does not exist"++ recordType
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ recordVarname
 -- <id>[index]  <arrayVarName> [index]
@@ -282,8 +285,11 @@ getDatatypeoflvalue (LId varname)
         liftEither $ throwError ("can not assign value to <recordname> or <arrayname>")
 -- <id>.<id>
 getDatatypeoflvalue (LDot recordname fieldname) 
-  = do 
-      b <- getRecordField recordname fieldname 
+  = do
+      c<-getVariableType recordname
+      let (bool, int1, variableType, int2)=c
+      let (RecordVar recordType)=variableType 
+      b <- getRecordField recordType fieldname 
       let datatype = fst b in return (BaseDataType datatype)
 
       
@@ -806,6 +812,11 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
+
+
+
+
+
 
 
 
