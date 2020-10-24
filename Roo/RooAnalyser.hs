@@ -291,7 +291,7 @@ jvartype::VariableType->Bool
 jvartype (RecordVar _)=False
 jvartype (ArrayVar _)=False
 jvartype _=True
-----still has bugs!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 getDatatypeoflvalue::LValue->SymTableState DataType
 -- <id>
 getDatatypeoflvalue (LId varname) 
@@ -513,7 +513,11 @@ getExpType2 (Op_mul _ _)=do return (BaseDataType IntegerType)
 getExpType2 (Op_div _ _)=do return (BaseDataType IntegerType)
 getExpType2 (Op_neg _)=do return (BaseDataType IntegerType)
 
-getExpType2 (Lval lvalue )=getDatatypeoflvalue lvalue
+getExpType2 (Lval lvalue )=
+  do
+    checkLValue lvalue
+    datatype<-getDatatypeoflvalue lvalue
+    return datatype
 
 
 
@@ -813,24 +817,7 @@ checkArityProcedure procedureName arity
 
 
 
------------------------------------------------------------
---Dynamic semantics
------------------------------------------------------------
---  Integer variables are automatically initialised to 0, and Boolean variables to false. 
---This extends to records and arrays.
 
---The semantics of arithmetic expressions and relations is standard:
---  the evaluation of an expression e1/e2 results in a runtime error if e2 evaluates to 0.
---  The ordering on Boolean values is defined by x ≤ y iff x is false or y is true (or 
---both these hold). As usual, x < y iff x ≤ y ∧ x != y.
-
---The logical operators are strict in all arguments and their arguments are evaluated from left to right.
---  Roo does not use short-circuit evaluation of Boolean expressions. 
---  For example,‘5 < 8 or 5 > 8/0’ causes a runtime error, rather than evaluating to true.
-
-
-
---The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
 
 
 
