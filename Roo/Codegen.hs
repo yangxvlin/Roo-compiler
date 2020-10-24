@@ -186,40 +186,40 @@ loadExp reg (IntConst vl)
 loadExp reg (StrConst vl)
     = appendInstruction (ConstantInstruction $ OzStringConst reg vl)
 -- TODO
--- loadExp reg (Op_or lExp rExp)
---     = 
---         do
---             loadExp reg lExp
---             reg_1 <- getRegisterCounter
---             loadExp reg_1 rExp
---             appendInstruction (LogicInstruction $ LogicOr $ reg reg reg_1) 
---             setRegisterCounter reg_1 
--- loadExp reg (Op_and lExp rExp)
---     = 
---         do
---             loadExp reg lExp
---             reg_1 <- getRegisterCounter
---             loadExp reg_1 rExp
---             appendInstruction (LogicInstruction $ LogicAnd $ reg reg reg_1) 
---             setRegisterCounter reg_1 
--- loadExp reg (Op_eq lExp rExp)
---     = 
---         do
---             loadExp reg lExp
---             reg_1 <- getRegisterCounter
---             loadExp reg_1 rExp
---             appendInstruction (ComparisonInstruction $ CmpInstruction 
---                                 $ Eq OpInt reg reg reg_1)
---             setRegisterCounter reg_1
--- loadExp reg (Op_neq lExp rExp)
---     = 
---         do
---             loadExp reg lExp
---             reg_1 <- getRegisterCounter
---             loadExp reg_1 rExp
---             appendInstruction (ComparisonInstruction $ CmpInstruction 
---                                 $ Ne OpInt reg reg reg_1)
---             setRegisterCounter reg_1
+loadExp reg (Op_or lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (LogicInstruction $ LogicOr reg reg reg_1) 
+            setRegisterCounter reg_1 
+loadExp reg (Op_and lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (LogicInstruction $ LogicAnd reg reg reg_1) 
+            setRegisterCounter reg_1 
+loadExp reg (Op_eq lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ComparisonInstruction 
+                $ CmpInstruction Eq OpInt reg reg reg_1)
+            setRegisterCounter reg_1
+loadExp reg (Op_neq lExp rExp)
+    = 
+        do
+            loadExp reg lExp
+            reg_1 <- getRegisterCounter
+            loadExp reg_1 rExp
+            appendInstruction (ComparisonInstruction 
+                $ CmpInstruction Ne OpInt reg reg reg_1)
+            setRegisterCounter reg_1
 
 --  loadExp reg (Op_less lExp lExp)          -- <exp> <binop: "<"> <exp>
 --   | Op_less_eq  Exp Exp       -- <exp> <binop: "<="> <exp>
