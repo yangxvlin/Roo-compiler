@@ -21,8 +21,11 @@ type Result = Either String SymTable
 
 --TODO:
 
-------The scope of a declared variable (or of a formal procedure parameter) is the enclosing procedure definition.
-------Procedures can use (mutual) recursion.(?)
+
+-- • In assignment statements, an lvalue on the left-hand side must have the same type t as
+-- the expression on the right-hand side. If t is a record or array type, then the types of the
+-- two sides must have been provided as identical type aliases, and both must have reference
+-- mode. -----(handled?)
 analyse :: Program -> Result 
 analyse prog
   = evalStateT (semanticCheckRooProgram prog) initialSymTable
@@ -123,11 +126,15 @@ checkStmts = mapM_ checkStmt
 --下面是检查所有类型的stmt，由于每个stmt都要检查所用var是否声明过，需要再写一个
 --checkLValue
 -- <id>
-
+--usdd in <>[].<>
 jvartype2::VariableType->Bool
 jvartype2 (RecordVar _)=False
 jvartype2 (ArrayVar _)=True
 jvartype2 _=False
+--used in <>.<>
+jvartype3::VariableType->Bool
+jvartype3 (RecordVar _)=True
+jvartype3 _=False
 
 --if this array's Datatype is a record and this record has a 
 --fieldname:fieldName,return True
@@ -176,17 +183,22 @@ checkLValue (LDot recordVarname fieldName)
            st <- get
            c<-getVariableType recordVarname
            let (bool, int1, variableType, int2)=c
-           let (RecordVar recordType)=variableType
-           let ck = CompositeKey recordType fieldName
+           if jvartype3 variableType then 
+             do
+
+               let (RecordVar recordType)=variableType
+               let ck = CompositeKey recordType fieldName
            
       -- get a (record name, field name) definition
-           if (Map.member ck (rft st)) then
-             return () 
+               if (Map.member ck (rft st)) then
+                 return () 
       -- no (record name, field name) definition
-           else
-              liftEither $ throwError $ "Record.field: " ++ 
+               else
+                 liftEither $ throwError $ "Record.field: " ++ 
                                         recordVarname ++ "." ++ fieldName ++ 
-                                      " does not exist"++ recordType
+                                        " does not exist"++ recordType
+           else
+              liftEither $ throwError $ recordVarname++" is not a record name"
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ recordVarname
 -- <id>[index]  <arrayVarName> [index]
@@ -222,25 +234,32 @@ checkLValue (LBracketsDot arrayName int fieldName)
         do
           c<-getVariableType arrayName
           let (bool, int1, variableType, int2)=c
-          let (ArrayVar arrayType)=variableType
-          artype<-getArrayType arrayType
-          let (intt, dataType)=artype
+          if jvartype2 variableType then
+            do
+
+
+              let (ArrayVar arrayType)=variableType
+              artype<-getArrayType arrayType
+              let (intt, dataType)=artype
 --          isRecordArray<-jdtype dataType fieldName 
 
-          let (AliasDataType alsName)=dataType
-          st <- get
-          let ck = CompositeKey alsName fieldName
+              let (AliasDataType alsName)=dataType
+              st <- get
+              let ck = CompositeKey alsName fieldName
           --liftEither $ throwError $ (show ck)++"wrong"
-          if (Map.member ck (rft st)) then
-            do
-              indextype<-getExpType2 int
-              if indextype==BaseDataType IntegerType then
-                return()
-              else
-                liftEither $ throwError $ "Array's index should be an integer type " 
+              if (Map.member ck (rft st)) then
+                do
+                  indextype<-getExpType2 int
+                  if indextype==BaseDataType IntegerType then
+                    return()
+                  else
+                    liftEither $ throwError $ "Array's index should be an integer type " 
               
+              else
+                liftEither $ throwError $ "This array of record is not exist "++(show dataType)++fieldName
           else
-            liftEither $ throwError $ "This array of record is not exist "++(show dataType)++fieldName
+            liftEither $ throwError $  arrayName++" is not array variable name "
+
 
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ arrayName
@@ -253,7 +272,7 @@ checkLValue (LBracketsDot arrayName int fieldName)
 -- The type rules for statements are as follows:
 -- • In assignment statements, an lvalue on the left-hand side must have the same type t as
 -- the expression on the right-hand side. If t is a record or array type, then the types of the
--- two sides must have been provided as identical type aliases, ---and both must have reference!!!!!!
+-- two sides must have been provided as identical type aliases, and both must have reference
 -- mode. -----(handled?)
 -- • Conditions in if and while statements must be of type boolean. --Their bodies must be
 -- well-typed sequences of statements.(handled)
@@ -730,8 +749,8 @@ checkExp (Lval lvalue)
 -- • The type of a Boolean constant is boolean.
 -- • The type of an integer constant is integer.
 -- • The type of a string literal is string.
--- -- -- • The type of an expression id is the variable id’s declared type. If the declaration uses a
--- -- -- type alias, the type is the one given by the type definition for that alias.
+-- • The type of an expression id is the variable id’s declared type. If the declaration uses a
+-- type alias, the type is the one given by the type definition for that alias.
 -- • For an expression lval .fname, lval must be of record type. The type of an expression
 -- lval .fname is the type associated with field name fname, as given in the record type
 -- associated with lval .(handled)
@@ -812,8 +831,6 @@ checkArityProcedure procedureName arity
 
 
 --The procedure “main” is the entry point, that is, execution of a program comes down to execution of a call to “main”
-
-
 
 
 
