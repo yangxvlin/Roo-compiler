@@ -53,12 +53,12 @@ semanticCheckRooProgram prog
 
 
       let procedures=pt st
-      let procWithoutMain =delete "main" procedures 
-      pushLocalVariableTable
-      insertProcedureVariable mainProc
-      checkStmts mainProcStmts
-      popLocalVariableTable
-      mapM_ (checkOneProcedures mainProc) procWithoutMain
+      -- let procWithoutMain =delete "main" procedures 
+      -- pushLocalVariableTable
+      -- insertProcedureVariable mainProc
+      -- checkStmts mainProcStmts
+      -- popLocalVariableTable
+      mapM_ checkOneProcedures  procedures
 
 
       st2 <- get
@@ -73,19 +73,26 @@ semanticCheckRooProgram prog
 -- checkAllProcedures procedures 
 --   = do
 --       let procWithoutMain =delete "main" procedures 
---       pushLocalVariableTable
---       insertProcedureVariable mainProc
 --       mapM_ checkOneProcedures procWithoutMain
-checkOneProcedures:: Procedure->([(Bool, DataType)], Procedure)->SymTableState ()
-checkOneProcedures mainProc procedure@((proParams, procCalled@(Procedure _ (ProcedureBody _ procStmts))))
+checkOneProcedures:: ([(Bool, DataType)], Procedure)->SymTableState ()
+checkOneProcedures  procedure@((proParams, procCalled@(Procedure _ (ProcedureBody _ procStmts))))
   =
     do
         pushLocalVariableTable
-        insertProcedureVariable mainProc 
+        
         insertProcedureVariable procCalled 
         checkStmts procStmts
         popLocalVariableTable
-      
+
+-- checkOneProcedures:: Procedure->([(Bool, DataType)], Procedure)->SymTableState ()
+-- checkOneProcedures mainProc procedure@((proParams, procCalled@(Procedure _ (ProcedureBody _ procStmts))))
+--   =
+--     do
+--         pushLocalVariableTable
+--         insertProcedureVariable mainProc 
+--         insertProcedureVariable procCalled 
+--         checkStmts procStmts
+--         popLocalVariableTable      
 
   
 -- construct global type tables 将prog中保存的三个元素存入symboltable
@@ -814,6 +821,8 @@ checkArityProcedure procedureName arity
                                  ") for procedure: \"" ++ procedureName ++ 
                                  "\" found arity = " ++ (show procedureArity)
                                 )
+
+
 
 
 
