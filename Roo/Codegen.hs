@@ -162,19 +162,80 @@ generateStatement (Call procID params)
 generateStatement (IfThen exp stmts) 
     = 
         do 
-            return()
+            trueLabel <- getlabelCounter
+            falseLabel <- getlabelCounter
+            appendInstruction (Comment $ "if " ++ show(exp))
+
+            -- guard
+            reg <- getRegisterCounter
+            loadExp reg exp
+            appendInstruction (BranchInstruction $ Cond False reg falseLabel) 
+            setRegisterCounter reg
+
+            -- then
+            appendInstruction (Label trueLabel)
+            appendInstruction (Comment $ "then")
+            mapM_ generateStatement stmts
+            appendInstruction (Comment $ "fi")
+ 
+            -- after if then
+            appendInstruction (Label falseLabel)
+
 
 -- TODO: If then else
 generateStatement (IfThenElse exp stmts1 stmts2) 
     = 
         do 
-            return()
+            trueLabel <- getlabelCounter
+            falseLabel <- getlabelCounter
+            endLabel <- getlabelCounter
+            appendInstruction (Comment $ "if " ++ show(exp))
+
+            -- guard
+            reg <- getRegisterCounter
+            loadExp reg exp
+            appendInstruction (BranchInstruction $ Cond False reg falseLabel) 
+            setRegisterCounter reg
+
+            -- then
+            appendInstruction (Label trueLabel)
+            appendInstruction (Comment $ "then")
+            mapM_ generateStatement stmts1
+            appendInstruction (BranchInstruction $ Uncond endLabel) 
+
+            -- else
+            appendInstruction (Label falseLabel)
+            appendInstruction (Comment $ "else")
+            mapM_ generateStatement stmts2
+            appendInstruction (Comment $ "fi") 
+
+            -- after if then else
+            appendInstruction (Label endLabel)
 
 -- TODO: While
 generateStatement (While exp stmts) 
     = 
         do 
-            return()
+            trueLabel <- getlabelCounter
+            falseLabel <- getlabelCounter
+            appendInstruction (Comment $ "While " ++ show(exp))
+            appendInstruction (Label trueLabel)
+
+            -- guard
+            reg <- getRegisterCounter
+            loadExp reg exp
+            appendInstruction (BranchInstruction $ Cond False reg falseLabel) 
+            setRegisterCounter reg
+
+            -- whileloop body
+            appendInstruction (Comment $ "do")
+            mapM_ generateStatement stmts
+            appendInstruction (BranchInstruction $ Uncond trueLabel) 
+            appendInstruction (Comment $ "od")
+
+            -- after loop
+            appendInstruction (Label falseLabel)
+
 
 -- load an expression to the given register
 loadExp :: Int -> Exp -> SymTableState ()
@@ -305,7 +366,7 @@ loadExp reg (Op_neg exp)
             appendInstruction (ArithmeticInstruction
                 $ Neg OpInt reg reg)
 
-                
+
 
 loadVal :: Int -> LValue -> SymTableState ()
 loadVal reg lValue

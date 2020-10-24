@@ -176,6 +176,9 @@ instance Show DebugInstruction where
 
 instance Show OzInstruction where
     show (StackInstruction instruction) = "    " ++ show (instruction)
+    show (ArithmeticInstruction instruction) = "    " ++ show (instruction)
+    show (ComparisonInstruction instruction) = "    " ++ show (instruction)
+    show (LogicInstruction instruction) = "    " ++ show (instruction)
     show (ConstantInstruction instruction) = "    " ++ show (instruction)
     show (OperationInstruction instruction) = "    " ++ show (instruction)
     show (BranchInstruction instruction) = "    " ++ show (instruction)
