@@ -152,7 +152,7 @@ generateStatement (Call procID params)
                         case byValue of 
                             True -> loadExp reg $ params !! i
                             False -> case (params !! i) of
-                                            Lval lValue -> loadVarAdress reg lValue
+                                            Lval lValue -> loadVarAddress reg lValue
                                             _ -> return ()
                     ) [0..(paraNum - 1)]
             appendInstruction (ProcedureInstruction $ ICall $ "proc_" ++ procID)
@@ -186,66 +186,75 @@ loadExp reg (IntConst vl)
 loadExp reg (StrConst vl)
     = appendInstruction (ConstantInstruction $ OzStringConst reg vl)
 -- TODO
-loadExp reg (Op_or lExp rExp)
-    = return ()
-loadExp reg (Op_and lExp rExp)
-    = return ()
-loadExp reg (Op_eq lExp rExp)
-    = 
-        do
-            loadExp reg lExp
-            reg_1 <- getRegisterCounter
-            loadExp reg_1 rExp
-            -- ozCode structure有问题！！！
-            -- appendInstruction ()
-            setRegisterCounter reg_1
+-- loadExp reg (Op_or lExp rExp)
+--     = 
+--         do
+--             loadExp reg lExp
+--             reg_1 <- getRegisterCounter
+--             loadExp reg_1 rExp
+--             appendInstruction (LogicInstruction $ LogicOr $ reg reg reg_1) 
+--             setRegisterCounter reg_1 
+-- loadExp reg (Op_and lExp rExp)
+--     = 
+--         do
+--             loadExp reg lExp
+--             reg_1 <- getRegisterCounter
+--             loadExp reg_1 rExp
+--             appendInstruction (LogicInstruction $ LogicAnd $ reg reg reg_1) 
+--             setRegisterCounter reg_1 
+-- loadExp reg (Op_eq lExp rExp)
+--     = 
+--         do
+--             loadExp reg lExp
+--             reg_1 <- getRegisterCounter
+--             loadExp reg_1 rExp
+--             appendInstruction (ComparisonInstruction $ CmpInstruction 
+--                                 $ Eq OpInt reg reg reg_1)
+--             setRegisterCounter reg_1
+-- loadExp reg (Op_neq lExp rExp)
+--     = 
+--         do
+--             loadExp reg lExp
+--             reg_1 <- getRegisterCounter
+--             loadExp reg_1 rExp
+--             appendInstruction (ComparisonInstruction $ CmpInstruction 
+--                                 $ Ne OpInt reg reg reg_1)
+--             setRegisterCounter reg_1
+
+--  loadExp reg (Op_less lExp lExp)          -- <exp> <binop: "<"> <exp>
+--   | Op_less_eq  Exp Exp       -- <exp> <binop: "<="> <exp>
+--   | Op_large  Exp Exp         -- <exp> <binop: ">"> <exp>
+--   | Op_large_eq  Exp Exp      -- <exp> <binop: ">="> <exp>
+--   | Op_add  Exp Exp           -- <exp> <binop: "+"> <exp>
+--   | Op_sub  Exp Exp           -- <exp> <binop: "-"> <exp>
+--   | Op_mul  Exp Exp           -- <exp> <binop: "*"> <exp>
+--   | Op_div  Exp Exp           -- <exp> <binop: "/"> <exp>
+--   | Op_not Exp                -- <unop: not> <exp>
+--   | Op_neg Exp                -- <unop: "-"> <exp>
 
 -- TODO: other experssions
 loadExp reg _ 
     = appendInstruction (Comment "this is an undefined expression")
 
 loadVal :: Int -> LValue -> SymTableState ()
-loadVal reg (LId ident)
+loadVal reg lValue
     = 
         do
-            (byValue, slotNum, _, _) <- getVariableType ident
-            if byValue
-            -- when slot stores the value, simply load the value to register
-            then appendInstruction (StackInstruction $ Load reg slotNum)
-            -- when slot stores the reference (address), 
-            -- load the address stored to register and load value indirectly
-            else do
-                appendInstruction (StackInstruction $ Load reg slotNum)
-                appendInstruction (StackInstruction $ LoadIndirect reg reg)
-
--- TODO: other left values
-loadVal reg _ 
-    = appendInstruction (Comment "this is an undefined left value")
-
-
+            loadVarAddress reg lValue
+            appendInstruction (StackInstruction $ LoadIndirect reg reg)
 
 storeVal :: Int -> LValue -> SymTableState ()
 -- 目前不管是value还是reference都是按照store_indirect来做（参考Appendix B）
-storeVal reg (LId ident)
+storeVal reg lValue
     = 
         do
             reg_1 <- getRegisterCounter
-            (byValue, slotNum, _, _) <- getVariableType ident
-            if byValue
-            -- when slot store the value, load the address of the slot
-            -- and store value indirectly
-            then appendInstruction (StackInstruction $ LoadAddress reg_1 slotNum)
-            -- when slot store the address, load the address stored 
-            -- and store value indirectly
-            else appendInstruction (StackInstruction $ Load reg_1 slotNum)
+            loadVarAddress reg_1 lValue
             appendInstruction (StackInstruction $ StoreIndirect reg_1 reg)
             setRegisterCounter reg_1
--- TODO: other left values
-storeVal reg _ 
-    = appendInstruction (Comment "this is an undefined left value")
 
-loadVarAdress :: Int -> LValue -> SymTableState ()
-loadVarAdress reg (LId ident)
+loadVarAddress :: Int -> LValue -> SymTableState ()
+loadVarAddress reg (LId ident)
     =
         do
             (byValue, slotNum, _, _) <- getVariableType ident
@@ -256,7 +265,7 @@ loadVarAdress reg (LId ident)
             else appendInstruction (StackInstruction $ Load reg slotNum)
 
 -- TODO: other left values
-loadVarAdress reg _ 
+loadVarAddress reg _ 
     = appendInstruction (Comment "this is an undefined left value")         
 
 -- -- transfer operation from Exp in AST to Oz instruction
