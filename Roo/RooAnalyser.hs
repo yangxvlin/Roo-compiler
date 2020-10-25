@@ -261,7 +261,7 @@ checkLValue (LDot recordVarname fieldName)
               else
                 liftEither $ throwError $ "Record.field: " ++ 
                                       recordVarname ++ "." ++ fieldName ++ 
-                                      " does not exist"++ recordType
+                                      " does not exist"
           else
               liftEither $ throwError $ recordVarname++" is not a record name"
       else 
