@@ -132,7 +132,6 @@ getArrayType arrayName
         liftEither $ throwError $ "Array named " ++ arrayName ++ 
                                   " does not exist"
 
--- assume fieldDecls are not duplicate
 insertRecordType :: Record -> SymTableState ()
 insertRecordType (Record fieldDecls recordName)
   = 
@@ -296,7 +295,7 @@ updateCurVariableTable newLVT
       let newLvts = (lvts st) ++ [newLVT]
       put $ st { lvts = newLvts }
 
--- check variable name not exist in the local variable table as key
+-- check variable name not exist in the local variable table
 checkVariableNotDefined :: String -> SymTableState ()
 checkVariableNotDefined varName
   =
@@ -360,7 +359,7 @@ setRegisterCounter newReg
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
 -- --------------------------------------------------------------------------- 
-
+-- insert procedure's parameters and local variables
 insertProcedureVariable :: Procedure -> SymTableState ()
 insertProcedureVariable (Procedure (ProcedureHeader ident params) 
                                    (ProcedureBody variableDecls _ ))
@@ -475,7 +474,6 @@ insertVariable arr@(ArrayVar arrayName) byValue varName
                                      varName 
                                      (byValue, availableSlot, arr, 
                                      nSlotsRequired)
-
 
 updateNewVariableToLVT :: Int -> String -> (Bool, Int, VariableType, Int) 
                               -> SymTableState ()
