@@ -39,7 +39,7 @@ semanticCheckRooProgram prog
       checkArityProcedure "main" 0
 
       st <- get
-      let procedures=pt st
+      let procedures = pt st
       mapM_ checkOneProcedures  procedures
       st2 <- get
       return st2
@@ -56,8 +56,7 @@ checkOneProcedures:: ([(Bool, DataType)], Procedure)->SymTableState ()
 checkOneProcedures  (_, procCalled@(Procedure _ (ProcedureBody _ procStmts)))
   =
     do
-        pushLocalVariableTable
-        
+        pushLocalVariableTable        
         insertProcedureVariable procCalled 
         checkStmts procStmts
         popLocalVariableTable
@@ -78,12 +77,13 @@ checkStmt (Assign lvalue exp)
       checkLValue lvalue
       checkExp exp
       identi <- getDatatypeoflvalue lvalue
-      exptype<- getExpType exp
-      let a=getLValueName lvalue 
-      let b=getDataT exptype
+      expType <- getExpType exp
+      let showLValueName = getLValueName lvalue 
+      let showTypeName = getDataT expType
                  
-      if  not (identi==exptype) then
-        liftEither $ throwError $ "assign a wrong type "++b++" to "++a 
+      if  not (identi == expType) then
+        liftEither $ throwError $ "assign a wrong type "
+        ++ showTypeName ++ " to " ++ showLValueName 
       else
         return ()
 -- check read
@@ -93,9 +93,9 @@ checkStmt (Read lvalue)
   = 
     do
       checkLValue lvalue
-      lvaluetype <-getDatatypeoflvalue lvalue
-      if (lvaluetype==BaseDataType BooleanType)
-        ||(lvaluetype==BaseDataType IntegerType)then        
+      lvalueType <- getDatatypeoflvalue lvalue
+      if (lvalueType == BaseDataType BooleanType)
+        || (lvalueType == BaseDataType IntegerType) then        
         return ()
       else
         liftEither $ throwError 
@@ -107,10 +107,10 @@ checkStmt (Write exp)
   = 
     do
       checkExp exp
-      exptype<-getExpType exp
-      if (exptype==BaseDataType BooleanType)
-        ||(exptype==BaseDataType IntegerType)
-        ||(exptype==BaseDataType StringType)then        
+      expType<-getExpType exp
+      if (expType == BaseDataType BooleanType)
+        || (expType == BaseDataType IntegerType)
+        || (expType == BaseDataType StringType) then        
         return ()
       else
         liftEither $ throwError 
@@ -120,10 +120,10 @@ checkStmt (Writeln exp)
   = 
     do
       checkExp exp
-      exptype<-getExpType exp
-      if (exptype==BaseDataType BooleanType)
-        ||(exptype==BaseDataType IntegerType)
-        ||(exptype==BaseDataType StringType)then        
+      expType <- getExpType exp
+      if (expType == BaseDataType BooleanType)
+        || (expType == BaseDataType IntegerType)
+        || (expType == BaseDataType StringType) then        
         return ()
       else
         liftEither $ throwError 
@@ -137,8 +137,8 @@ checkStmt (IfThen exp stmts)
   = 
     do
       checkExp exp
-      exptype<-getExpType exp
-      if not (exptype==(BaseDataType BooleanType))then
+      expType <- getExpType exp
+      if not (expType == (BaseDataType BooleanType)) then
           liftEither $ throwError ("IfThen exp, exp is not boolean type")
       else
         do
@@ -227,13 +227,14 @@ checkLValue (LId varName)
       cvt <- getCurVariableTable
       if (Map.member varName (vtt cvt)) then
         do
-          varInfo <- (getVariableType varName)
-          let (bool,int1,vartype,int2)=varInfo
-          if isnotRcdAryType vartype then
-           return()
-          else
-            liftEither $ throwError $
-            varName++" cannot be Record name or array name: "  
+          return()
+          -- varInfo <- (getVariableType varName)
+          -- let (bool,int1,vartype,int2)=varInfo
+          -- if isnotRcdAryType vartype then
+          --  return()
+          -- else
+          --   liftEither $ throwError $
+          --   varName++" cannot be Record name or array name: "  
 
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ varName
@@ -281,17 +282,17 @@ checkLValue (LBrackets arrayName int)
                 let (ArrayVar arrayType)=vartype
                 artype<-getArrayType arrayType
                 let (intt, dataType)=artype
-                if not (dataisRecordtypeStoreinary dataType) then
-                  do
-                    indextype<-getExpType int
-                    if indextype==BaseDataType IntegerType then
-                      return()
-                    else
-                      liftEither $ throwError $ 
-                      "Array's index should be an integer type " 
+                --if not (dataisRecordtypeStoreinary dataType) then
+              --    do
+                indextype<-getExpType int
+                if indextype==BaseDataType IntegerType then
+                  return()
                 else
-                  liftEither $ throwError $  
-                  arrayName++" is not array storing integer or boolean "
+                  liftEither $ throwError $ 
+                  "Array's index should be an integer type " 
+                ---else
+              --    liftEither $ throwError $  
+               --   arrayName++" is not array storing integer or boolean "
 
 
           else
