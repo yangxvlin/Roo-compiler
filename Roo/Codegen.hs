@@ -374,7 +374,6 @@ loadVal reg lValue
             appendInstruction (StackInstruction $ LoadIndirect reg reg)
 
 storeVal :: Int -> LValue -> SymTableState ()
--- 目前不管是value还是reference都是按照store_indirect来做（参考Appendix B）
 storeVal reg lValue
     = 
         do
