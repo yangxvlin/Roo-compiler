@@ -1,7 +1,7 @@
 -----------------------------------------------------------
 -- COMP90045 Programming Language Implementation Project --
 --                     Roo Compiler                      --
---  Implemented by Xulin Yang, Wenrui Zhang             --
+--  Implemented by Xulin Yang, Wenrui Zhang              --
 --  Implemented by Team: GNU_project                     --
 -----------------------------------------------------------
 module Codegen(ozCode, Consequence(..)) where
