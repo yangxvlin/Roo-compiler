@@ -25,7 +25,7 @@ import OzCode
 -- 2. global procedure table: holds procedure parameter type, whether by 
 --    reference information
 --    a) pt: global procedure table
--- 3. local variable table: which provides information about formal parameters 
+-- 3. local variable table: which provides information about formal parameters
 --    and variables in the procedure that is currently being processed.
 --    a) lts: stack of local variable tables
 --    b) vtt: variable type table
@@ -132,7 +132,6 @@ getArrayType arrayName
         liftEither $ throwError $ "Array named " ++ arrayName ++ 
                                   " does not exist"
 
--- assume fieldDecls are not duplicate
 insertRecordType :: Record -> SymTableState ()
 insertRecordType (Record fieldDecls recordName)
   = 
@@ -226,6 +225,8 @@ getlabelCounter
 -- ---------------------------------------------------------------------------
 -- ProcedureTable related helper methods
 -- ---------------------------------------------------------------------------
+-- insert a procedure's definition as well as identifying whether parameters
+-- are pass by value/reference
 insertProcedure :: Procedure -> SymTableState ()
 insertProcedure p@(Procedure (ProcedureHeader ident params) _)
   = do
@@ -263,7 +264,8 @@ createformalParam (DataParameter dataType _) = (False, dataType)
 
 -- ---------------------------------------------------------------------------
 -- VariableTable related helper methods
--- --------------------------------------------------------------------------- 
+-- ---------------------------------------------------------------------------
+-- push and pop to mimic a stack's behavior
 pushLocalVariableTable :: SymTableState ()
 pushLocalVariableTable
   =
@@ -296,7 +298,7 @@ updateCurVariableTable newLVT
       let newLvts = (lvts st) ++ [newLVT]
       put $ st { lvts = newLvts }
 
--- check variable name not exist in the local variable table as key
+-- check variable name not exist in the local variable table
 checkVariableNotDefined :: String -> SymTableState ()
 checkVariableNotDefined varName
   =
@@ -307,6 +309,7 @@ checkVariableNotDefined varName
       else 
         return ()
 
+-- get variable's type information by variable's name
 getVariableType :: String -> SymTableState (Bool, Int, VariableType, Int)
 getVariableType varName
   =
@@ -317,6 +320,8 @@ getVariableType varName
       else 
         liftEither $ throwError $ "Unknown variable name: " ++ varName
 
+-- get variable's type information by variable's name for records 
+-- (e.g. student.id)
 getVarRecordField :: String -> String -> SymTableState (BaseType, Int)
 getVarRecordField varName fieldName
   =
@@ -336,7 +341,7 @@ getSlotCounter
       cvt <- getCurVariableTable
       return (slotCounter cvt)
 
--- return the current register counter and increase regiter counter by 1
+-- return the current register counter and increase register counter by 1
 getRegisterCounter :: SymTableState Int
 getRegisterCounter 
   = 
@@ -359,8 +364,8 @@ setRegisterCounter newReg
 
 -- ---------------------------------------------------------------------------
 -- VariableTable construction methods
--- --------------------------------------------------------------------------- 
-
+-- ---------------------------------------------------------------------------
+-- insert procedure's parameters and local variables
 insertProcedureVariable :: Procedure -> SymTableState ()
 insertProcedureVariable (Procedure (ProcedureHeader ident params) 
                                    (ProcedureBody variableDecls _ ))
@@ -369,6 +374,8 @@ insertProcedureVariable (Procedure (ProcedureHeader ident params)
       mapM_ insertProcedureParameter params
       mapM_ insertProcedureVariableDecl variableDecls
 
+-- insert procedure's parameter and identifying whether it is pass by 
+-- value/reference
 insertProcedureParameter :: Parameter -> SymTableState ()
 insertProcedureParameter (BooleanVal varName) 
   = insertVariable BooleanVar True varName
@@ -387,6 +394,7 @@ insertProcedureParameter (DataParameter (AliasDataType typeName)
       aliasType <- getTypeAlias typeName
       insertVariable aliasType False varName
 
+-- insert procedure's local variables and they are pass by value by default
 insertProcedureVariableDecl :: VariableDecl -> SymTableState ()
 insertProcedureVariableDecl (VariableDecl (BaseDataType BooleanType) 
                                           variableNames)
@@ -405,6 +413,7 @@ insertProcedureVariableDecl (VariableDecl (AliasDataType typeName)
       aliasType <- getTypeAlias typeName
       mapM_ (insertVariable aliasType True) variableNames
 
+-- insert a variable's type info to the local variable table
 insertVariable ::  VariableType -> Bool -> String -> SymTableState ()
 insertVariable BooleanVar byValue varName
   =
@@ -423,7 +432,7 @@ insertVariable IntegerVar byValue varName
       checkVariableNotDefined varName
       availableSlot <- getSlotCounter
       -- no matter it is pass by value or by reference, 1 slot required as it 
-      -- is boolean
+      -- is integer
       let newSlotCounter = availableSlot + 1
       updateNewVariableToLVT newSlotCounter 
                              varName 
@@ -475,7 +484,6 @@ insertVariable arr@(ArrayVar arrayName) byValue varName
                                      varName 
                                      (byValue, availableSlot, arr, 
                                      nSlotsRequired)
-
 
 updateNewVariableToLVT :: Int -> String -> (Bool, Int, VariableType, Int) 
                               -> SymTableState ()

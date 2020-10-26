@@ -39,7 +39,7 @@ semanticCheckRooProgram prog
       checkArityProcedure "main" 0
 
       st <- get
-      let procedures=pt st
+      let procedures = pt st
       mapM_ checkOneProcedures  procedures
       st2 <- get
       return st2
@@ -52,12 +52,11 @@ semanticCheckRooProgram prog
 -- 3.check all statements
 -- 4.Empty lvt
 
-checkOneProcedures:: ([(Bool, DataType)], Procedure)->SymTableState ()
+checkOneProcedures :: ([(Bool, DataType)], Procedure) -> SymTableState ()
 checkOneProcedures  (_, procCalled@(Procedure _ (ProcedureBody _ procStmts)))
   =
     do
-        pushLocalVariableTable
-        
+        pushLocalVariableTable        
         insertProcedureVariable procCalled 
         checkStmts procStmts
         popLocalVariableTable
@@ -77,13 +76,14 @@ checkStmt (Assign lvalue exp)
     do  
       checkLValue lvalue
       checkExp exp
-      identi <- getDatatypeoflvalue lvalue
-      exptype<- getExpType exp
-      let a=getLValueName lvalue 
-      let b=getDataT exptype
+      identi <- getDataTypeOfLValue lvalue
+      expType <- getExpType exp
+      let showLValueName = getLValueName lvalue 
+      let showTypeName = getDataT expType
                  
-      if  not (identi==exptype) then
-        liftEither $ throwError $ "assign a wrong type "++b++" to "++a 
+      if  not (identi == expType) then
+        liftEither $ throwError $ "assign a wrong type "
+        ++ showTypeName ++ " to " ++ showLValueName 
       else
         return ()
 -- check read
@@ -93,9 +93,9 @@ checkStmt (Read lvalue)
   = 
     do
       checkLValue lvalue
-      lvaluetype <-getDatatypeoflvalue lvalue
-      if (lvaluetype==BaseDataType BooleanType)
-        ||(lvaluetype==BaseDataType IntegerType)then        
+      lvalueType <- getDataTypeOfLValue lvalue
+      if (lvalueType == BaseDataType BooleanType)
+        || (lvalueType == BaseDataType IntegerType) then        
         return ()
       else
         liftEither $ throwError 
@@ -107,10 +107,10 @@ checkStmt (Write exp)
   = 
     do
       checkExp exp
-      exptype<-getExpType exp
-      if (exptype==BaseDataType BooleanType)
-        ||(exptype==BaseDataType IntegerType)
-        ||(exptype==BaseDataType StringType)then        
+      expType<-getExpType exp
+      if (expType == BaseDataType BooleanType)
+        || (expType == BaseDataType IntegerType)
+        || (expType == BaseDataType StringType) then        
         return ()
       else
         liftEither $ throwError 
@@ -120,10 +120,10 @@ checkStmt (Writeln exp)
   = 
     do
       checkExp exp
-      exptype<-getExpType exp
-      if (exptype==BaseDataType BooleanType)
-        ||(exptype==BaseDataType IntegerType)
-        ||(exptype==BaseDataType StringType)then        
+      expType <- getExpType exp
+      if (expType == BaseDataType BooleanType)
+        || (expType == BaseDataType IntegerType)
+        || (expType == BaseDataType StringType) then        
         return ()
       else
         liftEither $ throwError 
@@ -137,8 +137,8 @@ checkStmt (IfThen exp stmts)
   = 
     do
       checkExp exp
-      exptype<-getExpType exp
-      if not (exptype==(BaseDataType BooleanType))then
+      expType <- getExpType exp
+      if not (expType == (BaseDataType BooleanType)) then
           liftEither $ throwError ("IfThen exp, exp is not boolean type")
       else
         do
@@ -151,9 +151,10 @@ checkStmt (IfThenElse exp stmts1 stmts2)
   = 
     do
       checkExp exp
-      exptype<-getExpType exp
-      if not (exptype==(BaseDataType BooleanType))then
-          liftEither $ throwError ("IfThenElse exp,exp is not boolean type")
+      expType <- getExpType exp
+      if not (expType == (BaseDataType BooleanType)) then
+          liftEither $ throwError 
+          ("IfThenElse exp,exp is not boolean type")
       else
         do
           checkStmts stmts1
@@ -166,9 +167,10 @@ checkStmt (While exp stmts )
   = 
     do
       checkExp exp
-      exptype<-getExpType exp
-      if not (exptype==(BaseDataType BooleanType))then
-          liftEither $ throwError ("While exp, exp is not boolean type")
+      expType <- getExpType exp
+      if not (expType == (BaseDataType BooleanType)) then
+          liftEither $ throwError 
+          ("While exp, exp is not boolean type")
       else
         do
           checkStmts stmts
@@ -192,9 +194,8 @@ checkStmt (Call procedureName exps)
         show nParamsFound ++ " parameters found")
       else
         do
-          temp<-hasSameElem exps proParams
-          if not temp 
-          then 
+          temp <- hasSameElem exps proParams
+          if not temp then 
             liftEither $ throwError 
             ("The type of the parameter does not match what you are calling")
           else 
@@ -207,19 +208,19 @@ checkStmt (Call procedureName exps)
 -- Check all lvalue
 -- Check four kinds of lvalue
 -- 1.all variable should been declared before using
--- 2.<varname>    <varname> should be boolean or integer type.
---   <recordname>.<fieldname>
---        <recordname> should be record type,and <fieldname> should been in this 
+-- 2.<varname>    
+--   <recordName>.<fieldname>
+--        <recordName> should be record type,and <fieldname> should been in this 
 --      kind of record.
---   <arrayname>[index]
---        <arrayname> should be array type.
+--   <arrayName>[index]
+--        <arrayName> should be array type.
 --        [index] this exp should be integer type.
---   <arrayname>[index].<fieldname>
---        <arrayname> should be array type storing record type,and <fieldname> 
+--   <arrayName>[index].<fieldname>
+--        <arrayName> should be array type storing record type,and <fieldname> 
 --      should been in this kind of record.
 --        [index] this exp should be integer type.
 --   
-checkLValue::LValue->SymTableState ()
+checkLValue :: LValue -> SymTableState ()
 -- <varname>
 checkLValue (LId varName) 
   =
@@ -227,14 +228,7 @@ checkLValue (LId varName)
       cvt <- getCurVariableTable
       if (Map.member varName (vtt cvt)) then
         do
-          varInfo <- (getVariableType varName)
-          let (bool,int1,vartype,int2)=varInfo
-          if isnotRcdAryType vartype then
-           return()
-          else
-            liftEither $ throwError $
-            varName++" cannot be Record name or array name: "  
-
+          return()  
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ varName
 
@@ -246,26 +240,25 @@ checkLValue (LDot recordVarname fieldName)
       if (Map.member recordVarname (vtt cvt)) then
         do      
           st <- get
-          c<-getVariableType recordVarname
-          let (bool, int1, variableType, int2)=c
-          if varisRecordType variableType then 
+          c <- getVariableType recordVarname
+          let (bool, int1, variableType, int2) = c
+          if varIsRecordType variableType then 
             do
-
-              let (RecordVar recordType)=variableType
+              let (RecordVar recordType) = variableType
               let ck = CompositeKey recordType fieldName
            
-      -- get a (record name, field name) definition
               if (Map.member ck (rft st)) then
                  return () 
-      -- no (record name, field name) definition
               else
                 liftEither $ throwError $ "Record.field: " ++ 
-                                      recordVarname ++ "." ++ fieldName ++ 
-                                      " does not exist"
+                recordVarname ++ "." ++ fieldName 
+                ++ " does not exist"
           else
-              liftEither $ throwError $ recordVarname++" is not a record name"
+              liftEither $ throwError $ 
+              recordVarname++" is not a record name"
       else 
-        liftEither $ throwError $ "Undeclared variable name: " ++ recordVarname
+        liftEither $ throwError $ 
+        "Undeclared variable name: " ++ recordVarname
 
 -- <arrayVarName> [index]
 checkLValue (LBrackets arrayName int) 
@@ -275,31 +268,26 @@ checkLValue (LBrackets arrayName int)
       if (Map.member arrayName (vtt cvt)) then
         do
           varInfo <- (getVariableType arrayName)
-          let (bool,int1,vartype,arraysize)=varInfo
-          if varisArrayType vartype then
+          let (bool,int1,vartype,arraysize) = varInfo
+          if varIsArrayType vartype then
             do
-                let (ArrayVar arrayType)=vartype
-                artype<-getArrayType arrayType
-                let (intt, dataType)=artype
-                if not (dataisRecordtypeStoreinary dataType) then
-                  do
-                    indextype<-getExpType int
-                    if indextype==BaseDataType IntegerType then
-                      return()
-                    else
-                      liftEither $ throwError $ 
-                      "Array's index should be an integer type " 
+                let (ArrayVar arrayType) = vartype
+                artype <- getArrayType arrayType
+                let (intt, dataType) = artype
+
+                indextype <- getExpType int
+                if indextype == BaseDataType IntegerType then
+                  return()
                 else
-                  liftEither $ throwError $  
-                  arrayName++" is not array storing integer or boolean "
-
-
+                  liftEither $ throwError $ 
+                  "Array's index should be an integer type " 
           else
             liftEither $ throwError $  
-            arrayName++" is not array variable name "
+            arrayName ++ " is not array variable name "
 
       else 
-        liftEither $ throwError $ "Undeclared variable name: " ++ arrayName
+        liftEither $ throwError $ 
+        "Undeclared variable name: " ++ arrayName
 -- <arrayVarName>[index].<fieldname>
 checkLValue (LBracketsDot arrayName int fieldName) 
   =
@@ -307,37 +295,36 @@ checkLValue (LBracketsDot arrayName int fieldName)
       cvt <- getCurVariableTable
       if (Map.member arrayName (vtt cvt)) then
         do
-          c<-getVariableType arrayName
-          let (bool, int1, variableType, int2)=c
-          if varisArrayType variableType then
+          c <- getVariableType arrayName
+          let (bool, int1, variableType, int2) = c
+          if varIsArrayType variableType then
             do
-              let (ArrayVar arrayType)=variableType
-              artype<-getArrayType arrayType
-              let (intt, dataType)=artype
+              let (ArrayVar arrayType) = variableType
+              artype <- getArrayType arrayType
+              let (intt, dataType) = artype
               
-              if dataisRecordtypeStoreinary dataType then
+              if dataIsRecordTypeStoreInArray dataType then
                 do
-                  let (AliasDataType alsName)=dataType
+                  let (AliasDataType alsName) = dataType
                   st <- get
                   let ck = CompositeKey alsName fieldName
                   if (Map.member ck (rft st)) then
                     do
-                      indextype<-getExpType int
-                      if indextype==BaseDataType IntegerType then
+                      indexType <- getExpType int
+                      if indexType == BaseDataType IntegerType then
                         return()
                       else
                         liftEither $ throwError $ 
                         "Array's index should be an integer type " 
-              
                   else
                     liftEither $ throwError $ 
                     "Record.field: " ++ arrayName ++ "[]." ++ fieldName ++ 
                                             " does not exist"
               else
-                liftEither $ throwError $ arrayName++
+                liftEither $ throwError $ arrayName ++
                 " is not a array storing record " 
           else
-            liftEither $ throwError $  arrayName++
+            liftEither $ throwError $  arrayName ++
             " is not array variable name "
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ arrayName
@@ -345,198 +332,218 @@ checkLValue (LBracketsDot arrayName int fieldName)
 --------------------------------------------------------------------------------
 -----------------semantic check on all kinds of expression----------------------
 
-checkExp::Exp->SymTableState ()
+checkExp :: Exp -> SymTableState ()
 checkExp (BoolConst bool)
-  =do return()
+  = do return()
 
 checkExp (IntConst int)
-  =do return()
+  = do return()
 
 checkExp (StrConst string)
-  =do return()
+  = do return()
 
 checkExp (Op_or exp exp2)
-  =do 
-    checkExp exp 
-    checkExp exp2
-    type1 <- getExpType exp
-    type2 <- getExpType exp2
-    if (dataisBoolType type1)&&(dataisBoolType type2) then
-      return ()
-    else
-      liftEither $ throwError $ 
-      "two exps in or operation must be in boolean type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsBoolType type1) && (dataIsBoolType type2) then
+        return ()
+      else
+        liftEither $ throwError $ 
+        "two exps in or operation must be in boolean type"
 
 
 checkExp (Op_and exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisBoolType type1)&&(dataisBoolType type2) then
-    return ()
-  else
-    liftEither $ throwError $ 
-    "two exps in and operation must be in boolean type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsBoolType type1) && (dataIsBoolType type2) then
+        return ()
+      else
+        liftEither $ throwError $ 
+        "two exps in and operation must be in boolean type"
 
 checkExp (Op_eq exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisBolIntType type1)&&(dataisBolIntType type2) then
-    if type1==type2 then
-      return()
-    else
-      liftEither $ throwError $ 
-      "two exps in eq operation must be same type"
-  else
-    liftEither $ throwError $ 
-    "two exps in eq operation must be boolean or integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsBolIntType type1) && (dataIsBolIntType type2) then
+        if type1==type2 then
+          return()
+        else
+          liftEither $ throwError $ 
+          "two exps in eq operation must be same type"
+      else
+        liftEither $ throwError $ 
+        "two exps in eq operation must be boolean or integer type"
   
 checkExp (Op_neq exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisBolIntType type1)&&(dataisBolIntType type2) then
-    if type1==type2 then
-      return()
-    else
-      liftEither $ throwError $ 
-      "two exps in neq operation must be same type"
-  else
-    liftEither $ throwError $ 
-    "two exps in neq operation must be boolean or integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsBolIntType type1) && (dataIsBolIntType type2) then
+        if type1 == type2 then
+          return()
+        else
+          liftEither $ throwError $ 
+          "two exps in neq operation must be same type"
+      else
+        liftEither $ throwError $ 
+        "two exps in neq operation must be boolean or integer type"
   
 checkExp (Op_less exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisBolIntType type1)&&(dataisBolIntType type2) then
-    if type1==type2 then
-      return()
-    else
-      liftEither $ throwError $ "two exps in less operation must be same type"
-  else
-    liftEither $ throwError $ 
-    "two exps in less operation must be boolean or integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsBolIntType type1) && (dataIsBolIntType type2) then
+        if type1 == type2 then
+          return()
+        else
+          liftEither $ throwError $
+          "two exps in less operation must be same type"
+      else
+        liftEither $ throwError $ 
+        "two exps in less operation must be boolean or integer type"
     
 checkExp (Op_less_eq exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisBolIntType type1)&&(dataisBolIntType type2) then
-    if type1==type2 then
-      return()
-    else
-      liftEither $ throwError $ "two exps in <= operation must be same type"
-  else
-    liftEither $ throwError $ 
-    "two exps in <= operation must be boolean or integer type"
+  =    
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsBolIntType type1) && (dataIsBolIntType type2) then
+        if type1 == type2 then
+          return()
+        else
+          liftEither $ throwError $ 
+          "two exps in <= operation must be same type"
+      else
+        liftEither $ throwError $ 
+        "two exps in <= operation must be boolean or integer type"
 
 checkExp (Op_large exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisBolIntType type1)&&(dataisBolIntType type2) then
-    if type1==type2 then
-      return()
-    else
-      liftEither $ throwError $ "two exps in large operation must be same type"
-  else
-    liftEither $ throwError $ 
-    "two exps in large operation must be boolean or integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsBolIntType type1) && (dataIsBolIntType type2) then
+        if type1 == type2 then
+          return()
+        else
+          liftEither $ throwError $ 
+          "two exps in large operation must be same type"
+      else
+        liftEither $ throwError $ 
+        "two exps in large operation must be boolean or integer type"
 
 checkExp (Op_large_eq exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisBolIntType type1)&&(dataisBolIntType type2) then
-    if type1==type2 then
-      return()
-    else
-      liftEither $ throwError $ "two exps in >= operation must be same type"
-  else
-    liftEither $ throwError $ 
-    "two exps in >= operation must be boolean or integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsBolIntType type1) && (dataIsBolIntType type2) then
+        if type1 == type2 then
+          return()
+        else
+          liftEither $ throwError $ 
+          "two exps in >= operation must be same type"
+      else
+        liftEither $ throwError $ 
+        "two exps in >= operation must be boolean or integer type"
 
 checkExp (Op_add exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisIntegerType type1)&&(dataisIntegerType type2) then
-    return ()
-  else
-    liftEither $ throwError $ "two exps in add operation must be in integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsIntegerType type1) && (dataIsIntegerType type2) then
+        return ()
+      else
+        liftEither $ throwError $ 
+        "two exps in add operation must be in integer type"
     
 checkExp (Op_sub exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisIntegerType type1)&&(dataisIntegerType type2) then
-    return ()
-  else
-    liftEither $ throwError $ 
-    "two exps in sub operation must be in integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsIntegerType type1) && (dataIsIntegerType type2) then
+        return ()
+      else
+        liftEither $ throwError $ 
+        "two exps in sub operation must be in integer type"
       
 checkExp (Op_mul exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisIntegerType type1)&&(dataisIntegerType type2) then
-    return ()
-  else
-    liftEither $ throwError $
-    "two exps in mul operation must be in integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsIntegerType type1) && (dataIsIntegerType type2) then
+        return ()
+      else
+        liftEither $ throwError $
+        "two exps in mul operation must be in integer type"
      
 checkExp (Op_div exp exp2)
-  =do 
-  checkExp exp 
-  checkExp exp2
-  type1 <- getExpType exp
-  type2 <- getExpType exp2
-  if (dataisIntegerType type1)&&(dataisIntegerType type2) then
-    return ()
-  else
-    liftEither $ throwError $
-     "two exps in div operation must be in integer type"
+  =
+    do 
+      checkExp exp 
+      checkExp exp2
+      type1 <- getExpType exp
+      type2 <- getExpType exp2
+      if (dataIsIntegerType type1)&&(dataIsIntegerType type2) then
+        return ()
+      else
+        liftEither $ throwError $
+         "two exps in div operation must be in integer type"
      
 checkExp (Op_not exp )
-  =do 
-  checkExp exp 
-  type1 <- getExpType exp
-  if (dataisBoolType type1) then
-    return ()
-  else
-    liftEither $ throwError $ 
-    " exp after not operation must be in boolean type"
+  =
+    do 
+      checkExp exp 
+      type1 <- getExpType exp
+      if (dataIsBoolType type1) then
+        return ()
+      else
+        liftEither $ throwError $ 
+        " exp after not operation must be in boolean type"
        
 checkExp (Op_neg exp)
-  =do 
-  checkExp exp 
-  type1 <- getExpType exp
-  if (dataisIntegerType type1) then
-    return ()
-  else
-    liftEither $ throwError $ "exp after neg operation must be in integer type"
+  =
+    do 
+      checkExp exp 
+      type1 <- getExpType exp
+      if (dataIsIntegerType type1) then
+        return ()
+      else
+        liftEither $ throwError $ 
+        "exp after neg operation must be in integer type"
 
 checkExp (Lval lvalue)
   =
@@ -577,143 +584,134 @@ constructSymbolTable prog@(Program records arraies procedures)
 
 
 -- function name tell us everyting
-varisArrayType::VariableType->Bool
-varisArrayType (ArrayVar _)=True
-varisArrayType _=False
+varIsArrayType :: VariableType -> Bool
+varIsArrayType (ArrayVar _) = True
+varIsArrayType _ = False
 
-varisRecordType::VariableType->Bool
-varisRecordType (RecordVar _)=True
-varisRecordType _=False
+varIsRecordType :: VariableType -> Bool
+varIsRecordType (RecordVar _) = True
+varIsRecordType _ = False
 
-isnotRcdAryType::VariableType->Bool
-isnotRcdAryType (RecordVar _)=False
-isnotRcdAryType (ArrayVar _)=False
-isnotRcdAryType _=True
+dataIsIntegerType :: DataType -> Bool
+dataIsIntegerType (BaseDataType IntegerType) = True
+dataIsIntegerType _ = False
 
-jdatatype::DataType->Bool
-jdatatype (BaseDataType IntegerType)=True
-jdatatype (BaseDataType BooleanType)=True
-jdatatype _=False
+dataIsBolIntType :: DataType -> Bool
+dataIsBolIntType (BaseDataType IntegerType) = True
+dataIsBolIntType (BaseDataType BooleanType) = True
+dataIsBolIntType _=False
 
-dataisIntegerType::DataType->Bool
-dataisIntegerType (BaseDataType IntegerType)=True
-dataisIntegerType _=False
+dataIsBoolType :: DataType -> Bool
+dataIsBoolType (BaseDataType BooleanType) = True
+dataIsBoolType _ = False
 
-dataisBolIntType::DataType->Bool
-dataisBolIntType (BaseDataType IntegerType)=True
-dataisBolIntType (BaseDataType BooleanType)=True
-dataisBolIntType _=False
-
-dataisBoolType::DataType->Bool
-dataisBoolType (BaseDataType BooleanType)=True
-dataisBoolType _=False
-
-dataisRecordtypeStoreinary::DataType->Bool
-dataisRecordtypeStoreinary (BaseDataType _)=False
-dataisRecordtypeStoreinary (AliasDataType _)=True
+dataIsRecordTypeStoreInArray :: DataType -> Bool
+dataIsRecordTypeStoreInArray (BaseDataType _) = False
+dataIsRecordTypeStoreInArray (AliasDataType _) = True
 
     
 
 --call procedure exps : all parameter type match
-hasSameElem::[Exp]->[(Bool, DataType)]->SymTableState Bool
+hasSameElem :: [Exp] -> [(Bool, DataType)] -> SymTableState Bool
 hasSameElem (x:xs) ((_,y):ys)
   =do
-      a<-getExpType x
-      if a==y then
+      expType<-getExpType x
+      if expType == y then
         hasSameElem xs ys 
       else
         return False
-hasSameElem [] []=do return True
-hasSameElem _ _=do return True
+hasSameElem [] [] = do return True
+hasSameElem _ _ = do return True
 
       
 --------------------------------------------------------------------------------
 --get expression's type
-getExpType::Exp->SymTableState DataType
+getExpType :: Exp -> SymTableState DataType
 
-getExpType (BoolConst _)= do 
+getExpType (BoolConst _) = do 
   return (BaseDataType BooleanType)
-getExpType (IntConst _)= do return (BaseDataType IntegerType)
-getExpType (StrConst a)=do return (BaseDataType StringType)
-getExpType (Op_or _ _)=do return (BaseDataType BooleanType)
-getExpType (Op_and _ _)=do return (BaseDataType BooleanType)
-getExpType (Op_eq  _ _)=do return (BaseDataType BooleanType)
-getExpType (Op_neq  _ _)=do return (BaseDataType BooleanType)
-getExpType (Op_less  _ _)=do return (BaseDataType BooleanType)
-getExpType (Op_less_eq  _ _)=do return (BaseDataType BooleanType)
-getExpType (Op_large _ _)=do return (BaseDataType BooleanType)
-getExpType (Op_large_eq _ _)=do return (BaseDataType BooleanType)
-getExpType (Op_not _)=do return (BaseDataType BooleanType)
-getExpType (Op_add _ _)=do return (BaseDataType IntegerType)
-getExpType (Op_sub _ _)=do return (BaseDataType IntegerType)
-getExpType (Op_mul _ _)=do return (BaseDataType IntegerType)
-getExpType (Op_div _ _)=do return (BaseDataType IntegerType)
-getExpType (Op_neg _)=do return (BaseDataType IntegerType)
-getExpType (Lval lvalue )=
+getExpType (IntConst _) = do return (BaseDataType IntegerType)
+getExpType (StrConst _) = do return (BaseDataType StringType)
+getExpType (Op_or _ _) = do return (BaseDataType BooleanType)
+getExpType (Op_and _ _) = do return (BaseDataType BooleanType)
+getExpType (Op_eq  _ _) = do return (BaseDataType BooleanType)
+getExpType (Op_neq  _ _) = do return (BaseDataType BooleanType)
+getExpType (Op_less  _ _) = do return (BaseDataType BooleanType)
+getExpType (Op_less_eq  _ _) = do return (BaseDataType BooleanType)
+getExpType (Op_large _ _) = do return (BaseDataType BooleanType)
+getExpType (Op_large_eq _ _) = do return (BaseDataType BooleanType)
+getExpType (Op_not _) = do return (BaseDataType BooleanType)
+getExpType (Op_add _ _) = do return (BaseDataType IntegerType)
+getExpType (Op_sub _ _) = do return (BaseDataType IntegerType)
+getExpType (Op_mul _ _) = do return (BaseDataType IntegerType)
+getExpType (Op_div _ _) = do return (BaseDataType IntegerType)
+getExpType (Op_neg _) = do return (BaseDataType IntegerType)
+getExpType (Lval lvalue ) =
   do   
-    datatype<-getDatatypeoflvalue lvalue
+    datatype <- getDataTypeOfLValue lvalue
     return datatype
 
 --get the data type of a lvalue
 --this should be used after a checkvalue
 
-getDatatypeoflvalue::LValue->SymTableState DataType
+getDataTypeOfLValue :: LValue -> SymTableState DataType
 -- <id>
-getDatatypeoflvalue (LId varname) 
+getDataTypeOfLValue (LId varname) 
   = do
       varInfo <- getVariableType varname
-      let (bool,int,vt,int2)=varInfo
-      let datatype = (varTypetoDataType vt )in return datatype
+      let (bool,int,vt,int2) = varInfo
+      let datatype = (varTypeToDataType vt) in return datatype
 
 -- <id>.<id>
-getDatatypeoflvalue (LDot recordname fieldname) 
+getDataTypeOfLValue (LDot recordName fieldname) 
   = do
-      c<-getVariableType recordname
-      let (bool, int1, variableType, int2)=c
-      let (RecordVar recordType)=variableType 
+      c <- getVariableType recordName
+      let (bool, int1, variableType, int2) = c
+      let (RecordVar recordType) = variableType 
       b <- getRecordField recordType fieldname 
       let datatype = fst b in return (BaseDataType datatype)
 
       
 -- <id> [Int]     
-getDatatypeoflvalue (LBrackets arrayname int) 
+getDataTypeOfLValue (LBrackets arrayName int) 
   = do
-      c<-getVariableType arrayname
-      let (bool, int, variableType, int2)=c
-      let (ArrayVar arrayType)=variableType
+      c <- getVariableType arrayName
+      let (bool, int, variableType, int2) = c
+      let (ArrayVar arrayType) = variableType
       a <- getArrayType arrayType
       let datatype =snd a in return datatype
 -- <id> [Int]. <id>     
-getDatatypeoflvalue (LBracketsDot arrayname int fieldname) 
+getDataTypeOfLValue (LBracketsDot arrayName int fieldname) 
   = do
-       c<-getVariableType arrayname
-       let (bool, int, variableType, int2)=c
-       let (ArrayVar arrayType)=variableType
+       c<-getVariableType arrayName
+       let (bool, int, variableType, int2) = c
+       let (ArrayVar arrayType) = variableType
        a <- getArrayType arrayType
-       let AliasDataType recordname =snd a
+       let AliasDataType recordName = snd a
        
-       b <- getRecordField recordname fieldname 
+       b <- getRecordField recordName fieldname 
        let datatype = fst b in return (BaseDataType datatype)
        
     
 --variable type-> data type
-varTypetoDataType::VariableType->DataType
-varTypetoDataType (BooleanVar)=BaseDataType BooleanType
-varTypetoDataType (IntegerVar)=BaseDataType IntegerType
-varTypetoDataType (RecordVar alias)=AliasDataType alias
-varTypetoDataType (ArrayVar alias)=AliasDataType alias
+varTypeToDataType :: VariableType -> DataType
+varTypeToDataType (BooleanVar) = BaseDataType BooleanType
+varTypeToDataType (IntegerVar) = BaseDataType IntegerType
+varTypeToDataType (RecordVar alias) = AliasDataType alias
+varTypeToDataType (ArrayVar alias) = AliasDataType alias
 
 --used to report error  
-getLValueName::LValue->String
-getLValueName (LId ident)=ident  
-getLValueName (LDot ident ident2)=ident  
-getLValueName (LBrackets ident exp )=ident  
-getLValueName (LBracketsDot ident exp ident2)=ident 
+getLValueName :: LValue -> String
+getLValueName (LId ident) = ident  
+getLValueName (LDot ident ident2) = ident  
+getLValueName (LBrackets ident exp ) = ident  
+getLValueName (LBracketsDot ident exp ident2) = ident 
                 
 --used to report error
-getDataT::DataType->String
-getDataT (BaseDataType BooleanType) ="Boolean"
-getDataT (BaseDataType IntegerType) ="Integer"
-getDataT (BaseDataType StringType) ="String"
-getDataT (AliasDataType aliasType ) =aliasType
+getDataT :: DataType -> String
+getDataT (BaseDataType BooleanType) = "Boolean"
+getDataT (BaseDataType IntegerType) = "Integer"
+getDataT (BaseDataType StringType) = "String"
+getDataT (AliasDataType aliasType ) = aliasType
+
 
