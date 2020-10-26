@@ -92,6 +92,51 @@ generateProcedure p@(Procedure (ProcedureHeader procID params)
 -- ---------------------------------------------------------------------------            
 
 generateStatement :: Stmt -> SymTableState ()
+generateStatement (Assign (LId lId) (Lval(LId rId)))
+    =do
+        (lByValue, _, lVarType, lTotalSlot) <- getVariableType lId
+        (rByValue, _, rVarType, rTotalSlot) <- getVariableType rId
+        case lVarType of 
+            -- assign the array by array reference
+            (ArrayVar lAlias) -> 
+                do
+                    if (lByValue || rByValue)
+                        then liftEither $ throwError 
+                            $ "Expect two references for assigning array"
+                        else 
+                            case rVarType of 
+                                (ArrayVar rAlias) -> 
+                                    do 
+                                        return()
+                                _ ->
+                                    do
+                                        liftEither $ throwError $ 
+                                            "Expect rvalue be array"
+            -- assign the record by record reference
+            (RecordVar lAlias)->
+                do
+                    if (lByValue || rByValue)
+                        then liftEither $ throwError 
+                            $ "Expect two references for assigning record"
+                        else 
+                            case rVarType of 
+                                (RecordVar rAlias)->
+                                    do 
+                                        return()
+                                _ ->
+                                    do
+                                        liftEither $ throwError $ 
+                                            "Expect rvalue be record"
+            -- other case
+            _ ->
+                do
+                    appendInstruction (Comment $ show lId
+                         ++ " <- " ++ show rId)
+                    reg <- getRegisterCounter
+                    loadExp reg (Lval(LId rId))
+                    storeVal reg (LId lId)
+                    setRegisterCounter reg
+
 generateStatement (Assign lValue exp)
     = 
         do
