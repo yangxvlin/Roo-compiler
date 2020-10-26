@@ -341,7 +341,7 @@ getSlotCounter
       cvt <- getCurVariableTable
       return (slotCounter cvt)
 
--- return the current register counter and increase regiter counter by 1
+-- return the current register counter and increase register counter by 1
 getRegisterCounter :: SymTableState Int
 getRegisterCounter 
   = 
