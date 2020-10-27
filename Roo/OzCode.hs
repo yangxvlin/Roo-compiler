@@ -7,6 +7,8 @@
 
 module OzCode where
 
+import Data.Char
+
 type Register = Int
 
 data StackInstruction
@@ -119,32 +121,32 @@ instance Show OpType where
     show OpReal = "real"
 
 instance Show ArithmeticInstruction where
-    show (Add opType r1 r2 r3) = "add_" ++ show (opType) ++ ", r"
+    show (Add opType r1 r2 r3) = "add_" ++ show (opType) ++ " r"
         ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
     show (AddOff r1 r2 r3) = "add_offset r"
         ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
-    show (Sub opType r1 r2 r3) = "sub_" ++ show (opType) ++ ", r"
+    show (Sub opType r1 r2 r3) = "sub_" ++ show (opType) ++ " r"
         ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
     show (SubOff r1 r2 r3) = "sub_offset r"
         ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
-    show (Mul opType r1 r2 r3) = "mul_" ++ show (opType) ++ ", r"
+    show (Mul opType r1 r2 r3) = "mul_" ++ show (opType) ++ " r"
         ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
-    show (Div opType r1 r2 r3) = "div_" ++ show (opType) ++ ", r"
+    show (Div opType r1 r2 r3) = "div_" ++ show (opType) ++ " r"
         ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
-    show (Neg opType r1 r2) = "neg_" ++ show (opType) ++ ", r"
+    show (Neg opType r1 r2) = "neg_" ++ show (opType) ++ " r"
         ++ show (r1) ++ ", r" ++ show (r2)
 
 instance Show ComparisonOperator where
-    show Eq = "cmp_eq"
-    show Ne = "cmp_ne"
-    show Gt = "cmp_gt"
-    show Ge = "cmp_ge"
-    show Lt = "cmp_lt"
-    show Le = "cmp_le"
+    show Eq = "cmp_eq_"
+    show Ne = "cmp_ne_"
+    show Gt = "cmp_gt_"
+    show Ge = "cmp_ge_"
+    show Lt = "cmp_lt_"
+    show Le = "cmp_le_"
 
 instance Show ComparisonInstruction where
     show (CmpInstruction comparisonOp opType r1 r2 r3) = 
-        show (comparisonOp) ++ show (opType) ++ ", r" 
+        show (comparisonOp) ++ show (opType) ++ " r" 
         ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
 
 instance Show LogicInstruction where
@@ -159,9 +161,9 @@ instance Show OperationInstruction where
     show (Move r1 r2) = "move r" ++ show (r1) ++ ", r" ++ show (r2)
 
 instance Show BranchInstruction where
-    show (Cond bool register label) = "branch_on_" ++ show (bool) 
-        ++ ", r" ++ show (register) ++ ", " ++ id (label)
-    show (Uncond label) = "branch_uncond " ++ show (label)
+    show (Cond bool register label) = "branch_on_" ++ map toLower (show (bool))
+        ++ " r" ++ show (register) ++ ", " ++ id (label)
+    show (Uncond label) = "branch_uncond " ++ id (label)
 
 instance Show ProcedureInstruction where
     show (ICall label) = "call " ++ id (label) 
