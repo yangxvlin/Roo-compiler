@@ -205,3 +205,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 #### how to submit
 - ``` submit COMP90045 3a xuliny.roo xuliny.in ```
 - ``` verify COMP90045 3a | less ```
+
+### stage 3b
+#### how to submit
+- ``` submit COMP90045 3b Makefile Roo.hs RooAST.hs PrettyRoo.hs RooParser.hs RooAnalyser.hs SymbolTable.hs Codegen.hs OzCode.hs ```
+- ``` verify COMP90045 3b | less ```

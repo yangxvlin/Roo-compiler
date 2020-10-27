@@ -49,20 +49,20 @@ proc_main:
     int_const r0, 0
     load_address r1, 2
     int_const r2, 1
-    mul_int, r0, r0, r2
+    mul_int r0, r0, r2
     sub_offset r0, r1, r0
     load_indirect r0, r0
     int_const r1, 1
     load_address r2, 2
     int_const r3, 1
-    mul_int, r1, r1, r3
+    mul_int r1, r1, r3
     sub_offset r1, r2, r1
     load_indirect r1, r1
     and r0, r0, r1
     int_const r1, 2
     load_address r2, 2
     int_const r3, 1
-    mul_int, r1, r1, r3
+    mul_int r1, r1, r3
     sub_offset r1, r2, r1
     load_indirect r1, r1
     and r0, r0, r1
@@ -77,8 +77,8 @@ label_0:
     load_address r0, 0
     load_indirect r0, r0
     int_const r1, 0
-    cmp_geint, r0, r0, r1
-    branch_on_False, r0, label_1
+    cmp_ge_int r0, r0, r1
+    branch_on_false r0, label_1
 # do
 # LId "result" <- Op_add (Lval (LId "result")) (Lval (LBrackets "d" (Lval (LId "n"))))
     load_address r0, 1
@@ -87,20 +87,20 @@ label_0:
     load_indirect r1, r1
     load_address r2, 5
     int_const r3, 1
-    mul_int, r1, r1, r3
+    mul_int r1, r1, r3
     sub_offset r1, r2, r1
     load_indirect r1, r1
-    add_int, r0, r0, r1
+    add_int r0, r0, r1
     load_address r1, 1
     store_indirect r1, r0
 # LId "n" <- Op_sub (Lval (LId "n")) (IntConst 1)
     load_address r0, 0
     load_indirect r0, r0
     int_const r1, 1
-    sub_int, r0, r0, r1
+    sub_int r0, r0, r1
     load_address r1, 0
     store_indirect r1, r0
-    branch_uncond "label_0"
+    branch_uncond label_0
 # od
 label_1:
 # Writeln Lval (LId "result")
@@ -132,36 +132,36 @@ label_2:
     load_address r0, 4
     load_indirect r0, r0
     int_const r1, 0
-    cmp_geint, r0, r0, r1
-    branch_on_False, r0, label_3
+    cmp_ge_int r0, r0, r1
+    branch_on_false r0, label_3
 # do
 # LBrackets "i_arr" (Lval (LId "i")) <- Op_sub (Lval (LId "n")) (Lval (LId "i"))
     load r0, 1
     load_indirect r0, r0
     load_address r1, 4
     load_indirect r1, r1
-    sub_int, r0, r0, r1
+    sub_int r0, r0, r1
     load_address r1, 4
     load_indirect r1, r1
     load r2, 3
     int_const r3, 1
-    mul_int, r1, r1, r3
+    mul_int r1, r1, r3
     sub_offset r1, r2, r1
     store_indirect r1, r0
 # LId "i" <- Op_sub (Lval (LId "i")) (IntConst 1)
     load_address r0, 4
     load_indirect r0, r0
     int_const r1, 1
-    sub_int, r0, r0, r1
+    sub_int r0, r0, r1
     load_address r1, 4
     store_indirect r1, r0
-    branch_uncond "label_2"
+    branch_uncond label_2
 # od
 label_3:
 # if Lval (LId "check")
     load_address r0, 0
     load_indirect r0, r0
-    branch_on_False, r0, label_5
+    branch_on_false r0, label_5
 label_4:
 # then
 # LBrackets "i_arr" (Lval (LId "n")) <- IntConst 99999
@@ -170,7 +170,7 @@ label_4:
     load_indirect r1, r1
     load r2, 3
     int_const r3, 1
-    mul_int, r1, r1, r3
+    mul_int r1, r1, r3
     sub_offset r1, r2, r1
     store_indirect r1, r0
 # fi
@@ -180,7 +180,7 @@ label_5:
     int_const r1, 0
     load r2, 2
     int_const r3, 1
-    mul_int, r1, r1, r3
+    mul_int r1, r1, r3
     sub_offset r1, r2, r1
     store_indirect r1, r0
 # LBrackets "b_arr" (IntConst 1) <- BoolConst True
@@ -188,7 +188,7 @@ label_5:
     int_const r1, 1
     load r2, 2
     int_const r3, 1
-    mul_int, r1, r1, r3
+    mul_int r1, r1, r3
     sub_offset r1, r2, r1
     store_indirect r1, r0
 # LBrackets "b_arr" (IntConst 2) <- BoolConst True
@@ -196,7 +196,7 @@ label_5:
     int_const r1, 2
     load r2, 2
     int_const r3, 1
-    mul_int, r1, r1, r3
+    mul_int r1, r1, r3
     sub_offset r1, r2, r1
     store_indirect r1, r0
 # epilogue

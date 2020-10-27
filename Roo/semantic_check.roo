@@ -44,10 +44,12 @@ procedure f(integer val a, boolrec b, integer n)
     # integer a; # duplicate variable
     boolrec b1;
     integer z;
+    integer y;
 {
     writeln a;
     n <- a;
     z <- n;
+    y <- z;
 
     # b <- b1; # error
 }
