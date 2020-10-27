@@ -334,13 +334,16 @@ checkLValue (LBracketsDot arrayName int fieldName)
 
 checkExp :: Exp -> SymTableState ()
 checkExp (BoolConst bool)
-  = do return()
+  = 
+    do return()
 
 checkExp (IntConst int)
-  = do return()
+  = 
+    do return()
 
 checkExp (StrConst string)
-  = do return()
+  = 
+    do return()
 
 checkExp (Op_or exp exp2)
   =
@@ -614,7 +617,8 @@ dataIsRecordTypeStoreInArray (AliasDataType _) = True
 --call procedure exps : all parameter type match
 hasSameElem :: [Exp] -> [(Bool, DataType)] -> SymTableState Bool
 hasSameElem (x:xs) ((_,y):ys)
-  =do
+  =
+    do
       expType<-getExpType x
       if expType == y then
         hasSameElem xs ys 
@@ -646,10 +650,11 @@ getExpType (Op_sub _ _) = do return (BaseDataType IntegerType)
 getExpType (Op_mul _ _) = do return (BaseDataType IntegerType)
 getExpType (Op_div _ _) = do return (BaseDataType IntegerType)
 getExpType (Op_neg _) = do return (BaseDataType IntegerType)
-getExpType (Lval lvalue ) =
-  do   
-    datatype <- getDataTypeOfLValue lvalue
-    return datatype
+getExpType (Lval lvalue ) 
+  =
+    do   
+      datatype <- getDataTypeOfLValue lvalue
+      return datatype
 
 --get the data type of a lvalue
 --this should be used after a checkvalue
@@ -657,14 +662,16 @@ getExpType (Lval lvalue ) =
 getDataTypeOfLValue :: LValue -> SymTableState DataType
 -- <id>
 getDataTypeOfLValue (LId varname) 
-  = do
+  = 
+    do
       varInfo <- getVariableType varname
       let (bool,int,vt,int2) = varInfo
       let datatype = (varTypeToDataType vt) in return datatype
 
 -- <id>.<id>
 getDataTypeOfLValue (LDot recordName fieldname) 
-  = do
+  = 
+    do
       c <- getVariableType recordName
       let (bool, int1, variableType, int2) = c
       let (RecordVar recordType) = variableType 
@@ -674,7 +681,8 @@ getDataTypeOfLValue (LDot recordName fieldname)
       
 -- <id> [Int]     
 getDataTypeOfLValue (LBrackets arrayName int) 
-  = do
+  = 
+    do
       c <- getVariableType arrayName
       let (bool, int, variableType, int2) = c
       let (ArrayVar arrayType) = variableType
@@ -682,7 +690,8 @@ getDataTypeOfLValue (LBrackets arrayName int)
       let datatype =snd a in return datatype
 -- <id> [Int]. <id>     
 getDataTypeOfLValue (LBracketsDot arrayName int fieldname) 
-  = do
+  = 
+    do
        c<-getVariableType arrayName
        let (bool, int, variableType, int2) = c
        let (ArrayVar arrayType) = variableType
