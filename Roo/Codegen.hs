@@ -96,42 +96,56 @@ generateStatement (Assign (LId lId) (Lval(LId rId)))
     =do
         (lByValue, _, lVarType, lTotalSlot) <- getVariableType lId
         (rByValue, _, rVarType, rTotalSlot) <- getVariableType rId
-        case lVarType of 
+        appendInstruction (Comment $ show lId ++ " <- " ++ show rId)
+        case rVarType of 
             -- assign the array by array reference
-            (ArrayVar lAlias) -> 
+            (ArrayVar rAlias) -> 
                 do
-                    if (lByValue || rByValue)
-                        then liftEither $ throwError 
-                            $ "Expect two references for assigning array"
-                        else 
-                            case rVarType of 
-                                (ArrayVar rAlias) -> 
-                                    do 
-                                        return()
-                                _ ->
-                                    do
-                                        liftEither $ throwError $ 
-                                            "Expect rvalue be array"
+                    mapM_ (\n ->
+                        do
+                            reg <- getRegisterCounter
+                            loadVarAddress reg (LId rId)
+                            reg_1 <- getRegisterCounter
+                            loadVarAddress reg_1 (LId lId)
+                            reg_2 <- getRegisterCounter
+                            appendInstruction (ConstantInstruction 
+                                $ OzIntConst reg_2 n)
+                            appendInstruction (ArithmeticInstruction
+                                $ SubOff reg reg reg_2)
+                            appendInstruction (StackInstruction 
+                                $ LoadIndirect reg reg)
+                            appendInstruction (ArithmeticInstruction
+                                $ SubOff reg_1 reg_1 reg_2)
+                            appendInstruction (StackInstruction 
+                                $ StoreIndirect reg_1 reg)
+                            setRegisterCounter reg
+                            )[0..(rTotalSlot -1)]
+
             -- assign the record by record reference
-            (RecordVar lAlias)->
+            (RecordVar rAlias)->
                 do
-                    if (lByValue || rByValue)
-                        then liftEither $ throwError 
-                            $ "Expect two references for assigning record"
-                        else 
-                            case rVarType of 
-                                (RecordVar rAlias)->
-                                    do 
-                                        return()
-                                _ ->
-                                    do
-                                        liftEither $ throwError $ 
-                                            "Expect rvalue be record"
+                    mapM_ (\n ->
+                        do
+                            reg <- getRegisterCounter
+                            loadVarAddress reg (LId rId)
+                            reg_1 <- getRegisterCounter
+                            loadVarAddress reg_1 (LId lId)
+                            reg_2 <- getRegisterCounter
+                            appendInstruction (ConstantInstruction 
+                                $ OzIntConst reg_2 n)
+                            appendInstruction (ArithmeticInstruction
+                                $ SubOff reg reg reg_2)
+                            appendInstruction (StackInstruction 
+                                $ LoadIndirect reg reg)
+                            appendInstruction (ArithmeticInstruction
+                                $ SubOff reg_1 reg_1 reg_2)
+                            appendInstruction (StackInstruction 
+                                $ StoreIndirect reg_1 reg)
+                            setRegisterCounter reg
+                            )[0..(rTotalSlot -1)]
             -- other case
             _ ->
                 do
-                    appendInstruction (Comment $ show lId
-                         ++ " <- " ++ show rId)
                     reg <- getRegisterCounter
                     loadExp reg (Lval(LId rId))
                     storeVal reg (LId lId)
