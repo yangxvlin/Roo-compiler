@@ -1,0 +1,51 @@
+record {boolean x} boolrec;
+record {integer y; integer z} intrec;
+array [2] integer two;
+
+procedure main()
+    boolean test;
+    integer n;
+    boolrec b;
+    intrec i;
+
+    two t;
+{
+    test <- false;
+    n <- 7;
+    b.x <- test;
+    test <- not b.x and true;
+    i.y <- n;
+    i.z <- 2 * i.y -1;
+    # if b then # if requres boolean type exp
+    if test then
+        writeln i.y + i.z;
+    else
+        writeln i.z - i.y;
+    fi
+    read n;
+    # read i; # read only inetger or boolean
+
+    call f(n, b, n);
+
+    t[5] <- 0; # array bound checking
+    t[-1] <- 0; # array bound checking
+    # t[test] <- 0; # array index type checking
+    # t["avc"] <- 0; # array index type checking
+    
+    # test <- true and false + 1; # exp type checking
+    # n <- - true; # exp type checking
+    n <- 1 / 0;
+    # test <- true < 1; # exp type checking
+    test <- true < false and test; # exp type checking
+
+}
+
+procedure f(integer val a, boolrec b, integer n)
+    # integer a; # duplicate variable
+    boolrec b1;
+{
+    writeln a;
+    n <- a;
+
+    # b <- b1;
+}

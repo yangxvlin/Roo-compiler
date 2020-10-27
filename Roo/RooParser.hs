@@ -603,9 +603,10 @@ pArray
       pos <- getPosition
       arraySize <- brackets pInt
       -- need to check arraySize > 0 (positive integer)
-      if arraySize == 0
+      if arraySize <= 0
       then
-        error ("array size sould not be 0 at line: " ++ (show (sourceLine pos))
+        error ("array size sould not be <= 0 at line: " ++ 
+          (show (sourceLine pos))
           ++ ", column: " ++ (show (sourceColumn pos + 1))) -- +1 to skip '['
       else do
         arrayType <- pDataType

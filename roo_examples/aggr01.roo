@@ -6,7 +6,7 @@ record { integer x
        } r;
 array [3] boolean b3;
 array [24] integer i24;
-array [2] r r2;
+array [1] r r2;
 
 procedure main ()
     integer n;
