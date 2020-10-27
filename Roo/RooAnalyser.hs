@@ -66,6 +66,7 @@ checkOneProcedures  (_, procCalled@(Procedure _ (ProcedureBody _ procStmts)))
 checkStmts :: [Stmt] -> SymTableState ()
 checkStmts = mapM_ checkStmt
 
+      
 --check one procedure:
 checkStmt :: Stmt -> SymTableState ()
 -- check assign:
@@ -76,7 +77,8 @@ checkStmt (Assign lvalue exp)
     do  
       checkLValue lvalue
       checkExp exp
-      identi <- getDataTypeOfLValue lvalue
+      iInfo <- getDataTypeOfLValue lvalue
+      let (byV,identi) = iInfo
       expType <- getExpType exp
       let showLValueName = getLValueName lvalue 
       let showTypeName = getDataT expType
@@ -85,7 +87,25 @@ checkStmt (Assign lvalue exp)
         liftEither $ throwError $ "assign a wrong type "
         ++ showTypeName ++ " to " ++ showLValueName 
       else
-        return ()
+        if expIsLvalue exp then
+          do
+
+            let (Lval expLvalue) = exp
+            iRA <- lvalueIsRerAry expLvalue
+            if iRA then
+              do
+                iInfo2 <- getDataTypeOfLValue expLvalue
+                let (byV2,dataType2) = iInfo2
+                if (byV2 == byV) then
+                  return ()
+                else
+                  liftEither $ throwError $ 
+                  "Both side of this assignment must have same pass mode " ++ show(lvalue) ++ show (exp)
+            else
+              return ()
+
+        else
+          return ()
 -- check read
 -- 1.Check if lvalue uses the correct format 
 -- 2.Check lvalue is Boolean or Integer type
@@ -93,7 +113,8 @@ checkStmt (Read lvalue)
   = 
     do
       checkLValue lvalue
-      lvalueType <- getDataTypeOfLValue lvalue
+      lvalueInfo <- getDataTypeOfLValue lvalue
+      let (byV,lvalueType) = lvalueInfo
       if (lvalueType == BaseDataType BooleanType)
         || (lvalueType == BaseDataType IntegerType) then        
         return ()
@@ -587,6 +608,26 @@ constructSymbolTable prog@(Program records arraies procedures)
 
 
 -- function name tell us everyting
+
+expIsLvalue :: Exp -> Bool
+expIsLvalue (Lval lValue) = True
+expIsLvalue _ = False
+
+lvalueIsRerAry :: LValue ->  SymTableState Bool
+lvalueIsRerAry (LId ident) 
+  =
+    do
+      varInfo <- getVariableType ident
+      let (bool,int,vt,int2) = varInfo
+      case vt of
+        RecordVar string1 ->
+          do return True
+        ArrayVar string2 ->
+          do return True
+        _ ->
+          do return False
+lvalueIsRerAry _ = do return True
+
 varIsArrayType :: VariableType -> Bool
 varIsArrayType (ArrayVar _) = True
 varIsArrayType _ = False
@@ -653,20 +694,21 @@ getExpType (Op_neg _) = do return (BaseDataType IntegerType)
 getExpType (Lval lvalue ) 
   =
     do   
-      datatype <- getDataTypeOfLValue lvalue
-      return datatype
+      dataInfo <- getDataTypeOfLValue lvalue
+      let (byV,dataType) = dataInfo
+      return dataType
 
 --get the data type of a lvalue
 --this should be used after a checkvalue
 
-getDataTypeOfLValue :: LValue -> SymTableState DataType
+getDataTypeOfLValue :: LValue -> SymTableState (Bool,DataType)
 -- <id>
 getDataTypeOfLValue (LId varname) 
   = 
     do
       varInfo <- getVariableType varname
       let (bool,int,vt,int2) = varInfo
-      let datatype = (varTypeToDataType vt) in return datatype
+      let datatype = (varTypeToDataType vt) in return (bool,datatype)
 
 -- <id>.<id>
 getDataTypeOfLValue (LDot recordName fieldname) 
@@ -676,7 +718,7 @@ getDataTypeOfLValue (LDot recordName fieldname)
       let (bool, int1, variableType, int2) = c
       let (RecordVar recordType) = variableType 
       b <- getRecordField recordType fieldname 
-      let datatype = fst b in return (BaseDataType datatype)
+      let datatype = fst b in return (bool,(BaseDataType datatype))
 
       
 -- <id> [Int]     
@@ -687,7 +729,7 @@ getDataTypeOfLValue (LBrackets arrayName int)
       let (bool, int, variableType, int2) = c
       let (ArrayVar arrayType) = variableType
       a <- getArrayType arrayType
-      let datatype =snd a in return datatype
+      let datatype =snd a in return (bool,datatype)
 -- <id> [Int]. <id>     
 getDataTypeOfLValue (LBracketsDot arrayName int fieldname) 
   = 
@@ -699,7 +741,7 @@ getDataTypeOfLValue (LBracketsDot arrayName int fieldname)
        let AliasDataType recordName = snd a
        
        b <- getRecordField recordName fieldname 
-       let datatype = fst b in return (BaseDataType datatype)
+       let datatype = fst b in return (bool,(BaseDataType datatype))
        
     
 --variable type-> data type
