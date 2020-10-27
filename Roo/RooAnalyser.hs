@@ -96,7 +96,7 @@ checkStmt (Assign lvalue exp)
             iRA <- lvalueIsRerAry expLvalue
             if iRA then
               do
-                iInfo2 <- getDataTypeOfLValue expLvalue--jiancha
+                iInfo2 <- getDataTypeOfLValue expLvalue
                 let (byV2,dataType2) = iInfo2
                 if (byV2 == False) && (byV == False) then
                   return ()
