@@ -96,7 +96,7 @@ checkStmt (Assign lvalue exp)
             iRA <- lvalueIsRerAry expLvalue
             if iRA then
               do
-                iInfo2 <- getDataTypeOfLValue expLvalue
+                iInfo2 <- getDataTypeOfLValue expLvalue--jiancha
                 let (byV2,dataType2) = iInfo2
                 if (byV2 == False) && (byV == False) then
                   return ()
@@ -646,7 +646,7 @@ lvalueIsRerAry (LBrackets ident exp)
         _ ->
           do return False
 
-lvalueIsRerAry _ = do return True
+lvalueIsRerAry _ = do return False
 
 varIsArrayType :: VariableType -> Bool
 varIsArrayType (ArrayVar _) = True
