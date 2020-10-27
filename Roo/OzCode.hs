@@ -191,3 +191,11 @@ instance Show OzInstruction where
 
 writeCode :: [OzInstruction] -> String
 writeCode instructions = concat $ map (\x -> (show x) ++ "\n") instructions
+
+-- format the string in the oz code
+strReplace :: String -> String
+strReplace "" = ""
+strReplace ('\\':'n':xs) = '\n' : strReplace xs
+strReplace ('\\':'t':xs) = '\t' : strReplace xs
+strReplace ('\\':'\"':xs) = '\"' : strReplace xs
+strReplace (x:xs) = x : strReplace xs
