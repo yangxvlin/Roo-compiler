@@ -100,7 +100,8 @@ checkStmt (Assign lvalue exp)
                   return ()
                 else
                   liftEither $ throwError $ 
-                  "Both side of this assignment must have same pass mode " ++ show(lvalue) ++ show (exp)
+                  "Both side of this assignment must have same pass mode " ++ 
+                  show(lvalue) ++ show (exp)
             else
               return ()
 

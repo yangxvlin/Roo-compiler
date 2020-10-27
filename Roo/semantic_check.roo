@@ -43,9 +43,11 @@ procedure main()
 procedure f(integer val a, boolrec b, integer n)
     # integer a; # duplicate variable
     boolrec b1;
+    integer z;
 {
     writeln a;
     n <- a;
+    z <- n;
 
-    # b <- b1;
+    # b <- b1; # error
 }
