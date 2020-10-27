@@ -1,0 +1,34 @@
+
+procedure catalan(integer val n, integer ans)
+integer res1;
+integer res2;
+integer i;
+{
+    if n <= 1 then 
+        ans <- 1;
+    else
+        ans <- 0;
+        while i < n do
+            call catalan(i, res1);
+            call catalan(n-i-1, res2);
+            ans <- ans + (res1*res2);
+            i <- i + 1;
+        od
+        
+    fi
+}
+
+
+procedure main()
+integer ans;
+integer n;
+{
+    write "Enter n for nth Catalan number: ";
+    read n;
+    call catalan(n, ans);
+    write "catalan(";
+    write n;
+    write ") = ";
+    write ans;
+    write "\n";
+}

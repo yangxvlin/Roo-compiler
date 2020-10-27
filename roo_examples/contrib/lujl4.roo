@@ -1,0 +1,31 @@
+#generates the first 20 elements of a fibonacci sequence.
+
+array[20] integer array_t;
+
+procedure main()
+integer numterms;
+integer iter;
+integer a;
+integer b;
+array_t result;
+
+{   numterms <- 20;
+
+    
+    result[0] <- 0;
+    result[1] <- 1;
+    iter <- 3;
+    while iter < numterms do 
+        a <- iter - 1;
+        b <- iter - 2;
+        result[iter]<-result[a]+result[b];
+	iter <- iter +1;
+    od
+
+    iter <- 0;
+    while iter < numterms do
+        write result[iter];
+        iter <- iter + 1;
+    od
+    write "\n";
+}

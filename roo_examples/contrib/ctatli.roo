@@ -1,0 +1,18 @@
+procedure main ()
+integer i, n, t1, t2, nextTerm;
+{
+    writeln "Enter the number of terms: ";
+    read n;
+    writeln "Fibonacci Series: ";
+    
+    t2 <- 1;
+    i <- 1;
+    while i <= n do
+        write t1;
+        nextTerm <- t1 + t2;
+        t1 <- t2;
+        t2 <- nextTerm;
+        i <- i +1;
+    od
+    
+}

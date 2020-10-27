@@ -1,0 +1,39 @@
+# A Roo program that prints out the 10001st prime
+# The problem is from Project Euler #7
+
+procedure main ()
+    integer p;
+{
+    call nth_prime(10001, p);
+    write "The 10001st prime is: ";
+    writeln p;
+}
+
+procedure nth_prime (integer val idx, integer p)
+    integer n;
+    boolean p_is_prime;
+{
+    n <- 1;
+    p <- 2;
+    while n < idx do
+        p <- p + 1;
+        call is_prime(p, p_is_prime);
+        if p_is_prime then
+            n <- n + 1;
+        fi
+    od
+}
+
+procedure is_prime (integer val m, boolean result)
+    integer i;
+{
+    i <- 2;
+    result <- true;
+    while i * i <= m do
+        i <- i + 1;
+        if m / i * i = m then
+            result <- false;
+        fi
+    od
+}
+

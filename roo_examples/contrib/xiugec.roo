@@ -1,0 +1,81 @@
+# This program calculate the modular exponentiation
+# That is, given base b, exponent e and modulus m, calulate b^e (mod m)
+# It is expected that m is a prime and e is very large
+# 
+# Assume multiplication and module operations can be performed in O(1) time
+# simple solution (first calulcate b^e then module the result) would cost O(e)
+# time and is suffered from overflow (if using fix-precision integer)
+#
+# By using the modular multiplication properties we could reduce the runtime
+# to O(log e) without overflow. 
+# 
+# Assume the integer type has fixed precision (at most 64 bits) and
+# all inputs are within this range
+# Also assume that '/' is the integer division
+#
+# Input: b, e, m in separate lines
+# Output: r, where r = b^e (mod m)
+#
+# Created Date: 2020.10.13
+# Last Modified Date: 2020.10.14
+
+array[64] integer arr_int_64;
+
+procedure main()
+    integer b, e, m;           # input
+    integer res;               # final result
+    integer i;                 # intermediate vars
+    integer highest_bit_e;     # the highest bit that e takes in binary rep
+    arr_int_64 binary_e;       # binary representation of b
+    arr_int_64 b_power2_modm;  # (mod m) values of b^(2^i)
+{
+    # Read inputs
+    writeln "Please input the base b: ";
+    read b;
+    writeln "Please input the exponent e: ";
+    read e;
+    writeln "Please input the modulus m: ";
+    read m;
+
+    # Convert the exponent e to binary representation
+    i <- 0;
+    while e > 0 do
+        call mod(e, 2, binary_e[i]);
+
+        e <- e / 2; 
+        i <- i + 1;
+    od
+    highest_bit_e <- i - 1;
+
+    # Calculate the b^(2^i) (mod m) for all i that are <= highest_bit_e
+    i <- 1;
+    call mod(b, m, b_power2_modm[0]);
+
+    while i <= highest_bit_e do
+        call mod(b_power2_modm[i - 1] * b_power2_modm[i - 1], m, b_power2_modm[i]);
+        i <- i + 1;
+    od
+
+    # Use modular multiplication properties to combine the calculated 
+    # (mod m) values
+    res <- b_power2_modm[highest_bit_e];
+    i <- highest_bit_e - 1;
+
+    while i >= 0 do
+        if binary_e[i] > 0 then
+            call mod(res * b_power2_modm[i], m, res);
+        fi
+        
+        i <- i - 1;
+    od
+
+    # Print outputs
+    write "The result of b^e (mod m) is: ";
+    writeln res;
+}
+
+# Given x and y, calculate x mod y and store the result in z
+procedure mod(integer val x, integer val y, integer z)
+{
+    z <- x - y * (x / y);
+}

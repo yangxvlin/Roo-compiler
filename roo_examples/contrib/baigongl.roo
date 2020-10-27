@@ -1,0 +1,12 @@
+procedure deep_recursion (integer val layer)
+{
+    if layer > 0 then
+      call deep_recursion(layer - 1);
+      writeln layer;
+    fi
+}
+
+procedure main ()
+{
+    call deep_recursion(10000);
+}

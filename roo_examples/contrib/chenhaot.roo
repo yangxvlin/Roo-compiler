@@ -1,0 +1,101 @@
+# Add or SUB two 4bit binary numbers
+
+array[4] integer num;
+
+procedure adder(num numA, num numB, num result)
+    integer i, counter;
+{
+    i <- 3;
+    while i >= 0 do
+        if numA[i] = 0 and numB[i] = 0 then
+            result[i] <- 0 + counter;
+            counter <- 0;
+        fi
+
+        if numA[i] = 0 and numB[i] = 1 then
+            if counter = 0 then
+                result[i] <- 1;
+                counter <- 0;
+            else
+                result[i] <- 0;
+                counter <- 1;
+            fi
+        fi
+
+        if numA[i] = 1 and numB[i] = 0 then
+            if counter = 0 then
+                result[i] <- 1;
+                counter <- 0;
+            else
+                result[i] <- 0;
+                counter <- 1;
+            fi
+        fi
+
+        if numA[i] = 1 and numB[i] = 1 then
+            result[i] <- 0 + counter;
+            counter <- 1;
+        fi
+    od
+}
+
+procedure subtractor(num numA, num numB, num result)
+    integer i;
+    num tmpB, tmp1;
+{
+    i <- 3;
+    while i >= 0 do
+        if numB[i] = 0 then
+            tmpB[i] <- 1;
+        else
+            tmpB[i] <- 0;
+        fi
+    od
+
+    tmp1[0] <- 0;
+    tmp1[1] <- 0;
+    tmp1[2] <- 0;
+    tmp1[3] <- 1;
+    call adder(tmpB, tmp1, numB);
+    call adder(numA, numB, result);
+}
+
+procedure operator(integer o, num numA, num numB, num result){
+    if o = 0 then
+        call adder(numA, numB, result);
+    else
+        call subtractor(numA, numB, result);
+    fi
+}
+
+procedure main()
+    integer i, o;
+    num numA, numB, result;
+{
+    # 1. input number A
+    writeln "Please input number A";
+    while i < 4 do
+        read numA[i];
+    od
+
+    i <- 0;
+
+    # 2. input number B
+    writeln "Please input number B";
+    while i < 4 do
+        read numB[i];
+    od
+
+    # 3. add or subtract
+    writeln "0 to add, else for subtract";
+    read o;
+    call operator(o, numA, numB, result);
+
+    i <- 0;
+    write "Result: ";
+
+    while i < 4 do
+        write result[i];
+        writeln "";
+    od
+}

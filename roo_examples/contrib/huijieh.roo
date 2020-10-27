@@ -1,0 +1,34 @@
+array[10] integer i10;
+
+procedure main ()
+    integer dist_counter;
+    i10 toPrint;
+{
+    toPrint[0] <- 9;
+    toPrint[1] <- 2;
+    toPrint[2] <- 8;
+    toPrint[3] <- 5;
+    toPrint[4] <- 1;
+    toPrint[5] <- 10;
+    toPrint[6] <- 7;
+    toPrint[7] <- 3;
+    toPrint[8] <- 4;
+    toPrint[9] <- 6;
+    call printArray(toPrint);
+}
+
+procedure printArray(i10 toPrint)
+    integer i;
+{
+    i <- 0;
+    write "Array = [ ";
+    while i < 10 do
+        write toPrint[i];
+        if i = 9 then
+            write " ]";
+        else
+            write ", ";
+        fi
+        i <- i + 1;
+    od
+}

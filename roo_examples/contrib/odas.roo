@@ -1,0 +1,27 @@
+procedure main()
+    integer num, i, j;
+{
+    i <- 1;
+
+    write "enter a positive number: ";
+    read num;
+
+    while num < 1 do
+        write "enter a positive number: ";
+        read num;
+    od
+
+    while i < num + 1 do
+        j <- 1;
+
+        while j < i + 1 do
+            write j + 1;
+            write " ";
+
+            j <- j + i;
+        od
+
+        write "\n";
+        i <- i + 1;
+    od
+}

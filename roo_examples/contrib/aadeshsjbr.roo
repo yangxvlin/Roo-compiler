@@ -1,0 +1,36 @@
+# Sum square difference
+# Project Euler Problem 6
+# The sum of the squares of the first ten natural numbers is,
+
+# The square of the sum of the first ten natural numbers is,
+
+# Hence the difference between the sum of the squares of the first ten natural numbers and the square of the sum is .
+
+# Find the difference between the sum of the squares of the first one hundred natural numbers and the square of the sum.
+
+
+procedure main ()
+    integer sum;
+    integer sumsquare;
+    integer result;
+    integer n;
+    integer nMax;
+{
+  
+    nMax <- 100;
+    n <-0;
+    sum <-0;
+    sumsquare <-0;
+    call fact(n, nMax, sum, sumsquare, result);
+}
+procedure fact(integer val n,integer val nMax,integer sum, integer sumsquare, integer result){
+    if(n <= nMax) then
+     result <- 0;
+     sum <- sum + 1;
+     sumsquare <- sumsquare + n * n;
+     call fact(n + 1, nMax,sum , sumsquare, result);
+   else
+    result <- sum*sum - sumsquare;
+   fi
+
+}

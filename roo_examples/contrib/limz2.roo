@@ -1,0 +1,36 @@
+procedure main()
+integer size;
+{
+  write "Enter square size: ";
+  read size;
+  call draw_square(size);
+}
+
+procedure draw_square(integer val size)
+integer i, j;
+{
+  i<-0; j<-0;
+  while i < 2*size+1 do
+    write "_";
+    i <- i + 1;
+  od
+  write "\n";
+  i <- 0;
+  while j < size do
+    while i <= 2*size do
+      if i = 0 or i = 2*size then
+        write "|";
+      else
+        if j = size -1 then
+            write "_";
+        else
+          write " ";
+        fi
+      fi
+      i <- i + 1;
+    od
+    write "\n";
+    i <- 0;
+    j <- j + 1;
+  od
+}

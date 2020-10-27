@@ -1,0 +1,35 @@
+array[20] integer num_arr;
+
+procedure init (num_arr data)
+    integer i;
+{
+    i <- 0;
+    while i < 20 do
+        i <- i + 1;
+        data[i] <- i;
+    od
+}
+
+procedure average (num_arr data, integer result)
+    integer i;
+    integer sum;
+{
+    i <- 0;
+    sum <- 0;
+    while i <- 20 do
+        i <- i + 1;
+        sum <- data[i] + sum;
+    od
+    result <- sum / 20;
+}
+
+procedure main ()
+    num_arr data;
+    integer result;
+{
+    call init(data);
+    call average(data, result);
+    write "Average is ";
+    write result;
+}
+    

@@ -1,0 +1,225 @@
+record 
+    { integer id       # id of the record, identify record 
+    ; integer i_fld    # an integer field
+    ; boolean b_fld    # a boolean field
+    } Rec;
+
+array [2]  integer IntArr;
+array [10] Rec     RecArr;
+
+procedure main ()
+    Rec r1, r2, r3;
+    integer i1, i2;
+    boolean b1, b2;
+    boolean testResult;
+    RecArr rec_arr;
+    IntArr int_arr1, int_arr2;
+{
+    # initialize records
+    r1.id <- 1;
+    r2.id <- 2;
+    r3.id <- 3;
+
+
+    writeln "test `initRec`, pass by value and by val";
+    i1 <- 1;
+    b1 <- true;
+    call initRec (r1, i1, b1);
+    if r1.i_fld != i1 then
+        writeln "FAIL: `initRec` failed assign integer field";
+    fi
+    if r1.b_fld != b1 then
+        writeln "FAIL: `initRec` failed assign boolean field"; 
+    fi 
+    if i1 != 1 or b1 != true then
+        writeln "FAIL: `initRec` failed pass by val changed origin"; 
+    fi
+
+
+    writeln "Test Copy Record";
+    call initRec(r1, 1, false);
+    call initRec(r2, 2, false);
+    call copyRec(r2, r1);
+
+    b1 <- false;
+    call checkRecEq (r1, r2, b1);
+    if not b1 then
+        writeln "FAIL: `copyRec, fail copy value` ";
+    fi 
+    b1 <- false;
+    call testIsSameRec (r1, r2, b1);
+    if not b1 then
+        writeln "FAIL: `copyRec, copy equiv to assign` "; 
+    fi 
+
+    writeln "Test Assign Record";
+    call initRec(r1, 1, false);
+    call initRec(r2, 2, false);
+    call assignRec(r1, r2);
+    b1 <- false;
+    call testIsSameRec(r1, r2, b1);
+    if not b1 then
+        writeln "FAIL: Assign Record";
+    fi
+    b1 <- false;
+    call checkRecEq(r1, r2, b1);
+    if not b1 then
+        writeln "FAIL: Assign Record";
+    fi
+    r1.i_fld <- 100;
+    if r2.i_fld != 100 then
+        writeln "FAIL: Assign Record";
+    fi
+
+    writeln "Test recurrsion";
+    call recurrsion(25);
+    writeln "Test rcd arrar";
+    call recArrTest (rec_arr, r1);
+    writeln "Test doubleWhile";
+    i1 <- 2;
+    i2 <- 3;
+    call doubleWhile (i1, i2);
+
+    writeln "Test assignIntArr";
+
+    i2 <- 0;
+    while i2 < 2 do
+        int_arr1[i2] <- i2;
+        int_arr2[i2] <- -i2;
+        i2 <- i2 + 1;
+    od
+    call assignIntArr (int_arr1, int_arr2);
+    call sumArr(int_arr1, i1);
+    if i1 > 0 then 
+        writeln "Fail: assignIntArr";
+    else 
+        int_arr1[0] <- 1000;
+        call sumArr(int_arr2, i1);
+        if i1 < 0 then 
+            writeln "Fail: assignIntArr";
+        fi
+    fi
+}
+
+# test record array 
+procedure recArrTest (RecArr rcd_arr, Rec rcd)
+    integer i;
+    boolean test;
+{
+    i <- 0;
+    while i < 10 do
+        rcd_arr[i].id <- i + 100;
+    od
+    rcd.id <- -1;
+    call assignRec (rcd, rcd_arr[8]);
+    i <- 0;
+    test <- false;
+    while not test  do
+        call testIsSameRec(rcd, rcd_arr[i], test);
+        i <- i + 1;
+    od
+    write "eqRec i = ";
+    write i;
+    write "\n";
+    
+}
+
+procedure recurrsion (integer val i) 
+{
+    if i > 0 then
+        write "recurrsion level count ";
+        write i;
+        write "\n";
+        call recurrsion (i-1);
+    fi
+}
+
+procedure testIsSameRec (Rec a, Rec b, boolean rst)
+{
+    rst <- (a.id = b.id);
+} 
+
+procedure copyRec (Rec dst, Rec src) 
+{
+    dst.i_fld <- src.i_fld;
+    dst.b_fld <- src.b_fld;
+}
+
+procedure assignRec (Rec dst, Rec src) 
+{
+    dst <- src;
+}
+
+procedure swapRec (Rec r1, Rec r2)
+    Rec r;
+{
+    call assignRec (r, r1);
+    call assignRec (r1, r2);
+    call assignRec (r2, r);
+}
+
+procedure checkRecEq (Rec a, Rec b, boolean rst)
+{
+    if (a.i_fld = b.i_fld) and (a.b_fld = b.b_fld) then
+        rst <- true;
+    else
+        rst <- false;
+    fi
+}
+
+# assign i, b to r's fields
+# i, b's value should not be changed
+procedure initRec (Rec r, integer val i, boolean val b)
+{
+    r.b_fld <- b;
+    r.i_fld <- i;
+    i <- i - 1;
+    b <- not b;
+}
+
+procedure swapRecArrElem (RecArr arr, integer val idx1, integer val idx2)
+{
+    call swapRec(arr[idx1], arr[idx2]);
+}
+
+
+procedure doubleWhile (integer i, integer j) {
+    i <- i+1;
+    i <- i-1;
+    i <- i*100;
+    i <- i/100;
+    j <- i;
+    if i < 0 then
+        i <- 1;
+    fi
+    if j < 0 then
+        j <- 1;
+    fi
+    while i > 0 do 
+        i <- i-1;
+        write "doubleWhile i = ";
+        writeln i;
+        while j > 0 do
+            j <- j - 1;
+            write "doubleWhile j = ";
+            writeln j;
+        od
+    od
+}
+
+
+procedure assignIntArr (IntArr dst, IntArr src)
+{
+    dst <- src;
+}
+
+procedure sumArr (IntArr arr, integer rst) 
+    integer i;
+{
+    rst <- 0;
+    i <- 0;
+    while i < 2 do
+        rst <- rst + arr[i];
+        i <- i + 1;
+    od
+}

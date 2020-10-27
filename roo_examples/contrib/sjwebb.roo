@@ -1,0 +1,98 @@
+array[80] integer buf80;
+
+procedure calculateNextVal (buf80 sourceArray, integer val index, buf80 destArray)
+    integer a;
+    integer b;
+    integer c;
+{
+    if ((index - 1) < 0) then
+        a <- 0;
+    else
+        a <- sourceArray[index - 1];
+    fi
+    b <- sourceArray[index];
+    if ((index + 1) >= 80) then
+        c <- 1;
+    else
+        c <- sourceArray[index + 1];
+    fi
+
+    if (a = 1 and b = 1 and c = 1) then
+        destArray[index] <- 0;
+        write " ";
+    else
+        if (a = 1 and b = 1 and c = 0) then
+            destArray[index] <- 1;
+            write "X";
+        else
+            if (a = 1 and b = 0 and c = 1) then
+                destArray[index] <- 1;
+                write "X";
+            else
+                if (a = 1 and b = 0 and c = 0) then
+                    destArray[index] <- 1;
+                    write "X";
+                else
+                    if (a = 0 and b = 1 and c = 1) then
+                        destArray[index] <- 1;
+                        write "X";
+                    else
+                        if (a = 0 and b = 1 and c = 0) then
+                            destArray[index] <- 1;
+                            write "X";
+                        else
+                            if (a = 0 and b = 0 and c = 1) then
+                                destArray[index] <- 0;
+                                write " ";
+                            else
+                                if (a = 0 and b = 0 and c = 0) then
+                                    destArray[index] <- 0;
+                                    write " ";
+                                fi
+                            fi
+                        fi
+                    fi
+                fi
+            fi
+        fi
+    fi
+}
+
+procedure main()
+    integer x;
+    integer y;
+    integer tick;
+    buf80 cellsA;
+    buf80 cellsB;
+{
+    x <- 0;
+    y <- 0;
+    tick <- 1;
+    while x < 80 do
+        cellsA[x] <- 0;
+        cellsB[x] <- 0;
+        x <- x + 1;
+    od
+    cellsA[0] <- 1;
+    x <- 0;
+    y <- 0;
+    while y < 24 do
+        x <- 0;
+        while x < 80 do
+            if (tick != 0) then
+                call calculateNextVal(cellsA, x, cellsB);
+            else
+                call calculateNextVal(cellsB, x, cellsA);
+            fi
+            x <- x + 1;
+        od
+        write "\n";
+        if tick != 0 then
+            tick <- 0;
+        else
+            tick <- 1;
+        fi
+        y <- y + 1;
+    od
+    # write "\x1b[H";
+}

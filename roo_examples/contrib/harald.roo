@@ -1,0 +1,23 @@
+procedure main ()
+    integer n;
+    integer res;
+{
+    n <- 0;
+    while n < 15 do
+        call fact(n, res);
+        write n;
+        write "! = "   ;
+        writeln res;
+        n <- n+1;
+    od
+}
+
+procedure fact(integer val n, integer result)
+{
+    if (n = 0) then
+        result <- 1;
+    else
+        call fact(n - 1, result);
+        result <- n * result;
+    fi
+}

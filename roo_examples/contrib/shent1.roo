@@ -1,0 +1,100 @@
+array[10] integer buffer;
+
+procedure merge (buffer data, integer start, integer end, buffer result)
+    integer left_length;    
+    integer left_index;
+    integer right_index;
+    integer result_index;
+{
+    left_length <- ((end - start + 1) / 2 + 1);    
+    left_index <- start;
+    right_index <- start + left_length;
+    result_index <- start;
+    while left_index<start + left_length and right_index <end + 1 do
+	if data[left_index] <= data[right_index] then
+			result_index <- result_index + 1;
+			left_index <- left_index + 1;
+            result[result_index] <- data[left_index];
+        else
+        	result_index <- result_index + 1;
+        	right_index <- right_index + 1;
+            result[result_index] <- data[right_index];
+        fi
+	od
+
+	while left_index < start + left_length do
+		result_index <- result_index + 1;
+		left_index <- left_index + 1;
+        result[result_index] <- data[left_index];
+    od 
+
+    while right_index <end+1 do
+    	result_index <- result_index + 1;
+		right_index <- right_index + 1;
+        result[result_index] <- data[right_index];
+    od
+}
+
+procedure merge_sort (buffer data, 
+                      integer val start, 
+                      integer val end, 
+                      buffer result)
+	integer temp,temp1,temp2,i;
+{
+	if 1 = end - start then
+		if data[start] > data[end] then
+			temp <- data[start];
+			data[start] <- data[end];
+			data[end] <- temp;
+		fi
+	else
+		temp1 <- (end - start + 1) / 2 + start;
+		temp2 <- (end - start + 1) / 2 + start + 1;
+		call merge_sort(data, start, temp1, result);
+        call merge_sort(data, temp2 , end, result);
+        call merge(data, start, end, result);
+        i <- start;
+        while i <= end do
+        	data[i] <- result[i];
+        	i <- i + 1;
+        od
+    fi
+}
+
+
+procedure read_buffer (buffer data)
+    integer i;
+{
+    i <- 0;
+    while i < 10 do
+        write "Enter value ";
+        write i + 1;
+        write " of 10: ";
+        read data[i];
+        i <- i + 1;
+    od
+}
+
+procedure write_buffer (buffer data)
+    integer i;
+{
+    i <- 0;
+    while i < 9 do
+        write data[i];
+        write ", ";
+        i <- i + 1;
+    od
+    writeln data[9];
+}
+
+procedure main ()
+    buffer data;
+    buffer result;
+{
+    while true do
+        call read_buffer(data);
+        call merge_sort(data, 0, 9,result);
+        write "Your sorted data is ";
+        call write_buffer(result);
+    od
+}

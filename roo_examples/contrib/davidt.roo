@@ -1,0 +1,23 @@
+procedure main()
+	# Roo program that reverses the number that is input.
+	integer n, reverse, quotient, remainder;
+{	write "Input an integer to reverse: ";
+	read n;
+	write "\n";
+	
+	write "The reverse of ";
+	write n;
+	write " is ";
+	reverse <- 0;
+	
+	while (n != 0) do
+		quotient <- n/10;
+		remainder <- n - quotient * 10;
+		reverse <- reverse * 10 + remainder;
+		n <- n/10;
+	od
+	
+	write reverse;
+	write ".";
+	write "\n";
+}

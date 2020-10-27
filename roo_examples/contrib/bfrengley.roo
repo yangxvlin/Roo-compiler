@@ -1,0 +1,183 @@
+# This program implements Conway's Game of Life in Roo.
+# Reference: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+#
+# We use a simple 20x20 universe without wrapping (i.e., cells outside the universe are considered
+# dead, rather than reappearing on the opposite side). We also explicitly initialise a glider in
+# the top left corner which should fly towards the bottom right.
+#
+# For the sake of clarity, we use suffixes on parameter names to indicate what their purpose is. We
+# use C# terminology for different parameter types ("reference" and "out"), but without the
+# compiler-enforced semantics.
+#  - The suffix `_r` indicates a "reference" parameter, i.e., one which can be written to and read
+#    from.
+#  - The suffix `_o` indicates an "out" parameter, i.e., one to which a return value will be
+#    assigned without its initial value ever being read.
+#  - No suffix indicates a standard parameter, i.e., one from which a value is read but no value
+#    will be assigned to. Where possible, standard parameters are passed by value rather than
+#    by reference.
+# Reference parameters are always provided as the first parameters, while out parameters are always
+# provided as the last parameters.
+#
+# Author: Ben Frengley
+
+# Represent the 2D universe as a single flattened array, where (x, y) is the value at
+# `UNIVERSE_HEIGHT * y + x`. Since Roo doesn't have constants, UNIVERSE_HEIGHT is just inline 20.
+array[400] boolean universe_t;
+
+procedure main()
+  universe_t universe;
+  integer x, y;
+  boolean is_alive;
+{
+  # set up a glider
+  x <- 3;
+  y <- 1;
+  universe[20 * y + x] <- true;
+  y <- 2;
+  universe[20 * y + x] <- true;
+  y <- 3;
+  universe[20 * y + x] <- true;
+  x <- 2;
+  universe[20 * y + x] <- true;
+  x <- 1;
+  y <- 2;
+  universe[20 * y + x] <- true;
+
+  # loop until the glider is off-screen
+  is_alive <- true;
+  while is_alive do
+    call print_universe(universe);
+    # update the universe for the next tick
+    call tick(universe);
+    # check if we have any remaining living cells
+    call universe_is_alive(universe, is_alive);
+  od
+}
+
+# Print a universe. We print the universe with a space character for a dead cell (i.e., show
+# nothing) and an "x" for a living cell. We could use ANSI escape codes to clear the screen (maybe?)
+# but for simplicity and Windows support, we instead just print an explicit delimiter between ticks.
+procedure print_universe(universe_t universe)
+  integer x, y;
+  boolean cell_is_alive;
+{
+  y <- 0;
+
+  while y < 20 do
+    x <- 0;
+
+    while x < 20 do
+      call is_alive(universe, x, y, cell_is_alive);
+      if cell_is_alive then
+        write "x";
+      else
+        write " ";
+      fi
+      x <- x + 1;
+    od
+    write "\n"; # new line for a new y-value
+    y <- y + 1;
+  od
+
+  # write a break between ticks
+  write "\n";
+  writeln "-------------------------";
+  write "\n";
+}
+
+# Check if the universe is alive, storing the result in `is_alive_o`.
+procedure universe_is_alive(universe_t universe, boolean is_alive_o)
+  integer idx;
+{
+  idx <- 0;
+  is_alive_o <- false;
+
+  # search for a living cell and break as soon as we find one or when we run out of universe
+  while idx < 400 and not is_alive_o do
+    is_alive_o <- universe[idx];
+    idx <- idx + 1;
+  od
+}
+
+# Update the universe with its status at the next tick. We create a copy of the universe to store
+# the next tick statuses since we can't overwrite the current tick statuses before we've calculated
+# the statuses of all neighbours, then we copy that universe into `universe_r`.
+procedure tick(universe_t universe_r)
+  universe_t next_tick;
+  integer x, y, idx;
+{
+  y <- 0;
+
+  while y < 20 do
+    x <- 0;
+
+    while x < 20 do
+      # set the status of the current cell in the next tick universe
+      call next_tick_status(universe_r, x, y, next_tick[20 * y + x]);
+      x <- x + 1;
+    od
+    y <- y + 1;
+  od
+
+  # copy next tick values out
+  idx <- 0;
+  while idx < 400 do
+    universe_r[idx] <- next_tick[idx];
+    idx <- idx + 1;
+  od
+}
+
+# Calculate the status of the specified cell at the next tick, storing its status in `is_alive_o`,
+# where `true` indicates that the cell is alive and `false` indicates that it is dead.
+procedure next_tick_status(universe_t universe, integer val x, integer val y, boolean is_alive_o)
+  integer alive_neighbours;
+  boolean cell_alive;
+{
+  call is_alive(universe, x, y, cell_alive);
+  call count_alive_neighbours(universe, x, y, alive_neighbours);
+
+  if cell_alive then
+    # currently living cells stay alive if they have two or three neighbours
+    is_alive_o <- alive_neighbours = 2 or alive_neighbours = 3;
+  else
+    # currently dead cells come to life if they have exactly three neighbours
+    is_alive_o <- alive_neighbours = 3;
+  fi
+}
+
+# Count the living neighbours of the specified cell, storing the number of living neighbours in
+# `count_o`.
+procedure count_alive_neighbours(universe_t universe, integer val x, integer val y, integer count_o)
+  integer x_off, y_off; # offsets from the given position
+  boolean neighbour_alive;
+{
+  y_off <- -1;
+
+  while y_off <= 1 do
+    x_off <- -1;
+
+    while x_off <= 1 do
+      # count all neighbours but not (x, y)
+      if x_off != 0 and y_off != 0 then
+        call is_alive(universe, x + x_off, y + y_off, neighbour_alive);
+        if neighbour_alive then
+          count_o <- count_o + 1;
+        fi
+      fi
+      x_off <- x_off + 1;
+    od
+    y_off <- y_off + 1;
+  od
+}
+
+# Determine if the specified cell is currently alive, storing the result in `status_o`.
+procedure is_alive(universe_t universe, integer val x, integer val y, boolean status_o)
+  integer pos;
+{
+  pos <- 20 * y + x;
+  if pos < 400 and pos >= 0 then
+    status_o <- universe[pos];
+  else
+    status_o <- false; # consider outside the universe dead, rather than wrapping
+  fi
+}

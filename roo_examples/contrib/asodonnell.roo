@@ -1,0 +1,54 @@
+#classic two sum problem in Roo
+#dont actually know if this works or not. Sorry. Goodluck! 
+
+array[5] integer nums_array;
+
+procedure main()
+    integer target;
+    integer x;
+    integer n;
+    nums_array nums;
+    {
+        n <- 0;
+        writeln "enter target for TwoSum alg: ";
+        read target;
+
+        while n < 5 do 
+            write "enter the array value ";
+            write (n + 1);
+            writeln " for your array: ";
+            read x;
+            nums[n] <- x;
+            n <- n + 1;
+        od 
+
+        call TwoSum(target);
+    }
+
+
+procedure TwoSum(integer target)
+    boolean found;
+    nums_array nums;
+    integer i, j;
+    {
+        i <- 0;
+        j <- 0; 
+        while i < 5 do 
+            while j < 5 do
+                if (nums[j] = target - nums[i]) then
+                    write "target indices are: ";
+                    write i; 
+                    write ", ";
+                    writeln j;
+                    found <- true;
+                fi
+                j <- j + 1;
+            od
+        i <- i + 1;
+        od           
+    
+        if (found = false) then
+            writeln "target could not be found";
+        fi
+    }
+

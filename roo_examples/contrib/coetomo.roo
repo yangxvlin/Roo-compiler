@@ -1,0 +1,75 @@
+# Simple modulo (% operator) to find remainder
+procedure mod (integer val dividend, integer val divisor, integer remainder)
+	integer quotient;
+{
+	quotient <- dividend / divisor;
+	remainder <- dividend - quotient * divisor;
+}
+
+# Calculate the sum of the factors for a given number
+procedure sum_factors (integer val x, integer sum)
+	integer n;
+	integer remainder;
+{
+	n <- 1;
+	sum <- 0;
+	while n <= x do
+		call mod(x, n, remainder);
+		if remainder = 0 then
+			sum <- sum + n;
+		fi
+		n <- n + 1;	
+	od
+}
+
+# Check if two numbers are amicable pair and returns answer to yes boolean
+procedure is_amicable_pair(integer val x, integer val y, boolean yes)
+	integer sum_x;
+	integer sum_y;
+{
+	# Two identical numbers are not considered as amicable pair
+	if x = y then
+		yes <- false;
+	else
+		call sum_factors(x, sum_x);
+		if sum_x = y then
+			call sum_factors(y, sum_y);
+			if sum_y = x then
+				yes <- true;
+			else
+				yes <- false;
+			fi
+		else
+			yes <- false;
+		fi
+	fi	
+}
+
+# Read two numbers and report if those two numbers are amicable pair
+# Two numbers are considered amicable pair when each sum of factors
+# (excluding the number itself) is equal to the other number. 
+# e.g. 220 and 284 are amicable pair since
+# 220 fctrs -> 1, 2, 4, 5, 10, 11, 20, 22, 44, 55, 110 -> sum = 284
+# 284 fctrs ->  1, 2, 4, 71, 142 -> sum = 220 
+procedure main()
+	integer x;
+	integer y;
+	boolean yes;
+{
+	writeln "Input two candidate numbers for amicable pair: ";
+	read x;
+	read y;
+	
+	call is_amicable_pair(x, y, yes);
+
+	# Report results 
+	write x;
+	write " and ";
+	write y;
+	if yes = true then
+		write " are amicable pair!";
+	else
+		write " are NOT amicable pair!";
+	fi
+	write "\n";
+}

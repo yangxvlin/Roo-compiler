@@ -1,0 +1,87 @@
+# Quicksort using median-of-3 partitioning
+
+array [16] integer array_16;
+
+procedure qs(array_16 a, integer val left, integer val right) 
+# Sort a[left] .. a[right] in situ
+    integer i, j, mid, temp, pivot;
+{
+    if (left < right) then
+        mid <- (left + right) / 2;
+        if (a[left] > a[mid]) then
+            temp <- a[left];
+            a[left] <- a[mid];
+            a[mid] <- temp;
+        fi
+        if (a[right] < a[left]) then
+            temp <- a[left];
+            a[left] <- a[right];
+            a[right] <- temp;
+            if (a[left] < a[mid]) then
+                temp <- a[left];
+                a[left] <- a[mid];
+                a[mid] <- temp;
+            fi
+        fi
+        if (a[left] > a[right]) then
+            temp <- a[left];
+            a[left] <- a[right];
+            a[right] <- temp;
+        fi
+        pivot <- a[left];
+        i <- left + 1;
+        while a[i] < pivot do
+            i <- i + 1;
+        od
+        j <- right;
+        while a[j] > pivot do
+             j <- j - 1;
+        od
+        temp <- a[i];
+        a[i] <- a[j];
+        a[j] <- temp;
+        while i < j do
+            i <- i +1;
+            while a[i] < pivot do
+                i <- i + 1;
+            od
+            j <- j - 1;
+            while (a[j] > pivot) do
+                j <- j - 1;
+            od
+            temp <- a[i];
+            a[i] <- a[j];
+            a[j] <- temp;
+        od
+        temp <- a[i];    # Undo the last swap
+        a[i] <- a[j];
+        a[j] <- a[left]; # Bring pivot (a[left]) to its correct position, j
+        a[left] <- temp;
+        call qs(a, left, j-1);  # Sort the two sub-arrays separately
+        call qs(a, j+1, right);
+    fi
+}
+
+procedure main()
+    integer i, n;
+    array_16 a;
+{
+    read n;
+    i <- 0;
+    while i < n do
+        read a[i];
+        i <- i + 1;
+    od
+
+    call qs(a, 0, n-1);
+
+    writeln "Sorted array:";
+    i <- 0;
+    while i < n do
+        write a[i];
+        writeln "  ";
+        i <- i + 1;
+    od
+    writeln "";
+}
+

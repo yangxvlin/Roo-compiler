@@ -1,0 +1,61 @@
+# HOFSTADER SEQUENCE IMPLEMENTATION IN ROO
+
+procedure hofstaderMale(integer val n, integer result)
+    integer j;
+    integer k;
+{
+    if n < 0 then 
+        result <- 0;
+    else
+        if n = 0 then 
+            result <- 0;
+        else
+            call hofstaderMale(n-1,j);
+            call hofstaderFemale(j,k);
+            result <- n - k;
+        fi
+    fi
+}
+
+procedure hofstaderFemale(integer val n, integer result)
+    integer j;
+    integer k;
+{
+    if n < 0 then 
+        result <- 0;
+    else
+        if n = 0 then 
+            result <- 1;
+        else
+            call hofstaderFemale(n-1,j);
+            call hofstaderMale(j,k);
+            result <- n - k;
+        fi
+    fi
+}
+
+procedure main()
+    integer i;
+    integer res;
+    integer n;
+{   
+	# print the first 15 male and female hofstaeder terms
+	write "F: ";
+    while i < 15 do
+        call hofstaderFemale(i,res);
+        write res;
+        write " ";
+        i <- i + 1;
+    od
+	res <- 0;
+	i <- 0;
+    writeln "";
+	write "M: ";
+    while i < 15 do
+        call hofstaderMale(i,res);
+        write res;
+        write " ";
+        i <- i + 1;
+    od
+    writeln "";
+}

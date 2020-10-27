@@ -1,0 +1,43 @@
+#This is a simple bubble sort Roo program
+
+
+array [20] integer num_array;
+
+#Bubble sort function
+procedure sort (num_array nums, integer length)
+	integer i,j,temp;
+{
+	#Ascending bubble sort of array
+	while i < length do
+		j <- i + 1;
+		while j < length do
+			#Array element swap
+			if nums[j] < nums[i] then
+				temp <- nums[j];
+				nums[j] <- nums[i];
+				nums[i] <- temp;
+			fi
+			j <- j + 1;
+		od
+		i <- i + 1;
+	od
+	#Print the sorted results
+	i <- 0;
+	while i < length do
+		writeln nums[i];
+	od
+}
+
+procedure main ()
+	#Declare the corresponding array variable and array length
+	num_array nums;
+	integer i,length;
+{
+	#Enter descending elements in the array
+	length <- 20;
+	while i < length do
+		nums[i] <- length - i;
+	od
+	#Call the sort function
+	call sort(nums,length);
+}

@@ -1,0 +1,59 @@
+procedure main()
+integer i, test;
+{
+    test <- 2;
+    writeln i;
+    call int_to_hex(i);
+    writeln i;
+    call int_to_hex_by_val(i);
+    writeln i;
+}
+
+procedure int_to_hex(integer i)
+{
+    if i = 0 then
+        writeln "0x00";
+        i <- 1;
+    fi
+    if i = 1 then
+        writeln "0x01";
+        i <- 1;
+    fi
+    if i = 2 then
+        writeln "0x02";
+        i <- 1;
+    fi
+    if i = 3 then
+        writeln "0x03";
+        i <- 1;
+    fi
+    if i > 3 then
+        writeln "Too high";
+        i <- -1;
+    fi
+}
+procedure int_to_hex_by_val(integer val i)
+{
+    if i = 0 then
+        writeln "0x00";
+        i <- 1;
+    fi
+    if i = 1 then
+        writeln "0x01";
+        i <- 1;
+    fi
+    if i = 2 then
+        writeln "0x02";
+        i <- 1;
+    fi
+    if i = 3 then
+        writeln "0x03";
+        i <- 1;
+    fi
+    if i > 3 then
+        writeln "Too high";
+        i <- -1;
+    fi
+} 
+
+

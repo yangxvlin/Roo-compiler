@@ -1,0 +1,72 @@
+array[10] integer sortedInt10;
+
+procedure binary_search (sortedInt10 A, integer x)
+    integer lowerBound, upperBound, midPoint;
+    integer location;
+{
+    lowerBound <- 1;
+    upperBound <- 10;
+    location <- -1;
+    while upperBound >= lowerBound and location = -1 do
+        midPoint <- lowerBound + (upperBound - lowerBound) / 2;
+        if A[midPoint] < x then
+            lowerBound <- midPoint + 1;
+        fi
+        if A[midPoint] > x then
+            upperBound <- midPoint - 1;
+        fi
+        if A[midPoint] = x then
+            location <- midPoint;
+        fi
+    od
+    if location != -1 then
+        write x;
+        writeln " does not exists.";
+    else
+        write x;
+        write " found at location";
+        writeln midPoint;
+    fi
+}
+
+procedure read_sortedInt10 (sortedInt10 data)
+    integer i;
+{
+    i <- 0;
+    while i < 10 do
+        write "Enter integer";
+        write i + 1;
+        write " of 10: ";
+        read data[i];
+        i <- i + 1;
+    od
+}
+
+procedure write_buf10 (sortedInt10 data)
+    integer i;
+{
+    i <- 0;
+    while i < 9 do
+        write data[i];
+        write ", ";
+        i <- i + 1;
+    od
+    writeln data[9];
+}
+
+procedure read_x (integer val x)
+{
+    write "Enter an integer: ";
+    read x;
+}
+
+procedure main ()
+    sortedInt10 data;
+    integer x;
+{
+    while true do
+        call read_sortedInt10(data);
+        call read_x(x);
+        call binary_search(data, x);
+    od
+}

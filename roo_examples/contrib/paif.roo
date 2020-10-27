@@ -1,0 +1,21 @@
+# Reference from
+# Milestone 3 test case:
+# If and while statements 
+
+procedure main ()
+integer x;
+{   write "Input integer: ";
+    read x;
+    while (x > 10) and (x < 1000) do
+        if x < 500 then
+            x <- x - 1;
+        else
+            x <- x + 1;
+        fi
+    od
+    if x > 500 then
+        writeln "Number increase";
+    else
+        writeln "Number increase";
+    fi
+}

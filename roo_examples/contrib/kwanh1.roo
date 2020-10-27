@@ -1,0 +1,65 @@
+array[50] integer int_array_t;
+
+procedure quick_sort (int_array_t i_array, integer val size)
+{
+    call quick_sort_recursive(i_array, 0, size - 1);
+}
+
+procedure quick_sort_recursive (int_array_t i_array, integer val start, integer val end)
+    integer partition_index;
+{
+    call partition(i_array, start, end, partition_index);
+    call quick_sort_recursive(i_array, start, partition_index - 1);
+    call quick_sort_recursive(i_array, partition_index + 1, end);
+}
+
+procedure partition (int_array_t i_array, integer val start, integer val end, integer return)
+    integer pivot, i, j;
+{
+    pivot <- i_array[end];
+    i <- start;
+    j <- start;
+    while j < end do
+        if i_array[j] < pivot then
+            call swap(i_array, i, j);
+            i <- i + 1;
+        fi
+        j <- j + 1;
+    od
+    call swap(i_array, i, end);
+    return <- i;
+}
+
+procedure swap (int_array_t i_array, integer val x, integer val y)
+    integer tmp;
+{
+    tmp <- i_array[x];
+    i_array[x] <- i_array[y];
+    i_array[y] <- tmp;
+}
+
+procedure main ()
+    int_array_t i_array; 
+    integer i, size;
+{
+    i_array[0] <- 5;
+    i_array[1] <- 4;
+    i_array[2] <- 7;
+    i_array[3] <- 9;
+    i_array[4] <- 8;
+    i_array[5] <- 3;
+    i_array[6] <- 8;
+    i_array[7] <- 37;
+    i_array[8] <- 2;
+    i_array[9] <- 3;
+    size <- 10;
+    call quick_sort(i_array, size);
+    i <- 0;
+    while i < size do
+        write "i_array[";
+        write i;
+        write "]\t: ";
+        writeln i_array[i];
+        i <- i + 1;
+    od
+}

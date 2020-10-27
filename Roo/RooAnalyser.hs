@@ -23,7 +23,7 @@ analyse :: Program -> Result
 analyse prog
   = evalStateT (semanticCheckRooProgram prog) initialSymTable
 
-------------------- semantic analysis on a roo program------------------------ 
+------------------- semantic analysis on a roo program------------------------
 -- semanticCheckRooProgram 
 -- 1.insert records arraies and procedures into symbol table
 -- 2.Check that there is one and only one main procedure, and its arity is 0 
@@ -44,7 +44,7 @@ semanticCheckRooProgram prog
       st2 <- get
       return st2
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 ---------------------Semantic checking on a procedures------------------------
 -- checkOneProcedures
 -- 1.initialize local variable table
@@ -61,7 +61,7 @@ checkOneProcedures  (_, procCalled@(Procedure _ (ProcedureBody _ procStmts)))
         checkStmts procStmts
         popLocalVariableTable
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 ------------Semantic checking on all statement of a procedure-----------------
 checkStmts :: [Stmt] -> SymTableState ()
 checkStmts = mapM_ checkStmt
@@ -114,7 +114,7 @@ checkStmt (Write exp)
         return ()
       else
         liftEither $ throwError 
-        ("write exp, exp is not a boolean or integer, or a string literal.")      
+        ("write exp, exp is not a boolean or integer, or a string literal.")
 -- Check writeln: same as write
 checkStmt (Writeln exp) 
   = 
@@ -127,7 +127,7 @@ checkStmt (Writeln exp)
         return ()
       else
         liftEither $ throwError 
-        ("writeln exp, exp is not a boolean or integer, or a string literal.") 
+        ("writeln exp, exp is not a boolean or integer, or a string literal.")
 
 -- Check Ifthen
 -- 1.Check if exp uses the correct format
@@ -180,7 +180,7 @@ checkStmt (While exp stmts )
 -- 3.The number of actual parameters in a call must be equal to the number 
 --    of formal parameters in the procedure’s definition. 
 -- 4.The type of actual parameters in a call must match the type of
---    formal parameters in the procedure’s definition.                          
+--    formal parameters in the procedure’s definition.
 checkStmt (Call procedureName exps) 
   = 
     do
@@ -203,20 +203,20 @@ checkStmt (Call procedureName exps)
               return ()
 
           
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 -----------------------Semantic checking on lvalue----------------------------
 -- Check all lvalue
 -- Check four kinds of lvalue
 -- 1.all variable should been declared before using
 -- 2.<varname>    
 --   <recordName>.<fieldname>
---        <recordName> should be record type,and <fieldname> should been in this 
---      kind of record.
+--        <recordName> should be record type,and <fieldname> should been in
+--      this kind of record.
 --   <arrayName>[index]
 --        <arrayName> should be array type.
 --        [index] this exp should be integer type.
 --   <arrayName>[index].<fieldname>
---        <arrayName> should be array type storing record type,and <fieldname> 
+--        <arrayName> should be array type storing record type,and <fieldname>
 --      should been in this kind of record.
 --        [index] this exp should be integer type.
 --   
@@ -329,8 +329,8 @@ checkLValue (LBracketsDot arrayName int fieldName)
       else 
         liftEither $ throwError $ "Undeclared variable name: " ++ arrayName
       
---------------------------------------------------------------------------------
------------------semantic check on all kinds of expression----------------------
+------------------------------------------------------------------------------
+-----------------semantic check on all kinds of expression--------------------
 
 checkExp :: Exp -> SymTableState ()
 checkExp (BoolConst bool)
@@ -551,10 +551,10 @@ checkExp (Lval lvalue)
       checkLValue lvalue
       
 
---------------------------------------------------------------------------------
----------------------------- help functions-------------------------------------
+------------------------------------------------------------------------------
+---------------------------- help functions-----------------------------------
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 -- check arity of a procedure
 checkArityProcedure :: String -> Int -> SymTableState ()
 checkArityProcedure procedureName arity
@@ -624,7 +624,7 @@ hasSameElem [] [] = do return True
 hasSameElem _ _ = do return True
 
       
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 --get expression's type
 getExpType :: Exp -> SymTableState DataType
 
@@ -713,5 +713,3 @@ getDataT (BaseDataType BooleanType) = "Boolean"
 getDataT (BaseDataType IntegerType) = "Integer"
 getDataT (BaseDataType StringType) = "String"
 getDataT (AliasDataType aliasType ) = aliasType
-
-

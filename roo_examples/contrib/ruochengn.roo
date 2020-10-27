@@ -1,0 +1,92 @@
+# PLI test data (19th Oct, RC)
+
+# Check the input hand is a straight or not
+# Only accept 5 numbers as input
+# Input number should between 0 ~ 13
+# 0 can be regarded as any card to make a straight
+
+# Example Input:  1 2 3 4 5
+# Example Output: true
+
+# Example Input:  0 1 0 2 5
+# Example Output: true
+
+record
+    { integer card_number
+    ; boolean is_legal
+    } card;
+array [5] card hand;
+array[14] boolean boolean_array;
+
+procedure main()
+    integer i, min, max;
+    boolean has_repeated;
+    hand input_hand;
+    boolean_array repeated;
+
+{   
+    # Init min, max and has_repeated
+    min <- 14;
+    max <- -1;
+    has_repeated <- false;
+
+    # Init repeated
+    i <- 0;
+    while i < 14 do
+        repeated[i] <- false;
+        i <- i + 1;
+    od
+
+    i <- 0;
+    while i < 5 do
+         # Read in cards
+        writeln "Next card is ?";
+        read input_hand[i].card_number;
+
+        if input_hand[i].card_number < 0 or input_hand[i].card_number > 13 then
+            input_hand[i].is_legal <- false;
+        else
+            input_hand[i].is_legal <- true;
+        fi
+
+        # Check if there are cards of same number
+        if repeated[input_hand[i].card_number] = true then
+            has_repeated <- true;
+        fi
+
+        if input_hand[i].card_number != 0 then
+            repeated[input_hand[i].card_number] <- true;
+        fi
+
+        if input_hand[i].card_number < min then
+            min <- input_hand[i].card_number;
+        fi
+
+        if input_hand[i].card_number > max then
+            max <- input_hand[i].card_number;
+        fi
+
+        i <- i + 1;
+    od
+    
+    # Check if there are invalid inputs
+    i <- 0;
+    while i < 5 do
+        if not input_hand[i].is_legal then
+            write "The ";
+            write i + 1;
+            writeln "th card is invalid.";
+        fi
+        i <- i + 1;
+    od
+
+    if has_repeated then
+        writeln "This is not a straight.";
+    else
+        if max - min >= 5 then
+            writeln "This is not a straight.";
+        else
+            writeln "This is a straight.";
+        fi
+    fi
+}

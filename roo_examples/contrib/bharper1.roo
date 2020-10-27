@@ -1,0 +1,97 @@
+# A BrainNumb interpreter written in Roo.
+#
+# Roo is a nice programming language to implement, but is unfamiliar to most people,
+# and this makes it difficult to write code for. This interpreter allows us to write
+# code in a well known and easy to use language, simplifying the software development
+# process.
+#
+# to convert a program from BF to BrainNumb, run
+# sed -e 's/>/1 /g' -e 's/</2 /g' -e 's/+/3 /g' -e 's/-/4 /g' -e 's/\./5 /g' -e 's/,/6 /g' -e 's/\[/7 /g' -e 's/]/8 /g' -e 's/$/0/' foo.bf
+#
+# instructions take the form
+# 0 = end of program input
+# 1 = > = increment data pointer
+# 2 = < = decrement data pointer
+# 3 = + = increment data
+# 4 = - = decrement data
+# 5 = . = outupt data
+# 6 = , = input data
+# 7 = [ = open loop
+# 8 = ] = close loop
+#
+# Because roo doesn't natively support strings, output is not ASCII encoded.
+# But you can converts ints to ASCII in your head, right?
+
+array[1024] integer big_array;
+
+procedure main()
+    big_array tape;
+    big_array instructions;
+    integer tapehead;
+    integer instrhead;
+    integer max_instruction;
+    integer tmp;
+    integer loop_counter;
+{
+    # read in program
+    read tmp;
+    while tmp != 0 do
+        instructions[max_instruction] <- tmp;
+        max_instruction <- max_instruction + 1;
+        read tmp;
+    od
+
+    # main loop
+    while instrhead != max_instruction do
+        if instructions[instrhead] = 1 then
+            tapehead <- tapehead + 1;
+        fi
+        if instructions[instrhead] = 2 then
+            tapehead <- tapehead - 1;
+        fi
+        if instructions[instrhead] = 3 then
+            tape[tapehead] <- tape[tapehead] + 1;
+        fi
+        if instructions[instrhead] = 4 then
+            tape[tapehead] <- tape[tapehead] - 1;
+        fi
+        if instructions[instrhead] = 5 then
+            write tape[tapehead];
+            write " ";
+        fi
+        if instructions[instrhead] = 6 then
+            read tape[tapehead];
+        fi
+        if instructions[instrhead] = 7 then
+            # if data is zero, skip to the end
+            if tape[tapehead] = 0 then
+                loop_counter <- 1;
+                while loop_counter != 0 do
+                    instrhead <- instrhead + 1;
+                    if instructions[instrhead] = 7 then
+                        loop_counter <- loop_counter + 1;
+                    fi
+                    if instructions[instrhead] = 8 then
+                        loop_counter <- loop_counter - 1;
+                    fi
+                od
+            fi
+        fi
+        if instructions[instrhead] = 8 then
+            # if data is nonzero, go back to the start
+            if tape[tapehead] != 0 then
+                loop_counter <- 1;
+                while loop_counter != 0 do
+                    instrhead <- instrhead - 1;
+                    if instructions[instrhead] = 8 then
+                        loop_counter <- loop_counter + 1;
+                    fi
+                    if instructions[instrhead] = 7 then
+                        loop_counter <- loop_counter - 1;
+                    fi
+                od
+            fi
+        fi
+        instrhead <- instrhead + 1;
+    od
+}

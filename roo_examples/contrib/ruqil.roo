@@ -1,0 +1,14 @@
+procedure main ()
+    integer n;
+    integer sum;
+{
+    n <- 10;
+    sum <- 0;
+    while n > 0 do
+        sum <- n + sum;     
+        n <- n-1;
+    od
+    write "sum from 1 to "   ;
+    write n;
+    writeln sum;
+}

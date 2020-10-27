@@ -1,0 +1,55 @@
+# https://leetcode.com/problems/how-many-numbers-are-smaller-than-the-current-number/
+# Assume input #numbers <= 10
+# Example Input:  8 1 2 2 3
+# Example Output: 4 0 1 1 3
+
+array[10] integer nums;
+array[10] integer nums_counts;
+
+procedure main ()
+    integer n, i, j;
+    nums numbers;
+    nums_counts number_counts;
+{
+    # how many numbers going to be read
+    write "Number of input numbers n = ";
+    read n;
+
+    # read numbers
+    i <- 0;
+    while i < n do
+        read numbers[i];
+        i <- i + 1;
+    od
+
+    # initialize number_counts with 0
+    i <- 0;
+    while i < 10 do
+        number_counts[i] <- 0;
+        i <- i + 1;
+    od
+
+    # counting smaller than current
+    i <- 0;
+    while i < n do
+        j <- 0;
+        while j < n do
+            if numbers[i] > numbers[j] then
+                number_counts[i] <- number_counts[i] + 1;
+            fi
+
+            j <- j + 1;
+        od
+
+        i <- i + 1;
+    od
+
+    # output result
+    i <- 0;
+    while i < (n - 1) do
+        write number_counts[i];
+        write " ";
+        i <- i + 1;
+    od
+    writeln number_counts[i];
+}

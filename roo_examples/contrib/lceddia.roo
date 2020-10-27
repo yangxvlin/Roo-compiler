@@ -1,0 +1,172 @@
+# This program solves the Water Between Towers problem as stated here:
+# https://rosettacode.org/wiki/Water_collected_between_towers
+# with an algorithm as suggested by https://stackoverflow.com/a/43779936
+#
+# As well as calculating how much water is captured, it also prints a nice
+# ASCII art picture of the towers (#) with water (.) between them as a visual
+# test of the implementation.
+#
+# Input format is the number of towers, followed by the height of each tower.
+# This has a maximum limit of 80 towers, but this can be increased by changing
+# the array declaration and the read_heights procedure (no #defines in Roo!).
+#
+# Note that this program does not use recursion.
+
+record
+    { integer height
+    ; integer waterLevel
+    ; boolean processed
+    } tower_t;
+array[80] tower_t towers;
+
+procedure min (integer val a, integer val b, integer r)
+{
+    if a < b then
+        r <- a;
+    else
+        r <- b;
+    fi
+}
+
+procedure swap (integer a, integer b)
+    integer temp;
+{
+    temp <- a;
+    a <- b;
+    b <- temp;
+}
+
+# Allowed because type aliases and variables are in separate name spaces
+procedure read_heights (towers towers, integer n)
+    integer i;
+{
+    # Read number of towers
+    read n;
+    if n > 80 then
+        n <- 80;
+    fi
+    # Followed by height of each tower
+    while i < n do
+        read towers[i].height;
+        i <- i + 1;
+    od
+}
+
+# Get highest tower not yet marked as processed
+procedure next_highest (towers towers, integer val n, integer result)
+    integer height, i;
+{
+    while i < n do
+        if not towers[i].processed and towers[i].height > height then
+            result <- i;
+            height <- towers[i].height;
+        fi
+        i <- i + 1;
+    od
+    towers[result].processed <- true;
+}
+
+# Set water level for all towers between the two given to the height of the
+# lower boundary.
+procedure fill (towers towers, integer val left, integer val right)
+    integer level, i;
+{
+    call min(towers[left].height, towers[right].height, level);
+    i <- left + 1;
+    while i < right do
+        towers[i].waterLevel <- level;
+        i <- i + 1;
+    od
+}
+
+# How high is the highest tower?
+procedure max_height (towers towers, integer val n, integer result)
+    integer i;
+{
+    result <- 0;
+    while i < n do
+        if towers[i].height > result then
+            result <- towers[i].height;
+        fi
+        i <- i + 1;
+    od
+}
+
+# How many digits are in a number?
+procedure digits (integer val num, integer result)
+{
+    while num > 0 do
+        num <- num / 10;
+        result <- result + 1;
+    od
+}
+
+# npm install left-pad
+procedure padded_print (integer val num, integer val min_width)
+    integer digits;
+{
+    call digits(num, digits);
+    while digits < min_width do
+        write " ";
+        digits <- digits + 1;
+    od
+    write num;
+}
+
+# Print the towers with water and total water amount
+procedure pretty_print (towers towers, integer val n)
+    integer i, j, water, gutter_width;
+{
+    call max_height(towers, n, i);
+    call digits(i, gutter_width);
+    # This proceeds row by row
+    while i > 0 do
+        call padded_print(i, gutter_width);
+        j <- 0;
+        # Check if each tower appears on this row
+        while j < n do
+            if towers[j].height >= i then
+                write "#";
+            else
+                if towers[j].waterLevel >= i then
+                    write ".";
+                    water <- water + 1;
+                else
+                    write " ";
+                fi
+            fi
+            j <- j + 1;
+        od
+        writeln "";
+    od
+    write "This configuration captures ";
+    write water;
+    writeln " units of water.";
+}
+
+procedure main ()
+    towers towers;
+    integer i, n, left, right, t;
+{
+    call read_heights(towers, n);
+    call next_highest(towers, n, left);
+    call next_highest(towers, n, right);
+    if left > right then
+        call swap(left, right);
+    fi
+    call fill(towers, left, right);
+    i <- 2;
+    while i < n do
+        call next_highest(towers, n, t);
+        if t < left then
+            call fill(towers, t, left);
+            left <- t;
+        fi
+        if t > right then
+            call fill(towers, right, t);
+            right <- t;
+        fi
+        i <- i + 1;
+    od
+    call pretty_print(towers, n);
+}

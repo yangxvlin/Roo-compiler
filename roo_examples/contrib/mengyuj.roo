@@ -1,0 +1,69 @@
+record { integer a
+       ; integer b
+       ; boolean c
+       } record1;
+array [2] record1 record_arr;
+array [3] integer i3;
+array [2] boolean b2;
+
+procedure main ()
+    boolean same;
+    integer n, result;
+    record1 my_record;
+    record_arr d;
+    i3 i;
+    b2 arr_b;
+{
+    my_record.a <- 11;
+    my_record.b <- 0;
+    my_record.c <- false;
+
+    n <- my_record.a - 2;
+    call assign(n, i, arr_b);
+    writeln arr_b[0] and arr_b[1];
+    result <- 0;
+    while n >= 0 do
+        result <- result + i[n];
+        n <- n - 1;
+    od
+    writeln result;
+
+    d[0].a <- my_record.a;
+    d[0].b <- d[0].a;
+    d[0].c <- my_record.c;
+   
+    d[1].a <- my_record.a;
+    d[1].b <- my_record.b;
+    d[1].c <- my_record.c;
+
+    call match(d[0], d[1], same);
+    if same then
+        writeln "true value";
+    else
+        writeln "false value";
+    fi
+}
+
+procedure match(record1 rec1, record1 rec2, boolean result)
+{
+    if rec1.a = rec2.a and rec1.b = rec2.b and rec1.c and rec2.c then
+        result <- true;
+    else
+        result <- false;
+    fi
+}
+
+procedure assign(integer n, i3 i_arr, b2 b_arr)
+    integer i;
+{
+    i <- n;
+    while i>=0 do
+        i_arr[i] <- n-i;
+        i <- i-1;
+    od
+
+    b_arr[0] <- true;
+    b_arr[1] <- true;
+
+}
+

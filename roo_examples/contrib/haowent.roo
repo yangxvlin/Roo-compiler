@@ -1,0 +1,119 @@
+# Roo program used to sort items by their price and calculate the total price
+
+record
+    { integer product_number
+    ; integer price
+    } item;
+
+array[25] item item_array;
+
+procedure main ()
+    item_array cart;
+    integer n_items, total;
+    boolean break;
+    boolean ascending;
+    item key;
+{  
+    n_items <- 0;
+    total <- 0;
+    break <- false;
+    call read_input (cart, n_items, total, break);
+    if break = false then
+        if n_items = 25 then
+            writeln "You have already entered 25 items (the maximum limit).";
+        else
+            write "You have entered ";
+            write n_items;
+            write " items.\n";
+        fi
+        writeln "Do you want the items sorted in ascending order? (true/false)";
+        read ascending;
+        call sort_cart (cart, ascending, n_items, key);
+        call write_output (cart, total, ascending, n_items);
+
+    fi
+}
+
+procedure read_input (item_array cart, integer n_items, integer total, boolean break)
+    integer price, product_number;
+{
+    write "Input the product number of your next item (Input 0 to end): ";
+    read product_number;
+    while product_number != 0 and break = false and n_items < 25 do
+        if product_number < 0 then
+            writeln "The product number must be a positive value.";
+            break <- true;
+        else
+            writeln "Input the price of your next item: ";
+            read price;
+            if price <= 0 then
+                writeln "The price must be a positive value.";
+                break <- true;
+            else
+                total <- total + price;
+                cart[n_items].product_number <- product_number;
+                cart[n_items].price <- price;
+                n_items <- n_items + 1;
+                if n_items != 25 then
+                    write "Input the product number of your next item (Input 0 to end): ";
+                    read product_number; 
+                fi
+            fi
+        fi
+    od
+}
+
+procedure sort_cart (item_array cart, boolean val ascending, integer val n_items, item key)
+# implementation of insertion sort in Roo (slow, I know)
+    integer i, j;
+{
+    i <- 1;
+    if ascending then
+        while i < n_items do
+            key <- cart[i];
+            j <- i - 1;
+            while j >= 0 and cart[j].price > key.price do
+                cart[j+1] <- cart[j];
+                j <- j-1;
+            od
+            cart[j+1] <- key;
+            i <- i+1;
+        od
+    else
+        while i < n_items do
+            key <- cart[i];
+            j <- i - 1;
+            while j >= 0 and cart[j].price < key.price do
+                cart[j+1] <- cart[j];
+                j <- j-1;
+            od
+            cart[j+1] <- key;
+            i <- i+1;
+        od
+    fi
+}
+
+procedure write_output (item_array cart, integer val total, boolean val ascending, integer val n_items)
+    integer i;
+{
+    write "The total price is $";
+    write total;
+    write ".\n";
+    
+    if ascending then
+        writeln "Here are the items, sorted in ascending order:";
+    else
+        writeln "Here are the items, sorted in descending order:";
+    fi
+    
+    i <- 0;
+    while i < n_items do
+        write "product no.";
+        write cart[i].product_number;
+        write "; Price: ";
+        write cart[i].price;
+        write ".\n";
+        i <- i+1;
+    od
+}
+    

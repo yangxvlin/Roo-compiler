@@ -1,0 +1,10 @@
+procedure main()
+    integer x, y;
+
+{   write "Input a diameter: ";
+    read x;
+    write "\n";
+    write "The cirumference is, roughly, ";
+    y <- 22 * x * x / (4 * 7); 
+    writeln y;
+}

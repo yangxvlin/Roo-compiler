@@ -1,0 +1,86 @@
+procedure main()
+    integer i, attempts;
+    boolean flag;
+{
+    writeln "This program finds the first N prime numbers.";
+    writeln "Please type a positive integer value for N:";
+    
+    read i;
+    
+    while i <= 0 do
+        attempts <- attempts + 1;    
+        writeln "I said positive! Try again.";
+        writeln "Please type a positive integer value for N:";
+        read i;
+
+        # Record number of times silly user has tried.
+        if attempts = 2 then
+            i <- 1;
+        fi
+    od
+
+    
+    if attempts = 2 then
+        # Silly user gets punished.
+        writeln "You had your chance.";
+    else
+        call firstNPrimes(i);
+    fi
+}
+
+
+procedure firstNPrimes(integer N)
+    integer count, curr;
+    boolean flag;
+{
+
+    curr <- 1;
+    count <- 0;
+
+    while count < N do
+        # Check if number is prime.
+        call isPrime(curr, flag);
+
+        if flag then
+            write curr;
+            write " ";
+            count <- count + 1;
+        fi
+
+        # Increment number to check.
+        curr <- curr + 1;
+    od
+
+    writeln "";
+}
+
+
+procedure isPrime(integer val num, boolean flag)
+    integer i;
+{
+    # Flag to indicaite if isPrime
+    flag <- true;
+
+    i <- 2;
+
+    while i < num do
+        # Equivalent to num % i == 0
+        if ((num-(num/i)*i)=0) then
+
+            # Mark the flag as false
+            flag <- false;
+            
+            # End loop
+            i <- num;
+        
+        fi
+        
+        i <- i + 1;
+    
+    od
+
+    if num = 1 or num = 2 then
+        flag <- true;
+    fi
+}
+

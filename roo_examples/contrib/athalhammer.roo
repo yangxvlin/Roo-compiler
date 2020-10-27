@@ -1,0 +1,54 @@
+array[100] integer line;
+
+procedure main ()
+    integer nrows;
+{
+    read nrows;
+    call pascal_triangle(nrows);
+}
+
+procedure pascal_triangle (integer val nrows)
+    integer i, row;
+    line values;
+{
+    values[0] <- 1;
+    row <- 0;
+    while row < nrows do
+        call indent((nrows - row) * 3);
+        i <- row;
+        while i > 0 do
+            values[i] <- values[i] + values[i - 1];
+            call write_aligned(values[i]);
+            i <- i - 1;
+        od
+        write values[i];
+        row <- row + 1;
+        write "\n";
+    od
+}
+
+procedure indent (integer val n)
+    integer i;
+{
+    while i < n do
+        write " ";
+        i <- i + 1;
+    od
+}
+
+procedure write_aligned (integer val n)
+    integer copy;
+    integer digits;
+{
+    copy <- n;
+    digits <- 0;
+    while n > 0 do
+        n <- n / 10;
+        digits <- digits + 1;
+    od
+    write copy;
+    while digits < 6 do
+        write " ";
+        digits <- digits + 1;
+    od
+}

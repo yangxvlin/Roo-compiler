@@ -1,0 +1,13 @@
+procedure main ()
+    integer n;
+    integer res;
+{
+    while true do
+        call devideByZero(n, res);
+    od
+}
+
+procedure devideByZero(integer n, integer result)
+{
+    result <- n / 0;
+}

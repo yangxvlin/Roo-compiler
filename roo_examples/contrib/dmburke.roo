@@ -1,0 +1,152 @@
+# This program tests if one set of numbers is a subset of another set of numbers
+# The numbers are read from input and stored in arrays
+# The two number sets provided should not contain duplicates
+
+array[5]  integer smallNumberArray;
+array[10] integer largeNumberArray;
+
+
+procedure main()
+    smallNumberArray numbers1;
+    largeNumberArray numbers2;
+    boolean stop, isSubset;
+    integer i, j, n, m;
+{
+    # read first set of numbers from input
+    writeln "Provide 5 integers (can be in any order, but no duplicates):";
+    i <- 0;
+    n <- 5;
+    while (i < n) do
+        read numbers1[i];
+        i <- i + 1;
+    od
+
+    # read second set of numbers from input
+    writeln "Provide 10 integers: (can be in any order, but no duplicates):";
+    i <- 0;
+    n <- 10;
+    while (i < n) do
+        read numbers2[i];
+        i <- i + 1;
+    od
+
+    call selectionSortSmall(numbers1);
+    call selectionSortLarge(numbers2);
+
+    # test if the first set of numbers is a subset of the second set of numbers
+    i <- 0;
+    j <- 0;
+    n <- 5;
+    m <- 10;
+    stop <- false;
+    while (i < n) and (j < m) and (not stop) do
+        if (numbers1[i] > numbers2[j]) then
+            j <- j + 1;
+        else
+            if (numbers1[i] = numbers2[j]) then
+                i <- i + 1;
+                j <- j + 1;
+            else
+                stop <- true;
+            fi
+        fi
+    od
+
+
+    isSubset <- (i = n);
+
+
+    # print result
+    write "The numbers: ";
+
+    # print first set of numbers
+    i <- 0;
+    n <- 5;
+    while (i < n) do
+        write numbers1[i];
+
+        if (i != n - 1) then
+            write ", ";
+        fi
+
+        i <- i + 1;
+    od
+
+
+    if isSubset then
+        write " are a subset of the numbers: ";
+    else
+        write " are not a subset of the numbers: ";
+    fi
+
+    # print second set of numbers
+    i <- 0;
+    n <- 10;
+    while (i < n) do
+        write numbers2[i];
+
+        if (i != n - 1) then
+            write ", ";
+        fi
+
+        i <- i + 1;
+    od
+}
+
+
+procedure selectionSortSmall(smallNumberArray a)
+    integer i, j, n, minIndex, minValue;
+{
+    n <- 5;
+    i <- 0;
+
+    while (i < n - 1) do
+        minIndex <- i;
+        j <- i + 1;
+
+        while (j < n) do
+            if (a[j] < a[minIndex]) then
+                minIndex <- j;
+            fi
+
+            j <- j + 1;
+        od
+
+        if (minIndex != i) then
+            minValue    <- a[minIndex];
+            a[minIndex] <- a[i];
+            a[i]        <- minValue;
+        fi
+
+        i <- i + 1;
+    od
+}
+
+
+procedure selectionSortLarge(largeNumberArray a)
+    integer i, j, n, minIndex, minValue;
+{
+    n <- 10;
+    i <- 0;
+
+    while (i < n - 1) do
+        minIndex <- i;
+        j <- i + 1;
+
+        while (j < n) do
+            if (a[j] < a[minIndex]) then
+                minIndex <- j;
+            fi
+
+            j <- j + 1;
+        od
+
+        if (minIndex != i) then
+            minValue    <- a[minIndex];
+            a[minIndex] <- a[i];
+            a[i]        <- minValue;
+        fi
+
+        i <- i + 1;
+    od
+}

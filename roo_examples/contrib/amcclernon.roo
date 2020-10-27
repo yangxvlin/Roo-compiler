@@ -1,0 +1,89 @@
+# solve LC 479 Largest Palindrome Product
+# Find nth largest palindrome made from the product of two n-digit numbers (n \in [1,8])
+# Since the result could be very large, you should return the largest palindrome mod 1337
+# Example:
+#   input: 2
+#   output: 987
+#   explanation: 99 * 91 = 9009, 9009 % 1337 = 987
+# ###################################################################################### #
+
+procedure mod(integer val num, integer val div, integer res)
+  integer quotient;
+{
+  quotient <- num / div;
+  res <- num - quotient * res;
+}
+
+procedure pow(integer val base, integer val exp, integer out)
+  integer res, tmp;
+{
+  res <- 1;
+  tmp <- 1;
+  while exp > 0 do
+    tmp <- res * base;
+    res <- tmp;
+  od
+  out <- res;
+}
+
+procedure largestPalin(integer val n, integer out) 
+  integer res, a, tmp, tmp0, p0, pr, p, rem, oLimit, s, pmax, sr, i, j, limit, pMax;
+{
+  call pow(10,n,s);
+  tmp <- s - 1;
+  s <- tmp;
+  call mod(s, 11, tmp);
+  sr <- s - tmp;
+  pmax <- 9;
+  i <- sr;
+  tmp <- n-1;
+  call pow(10, tmp, limit);
+  oLimit <- limit * 9;
+
+  while i >= oLimit do
+    j <- s;
+    tmp <- s * i - 11;
+    while (j >= limit and pmax <= tmp) do
+
+      p <- i * j;
+
+      if p >= pMax then
+        p0 <- p;
+        pr <- 0;
+
+        while p != 0 do
+          call mod(p, 10, rem);
+          tmp <- pr * 10 + rem;
+          pr <- tmp;
+          tmp <- p / 10;
+          p <- tmp;
+        od
+
+        if p0 = pr then
+          pmax <- pmax;
+        fi
+
+      fi
+
+      tmp <- j - 2;
+      j <- tmp;
+
+    od
+
+    tmp <- i - 11;
+    i <- tmp;
+  od
+
+  call mod(pmax, 1337, res);
+  out <- res;
+}
+
+procedure main()
+  integer n, res;
+{
+  n <- 5;
+  call largestPalin(n, res);
+  writeln res;
+}
+
+

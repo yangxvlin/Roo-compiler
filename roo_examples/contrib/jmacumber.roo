@@ -1,0 +1,52 @@
+record {integer r; integer i} complex;
+
+procedure inMandelbrotSet(complex z, complex c, integer iters)
+  integer temp, mag2;
+{
+  if iters > 0 then
+    temp <- (z.r*z.r - z.i*z.i)/10000 + c.r;
+    z.i <- (2*z.r*z.i)/10000 + c.i;
+    z.r <- temp;
+
+    mag2 <- z.r*z.r + z.i*z.i;
+
+    if mag2 <= 4*10000*10000 then
+      iters <- iters - 1;
+
+      call inMandelbrotSet(z, c, iters);
+    fi
+  fi
+}
+
+procedure main()
+  integer RES_X, RES_Y, i, j, iters;
+  complex c, z;
+{ 
+  RES_X <- 32;
+  RES_Y <- 16;
+
+  j <- -RES_Y;
+  while j <= RES_Y do
+    i <- -5*RES_X/2;
+    while i <= RES_X/2 do
+      c.r <- i * 10000 / RES_X;
+      c.i <- j * 10000 / RES_Y;
+
+      iters <- 100;
+      z.r <- 0;
+      z.i <- 0;
+      call inMandelbrotSet(z, c, iters);
+      
+      if iters = 0 then
+        write "*";
+      else
+        write " ";
+      fi
+
+      i <- i + 1;
+    od
+    writeln "";
+
+    j <- j + 1;
+  od
+}
