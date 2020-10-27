@@ -71,7 +71,9 @@ checkStmts = mapM_ checkStmt
 checkStmt :: Stmt -> SymTableState ()
 -- check assign:
 -- 1.Check if lvalue and exp use the correct format
--- 2.check if lvalue and exp have same data type
+-- 2.check if lvalue and exp have same data type 
+-- 3. if exp are record or array type, both lvalue and exp
+-- pass by reference
 checkStmt (Assign lvalue exp) 
   = 
     do  
@@ -94,14 +96,13 @@ checkStmt (Assign lvalue exp)
             iRA <- lvalueIsRerAry expLvalue
             if iRA then
               do
-                iInfo2 <- getDataTypeOfLValue expLvalue
+                iInfo2 <- getDataTypeOfLValue expLvalue--jiancha
                 let (byV2,dataType2) = iInfo2
-                if (byV2 == byV) then
+                if (byV2 == False) && (byV == False) then
                   return ()
                 else
                   liftEither $ throwError $ 
-                  "Both side of this assignment must have same pass mode " ++ 
-                  show(lvalue) ++ show (exp)
+                  "Both side of this assignment must pass by reference "
             else
               return ()
 
@@ -627,6 +628,24 @@ lvalueIsRerAry (LId ident)
           do return True
         _ ->
           do return False
+lvalueIsRerAry (LBrackets ident exp)
+  = 
+    do
+      varInfo <- getVariableType ident
+      let (bool,int,vt,int2) = varInfo
+      case vt of
+        ArrayVar string2 ->
+          do
+            arrayInfo <- getArrayType string2
+            let (a,arrayType) = arrayInfo
+            case arrayType of
+              AliasDataType aliasType -> 
+                do return True
+              _ ->
+                do return False                      
+        _ ->
+          do return False
+
 lvalueIsRerAry _ = do return True
 
 varIsArrayType :: VariableType -> Bool
