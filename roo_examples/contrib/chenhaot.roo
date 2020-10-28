@@ -76,6 +76,7 @@ procedure main()
     writeln "Please input number A";
     while i < 4 do
         read numA[i];
+        i <- i+1;
     od
 
     i <- 0;
@@ -84,6 +85,7 @@ procedure main()
     writeln "Please input number B";
     while i < 4 do
         read numB[i];
+        i <- i+1;
     od
 
     # 3. add or subtract
@@ -97,5 +99,6 @@ procedure main()
     while i < 4 do
         write result[i];
         writeln "";
+        i <- i+1;
     od
 }
