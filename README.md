@@ -210,3 +210,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 #### how to submit
 - ``` submit COMP90045 3b Makefile Roo.hs RooAST.hs PrettyRoo.hs RooParser.hs RooAnalyser.hs SymbolTable.hs Codegen.hs OzCode.hs ```
 - ``` verify COMP90045 3b | less ```
+
+#### testing on netmug
+- ``` ./Roo/Roo ./roo_examples/contrib/xuliny.roo > out.oz ```
+- ``` ./oz/oz out.oz < ./roo_examples/contrib/xuliny.in ```
+

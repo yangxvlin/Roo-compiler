@@ -22,6 +22,8 @@ procedure main ()
     sum <-0;
     sumsquare <-0;
     call fact(n, nMax, sum, sumsquare, result);
+
+    writeln sumsquare;
 }
 procedure fact(integer val n,integer val nMax,integer sum, integer sumsquare, integer result){
     if(n <= nMax) then
