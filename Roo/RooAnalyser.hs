@@ -258,16 +258,18 @@ checkLValue (LDot recordVarname fieldName)
   =
     do
       cvt <- getCurVariableTable
+      -- if this variable has been declared before
       if (Map.member recordVarname (vtt cvt)) then
         do
           st <- get
           c <- getVariableType recordVarname
           let (bool, int1, variableType, int2) = c
+          --check if variable name corresponds to a record variable
           if varIsRecordType variableType then
             do
               let (RecordVar recordType) = variableType
               let ck = CompositeKey recordType fieldName
-
+              -- this <>.<> is exist in record variable table
               if (Map.member ck (rft st)) then
                  return ()
               else
@@ -286,10 +288,12 @@ checkLValue (LBrackets arrayName int)
   =
     do
       cvt <- getCurVariableTable
+      -- if this variable has been declared before
       if (Map.member arrayName (vtt cvt)) then
         do
           varInfo <- (getVariableType arrayName)
           let (bool,int1,vartype,arraysize) = varInfo
+          --check if variable name corresponds to a array variable
           if varIsArrayType vartype then
             do
                 let (ArrayVar arrayType) = vartype
@@ -297,6 +301,7 @@ checkLValue (LBrackets arrayName int)
                 let (intt, dataType) = artype
 
                 indextype <- getExpType int
+                --if expression <int> is a integer type
                 if indextype == BaseDataType IntegerType then
                   return()
                 else
@@ -314,24 +319,28 @@ checkLValue (LBracketsDot arrayName int fieldName)
   =
     do
       cvt <- getCurVariableTable
+      -- if this variable has been declared before
       if (Map.member arrayName (vtt cvt)) then
         do
           c <- getVariableType arrayName
           let (bool, int1, variableType, int2) = c
+          --check if variable name corresponds to a array variable
           if varIsArrayType variableType then
             do
               let (ArrayVar arrayType) = variableType
               artype <- getArrayType arrayType
               let (intt, dataType) = artype
-
+              --if this array <>[] is storing a record type
               if dataIsRecordTypeStoreInArray dataType then
                 do
                   let (AliasDataType alsName) = dataType
                   st <- get
                   let ck = CompositeKey alsName fieldName
+                  -- this <>.<> is exist in rrecord variable table
                   if (Map.member ck (rft st)) then
                     do
                       indexType <- getExpType int
+                      --if expression <index> is a integer type
                       if indexType == BaseDataType IntegerType then
                         return()
                       else
@@ -352,6 +361,16 @@ checkLValue (LBracketsDot arrayName int fieldName)
 
 ------------------------------------------------------------------------------
 -----------------semantic check on all kinds of expression--------------------
+-- •The type of a Boolean constant isboolean.
+-- •The type of an integer constant isinteger.
+-- •The type of a string literal isstring.
+-- •The two operands of a relational operator must have the same primitive 
+--  type, eitherbooleanorinteger. The result is of typeboolean.
+-- •The two operands of a binary arithmetic operator must have typeinteger,
+--  and the resultis of typeinteger.
+-- •The operand of unary minus must be of typeinteger, and the result 
+--  type is the same.
+-- •Check lvalue as CheckLValue 
 
 checkExp :: Exp -> SymTableState ()
 checkExp (BoolConst bool)
@@ -608,11 +627,11 @@ constructSymbolTable prog@(Program records arraies procedures)
 
 
 -- function name tell us everyting
-
+-- expression is lvalue
 expIsLvalue :: Exp -> Bool
 expIsLvalue (Lval lValue) = True
 expIsLvalue _ = False
-
+-- this lvalue is record or array type
 lvalueIsRerAry :: LValue ->  SymTableState Bool
 lvalueIsRerAry (LId ident)
   =
@@ -645,35 +664,35 @@ lvalueIsRerAry (LBrackets ident exp)
           do return False
 
 lvalueIsRerAry _ = do return False
-
+-- This variable is array type
 varIsArrayType :: VariableType -> Bool
 varIsArrayType (ArrayVar _) = True
 varIsArrayType _ = False
-
+-- This variable is record type
 varIsRecordType :: VariableType -> Bool
 varIsRecordType (RecordVar _) = True
 varIsRecordType _ = False
-
+-- This data is integer type
 dataIsIntegerType :: DataType -> Bool
 dataIsIntegerType (BaseDataType IntegerType) = True
 dataIsIntegerType _ = False
-
+-- This data is boolean or integer type
 dataIsBolIntType :: DataType -> Bool
 dataIsBolIntType (BaseDataType IntegerType) = True
 dataIsBolIntType (BaseDataType BooleanType) = True
 dataIsBolIntType _=False
-
+-- This data is boolean type
 dataIsBoolType :: DataType -> Bool
 dataIsBoolType (BaseDataType BooleanType) = True
 dataIsBoolType _ = False
-
+-- The data stored in this array is record type
 dataIsRecordTypeStoreInArray :: DataType -> Bool
 dataIsRecordTypeStoreInArray (BaseDataType _) = False
 dataIsRecordTypeStoreInArray (AliasDataType _) = True
 
 
 
---call procedure exps : all parameter type match
+--actual parameter type match formal parameter type
 hasSameElem :: [Exp] -> [(Bool, DataType)] -> SymTableState Bool
 hasSameElem (x:xs) ((_,y):ys)
   =
@@ -688,7 +707,7 @@ hasSameElem _ _ = do return True
 
 
 ------------------------------------------------------------------------------
---get expression's type
+--get expression's type(datatype)
 getExpType :: Exp -> SymTableState DataType
 
 getExpType (BoolConst _) = do return (BaseDataType BooleanType)
