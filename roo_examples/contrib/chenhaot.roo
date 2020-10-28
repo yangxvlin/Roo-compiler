@@ -90,7 +90,8 @@ procedure main()
 
     # 3. add or subtract
     writeln "0 to add, else for subtract";
-    read o;
+    # read o;
+    o <- 0;
     call operator(o, numA, numB, result);
 
     i <- 0;
