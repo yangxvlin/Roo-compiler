@@ -691,8 +691,7 @@ hasSameElem _ _ = do return True
 --get expression's type
 getExpType :: Exp -> SymTableState DataType
 
-getExpType (BoolConst _) = do
-  return (BaseDataType BooleanType)
+getExpType (BoolConst _) = do return (BaseDataType BooleanType)
 getExpType (IntConst _) = do return (BaseDataType IntegerType)
 getExpType (StrConst _) = do return (BaseDataType StringType)
 getExpType (Op_or _ _) = do return (BaseDataType BooleanType)
@@ -762,21 +761,21 @@ getDataTypeOfLValue (LBracketsDot arrayName int fieldname)
        let datatype = fst b in return (bool,(BaseDataType datatype))
 
 
---variable type-> data type
+-- variable type-> data type
 varTypeToDataType :: VariableType -> DataType
 varTypeToDataType (BooleanVar) = BaseDataType BooleanType
 varTypeToDataType (IntegerVar) = BaseDataType IntegerType
 varTypeToDataType (RecordVar alias) = AliasDataType alias
 varTypeToDataType (ArrayVar alias) = AliasDataType alias
 
---used to report error
+-- used to report error
 getLValueName :: LValue -> String
 getLValueName (LId ident) = ident
 getLValueName (LDot ident ident2) = ident
 getLValueName (LBrackets ident exp ) = ident
 getLValueName (LBracketsDot ident exp ident2) = ident
 
---used to report error
+-- used to report error
 getDataT :: DataType -> String
 getDataT (BaseDataType BooleanType) = "Boolean"
 getDataT (BaseDataType IntegerType) = "Integer"
