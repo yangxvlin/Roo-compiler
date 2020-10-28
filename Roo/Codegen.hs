@@ -26,6 +26,7 @@ data Btype = Int
 ozCode :: SymTable -> Program -> Consequence
 ozCode st prog = evalStateT (codeGeneration prog) st
 
+-- transfer the Roo program into oz instructions
 codeGeneration :: Program -> SymTableState [OzInstruction]
 codeGeneration (Program _ _ procedures)
   =
@@ -39,6 +40,7 @@ codeGeneration (Program _ _ procedures)
       st <- get
       return $ instructions st
 
+-- generate oz instructions for the given procedure
 generateProcedure :: Procedure -> SymTableState ()
 generateProcedure p@(Procedure (ProcedureHeader procID params)
                                (ProcedureBody _ stmts))
@@ -391,7 +393,6 @@ loadExp reg (Op_neg exp)
       appendInstruction (ArithmeticInstruction
           $ Neg OpInt reg reg)
 
-
 loadVal :: Int -> LValue -> SymTableState ()
 loadVal reg lValue
   =
@@ -399,6 +400,7 @@ loadVal reg lValue
       loadVarAddress reg lValue
       appendInstruction (StackInstruction $ LoadIndirect reg reg)
 
+-- store a left value to the given register
 storeVal :: Int -> LValue -> SymTableState ()
 storeVal reg lValue
   =
@@ -408,6 +410,7 @@ storeVal reg lValue
       appendInstruction (StackInstruction $ StoreIndirect reg_1 reg)
       setRegisterCounter reg_1
 
+-- load a left value from the given register
 loadVarAddress :: Int -> LValue -> SymTableState ()
 loadVarAddress reg (LId ident)
   =
@@ -481,6 +484,9 @@ loadVarAddress reg (LBracketsDot arrayID exp fieldID)
                         $ "Expect record as type"
           _ -> liftEither $ throwError $ "Expect Array as type"
 
+-- ---------------------------------------------------------------------------
+-- Help functions
+-- ---------------------------------------------------------------------------
 getType :: Exp -> SymTableState (Btype)
 getType (BoolConst _) = return Bool
 getType (IntConst _) = return Int

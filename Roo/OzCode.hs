@@ -11,6 +11,10 @@ import Data.Char
 
 type Register = Int
 
+-- ---------------------------------------------------------------------------
+-- define the oz instruction 
+-- ---------------------------------------------------------------------------
+
 data StackInstruction
   = PushStackFrame Int
   | PopStackFrame Int
@@ -93,6 +97,9 @@ data OzInstruction
   | Label String
   deriving (Eq)
 
+-- ---------------------------------------------------------------------------
+-- define the oz code format
+-- ---------------------------------------------------------------------------
 
 instance Show StackInstruction where
   show (PushStackFrame size) = "push_stack_frame " ++ show (size)
@@ -189,6 +196,7 @@ instance Show OzInstruction where
   show (Comment comment) = "# " ++ id (comment)
   show (Label label) = id (label) ++ ":"
 
+-- display the given list of oz instruction line by line 
 writeCode :: [OzInstruction] -> String
 writeCode instructions = concat $ map (\x -> (show x) ++ "\n") instructions
 
