@@ -92,64 +92,43 @@ generateProcedure p@(Procedure (ProcedureHeader procID params)
 -- ---------------------------------------------------------------------------            
 
 generateStatement :: Stmt -> SymTableState ()
-generateStatement (Assign (LId lId) (Lval(LId rId)))
-    =do
-        (lByValue, _, lVarType, lTotalSlot) <- getVariableType lId
-        (rByValue, _, rVarType, rTotalSlot) <- getVariableType rId
-        appendInstruction (Comment $ show lId ++ " <- " ++ show rId)
-        case rVarType of 
-            -- assign the array by array reference
-            (ArrayVar rAlias) -> 
-                do
-                    mapM_ (\n ->
-                        do
-                            reg <- getRegisterCounter
-                            loadVarAddress reg (LId rId)
-                            reg_1 <- getRegisterCounter
-                            loadVarAddress reg_1 (LId lId)
-                            reg_2 <- getRegisterCounter
-                            appendInstruction (ConstantInstruction 
-                                $ OzIntConst reg_2 n)
-                            appendInstruction (ArithmeticInstruction
-                                $ SubOff reg reg reg_2)
-                            appendInstruction (StackInstruction 
-                                $ LoadIndirect reg reg)
-                            appendInstruction (ArithmeticInstruction
-                                $ SubOff reg_1 reg_1 reg_2)
-                            appendInstruction (StackInstruction 
-                                $ StoreIndirect reg_1 reg)
-                            setRegisterCounter reg
-                            )[0..(rTotalSlot -1)]
+generateStatement (Assign (LId lId) (Lval rValue))
+    =
+        do
+            (_, _, lVarType, lTotalSlot) <- getVariableType lId
+            appendInstruction (Comment $ show lId ++ " <- " ++ show rValue)
+            case lVarType of 
+                -- assign the array by array reference
+                (ArrayVar _) -> 
+                    do
+                        assignEle lTotalSlot (LId lId) rValue
 
-            -- assign the record by record reference
-            (RecordVar rAlias)->
-                do
-                    mapM_ (\n ->
-                        do
-                            reg <- getRegisterCounter
-                            loadVarAddress reg (LId rId)
-                            reg_1 <- getRegisterCounter
-                            loadVarAddress reg_1 (LId lId)
-                            reg_2 <- getRegisterCounter
-                            appendInstruction (ConstantInstruction 
-                                $ OzIntConst reg_2 n)
-                            appendInstruction (ArithmeticInstruction
-                                $ SubOff reg reg reg_2)
-                            appendInstruction (StackInstruction 
-                                $ LoadIndirect reg reg)
-                            appendInstruction (ArithmeticInstruction
-                                $ SubOff reg_1 reg_1 reg_2)
-                            appendInstruction (StackInstruction 
-                                $ StoreIndirect reg_1 reg)
-                            setRegisterCounter reg
-                            )[0..(rTotalSlot -1)]
-            -- other case
-            _ ->
-                do
-                    reg <- getRegisterCounter
-                    loadExp reg (Lval(LId rId))
-                    storeVal reg (LId lId)
-                    setRegisterCounter reg
+                -- assign the record by record reference
+                (RecordVar _)->
+                    do
+                        assignEle lTotalSlot (LId lId) rValue
+
+                -- other case
+                _ ->
+                    do
+                        reg <- getRegisterCounter
+                        loadExp reg (Lval rValue)
+                        storeVal reg (LId lId)
+                        setRegisterCounter reg
+generateStatement (Assign (LBrackets lId lexp) (Lval rValue))
+    = 
+        do
+            (_, _, lVarType, lTotalSlot) <- getVariableType lId
+            appendInstruction (Comment $ show (LBrackets lId lexp) 
+                ++ " <- " ++ show rValue)
+            case lVarType of 
+                (ArrayVar alias) -> 
+                    do
+                        (size, _) <- getArrayType alias
+                        assignEle (div lTotalSlot size) 
+                            (LBrackets lId lexp) rValue
+                _ -> liftEither $ throwError $ "Expect Array as type"
+
 
 generateStatement (Assign lValue exp)
     = 
@@ -294,7 +273,6 @@ generateStatement (While exp stmts)
             -- after loop
             appendInstruction (Label falseLabel)
 
-
 -- load an expression to the given register
 loadExp :: Int -> Exp -> SymTableState ()
 loadExp reg (Lval lValue) = loadVal reg lValue
@@ -303,7 +281,8 @@ loadExp reg (BoolConst vl)
 loadExp reg (IntConst vl)
     = appendInstruction (ConstantInstruction $ OzIntConst reg vl)
 loadExp reg (StrConst vl)
-    = appendInstruction (ConstantInstruction $ OzStringConst reg vl)
+    = appendInstruction (ConstantInstruction 
+        $ OzStringConst reg (strReplace vl))
 loadExp reg (Op_or lExp rExp)
     = 
         do
@@ -462,7 +441,7 @@ loadVarAddress reg (LBrackets arrayID exp)
             case varType of 
                 (ArrayVar alias) -> 
                     do
-                        (size, dataType) <- getArrayType alias 
+                        (size, _) <- getArrayType alias 
                         reg_2 <- getRegisterCounter
                         appendInstruction (ConstantInstruction
                             $ OzIntConst reg_2 $ div totalSlot size)
@@ -589,3 +568,27 @@ boolToInt True = 1
 boolToInt False = 0
 
 
+-- assign the element in the array or record one by one
+assignEle :: Int -> LValue -> LValue -> SymTableState ()
+assignEle rTotalSlot lValue rValue
+    =
+        do
+            mapM_ (\n ->
+                do
+                    reg <- getRegisterCounter
+                    loadVarAddress reg rValue
+                    reg_1 <- getRegisterCounter
+                    loadVarAddress reg_1 lValue
+                    reg_2 <- getRegisterCounter
+                    appendInstruction (ConstantInstruction 
+                        $ OzIntConst reg_2 n)
+                    appendInstruction (ArithmeticInstruction
+                        $ SubOff reg reg reg_2)
+                    appendInstruction (StackInstruction 
+                        $ LoadIndirect reg reg)
+                    appendInstruction (ArithmeticInstruction
+                        $ SubOff reg_1 reg_1 reg_2)
+                    appendInstruction (StackInstruction 
+                        $ StoreIndirect reg_1 reg)
+                    setRegisterCounter reg
+                    )[0..(rTotalSlot -1)]
