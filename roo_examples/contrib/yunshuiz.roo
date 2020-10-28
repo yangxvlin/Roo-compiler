@@ -109,6 +109,7 @@ procedure recArrTest (RecArr rcd_arr, Rec rcd)
     i <- 0;
     while i < 10 do
         rcd_arr[i].id <- i + 100;
+        i <- i + 1;
     od
     rcd.id <- -1;
     call assignRec (rcd, rcd_arr[8]);
