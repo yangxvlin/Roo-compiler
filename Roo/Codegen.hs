@@ -385,11 +385,11 @@ loadExp reg (Op_not exp)
       appendInstruction (LogicInstruction
           $ LogicNot reg reg)
 loadExp reg (Op_neg exp)
-=
-  do
-    loadExp reg exp
-    appendInstruction (ArithmeticInstruction
-        $ Neg OpInt reg reg)
+  =
+    do
+      loadExp reg exp
+      appendInstruction (ArithmeticInstruction
+          $ Neg OpInt reg reg)
 
 
 loadVal :: Int -> LValue -> SymTableState ()
@@ -456,7 +456,7 @@ loadVarAddress reg (LDot recordID fieldID)
             appendInstruction (ArithmeticInstruction
                 $ SubOff reg reg reg_1)
             setRegisterCounter reg_1
-          _ -> liftEither $ throwError $ "Expect Record as type"
+        _ -> liftEither $ throwError $ "Expect Record as type"
 
 loadVarAddress reg (LBracketsDot arrayID exp fieldID)
     =
@@ -505,7 +505,7 @@ getType (Lval (LId ident))
     do
       (_, _, varType, _) <- getVariableType ident
       let result = case varType of BooleanVar -> Bool
-                                    IntegerVar -> Int
+                                   IntegerVar -> Int
       return result
 
 getType (Lval (LBrackets arrayID _))
@@ -521,7 +521,7 @@ getType (Lval (LBrackets arrayID _))
               (BaseDataType IntegerType) -> return Int
               (AliasDataType alias) -> return (BRecord alias)
               _ -> liftEither $ throwError $ "Expect Int/Bool"
-          _ -> liftEither $ throwError $ "Expect Array as type"
+        _ -> liftEither $ throwError $ "Expect Array as type"
 
 getType (Lval (LDot recordID fieldID))
   =
