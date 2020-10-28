@@ -22,7 +22,7 @@ import OzCode
 --    types then name;
 --     a) att: global alias type table
 --     b) rft: global record field table
--- 2. global procedure table: holds procedure parameter type, whether by 
+-- 2. global procedure table: holds procedure parameter type, whether by
 --    reference information
 --    a) pt: global procedure table
 -- 3. local variable table: which provides information about formal parameters
@@ -38,15 +38,15 @@ data CompositeKey = CompositeKey String String
 type SymTableState a = StateT SymTable (Either String) a
 
 -- A short hand form for variable type
-data VariableType = BooleanVar 
-                  | IntegerVar 
-                  | RecordVar String 
+data VariableType = BooleanVar
+                  | IntegerVar
+                  | RecordVar String
                   | ArrayVar String
              deriving (Show, Eq)
-        
+
 -- 1. available slot number
 -- 2. available register number
--- 3. mapping of variable name with 
+-- 3. mapping of variable name with
 --    a) true if it is pass by value and
 --    b) allocated slot number and
 --    c) its type and
@@ -60,25 +60,25 @@ data LocalVariableTable
 
 -- Array:  array size, type
 -- Record: #fields,    [field's definition]
-data AliasTypeInfo 
+data AliasTypeInfo
   = ArrayInfo  (Int, DataType)
   | RecordInfo (Int, [FieldDecl])
 
 -- 1. att  :: global alias type table
 -- 2. rft  :: global record field table
---            = map of (record name, field name) with 
+--            = map of (record name, field name) with
 --                a) field's type and
 --                b) index of the field in record
 -- 3. pt   :: global procedure table
 --            = map of procedure name with
 --                a) [true if pass by value, parameter's type]
 --                b) procedure's deifnition
--- 4. lvts :: stack of local variable table  
-data SymTable 
-  = SymTable 
+-- 4. lvts :: stack of local variable table
+data SymTable
+  = SymTable
     { att :: Map String AliasTypeInfo
     , rft :: Map CompositeKey (BaseType, Int)
-    , pt  :: Map String ([(Bool, DataType)], Procedure) 
+    , pt  :: Map String ([(Bool, DataType)], Procedure)
     , lvts :: [LocalVariableTable]
     , labelCounter :: Int
     , instructions :: [OzInstruction]
@@ -105,8 +105,8 @@ initialLocalVariableTable = LocalVariableTable
 -- ---------------------------------------------------------------------------
 
 insertArrayType :: Array -> SymTableState ()
-insertArrayType (Array arraySize dataType arrayName) 
-  = 
+insertArrayType (Array arraySize dataType arrayName)
+  =
     do
       st <- get
       -- duplicate array definition
@@ -114,14 +114,14 @@ insertArrayType (Array arraySize dataType arrayName)
         liftEither $ throwError ("Duplicated alias type: " ++ arrayName)
       -- insert an array definition
       else
-        put $ st { att =  Map.insert arrayName 
-                                     (ArrayInfo (arraySize, dataType)) 
-                                     (att st) 
+        put $ st { att =  Map.insert arrayName
+                                     (ArrayInfo (arraySize, dataType))
+                                     (att st)
                  }
 
 getArrayType :: String -> SymTableState (Int, DataType)
 getArrayType arrayName
-  = 
+  =
     do
       st <- get
       -- get an array definition
@@ -129,12 +129,12 @@ getArrayType arrayName
         let (ArrayInfo info) = ((att st) Map.! arrayName) in return info
       -- no array definition
       else
-        liftEither $ throwError $ "Array named " ++ arrayName ++ 
+        liftEither $ throwError $ "Array named " ++ arrayName ++
                                   " does not exist"
 
 insertRecordType :: Record -> SymTableState ()
 insertRecordType (Record fieldDecls recordName)
-  = 
+  =
     do
       st <- get
       let recordSize = length fieldDecls
@@ -144,15 +144,15 @@ insertRecordType (Record fieldDecls recordName)
       -- insert a record definition
       else
         do
-          put $ st { att = Map.insert recordName 
+          put $ st { att = Map.insert recordName
                                       (RecordInfo (recordSize, fieldDecls))
-                                      (att st) 
+                                      (att st)
                    }
           insertRecordFields recordName fieldDecls 0
 
 getRecordType :: String -> SymTableState (Int, [FieldDecl])
 getRecordType recordName
-  = 
+  =
     do
       st <- get
       -- get an record definition
@@ -160,7 +160,7 @@ getRecordType recordName
         let (RecordInfo info) = (att st) Map.! recordName in return info
       -- no record definition
       else
-        liftEither $ throwError $ "Record named " ++ recordName ++ 
+        liftEither $ throwError $ "Record named " ++ recordName ++
                                   " does not exist"
 
 insertRecordFields :: String -> [FieldDecl] -> Int -> SymTableState ()
@@ -173,13 +173,13 @@ insertRecordFields recordName (x:xs) index
 
 insertRecordField :: String -> FieldDecl -> Int -> SymTableState ()
 insertRecordField recordName (FieldDecl baseType fieldName) index
-  = 
+  =
     do
       st <- get
       let ck = CompositeKey recordName fieldName
       -- duplicate (record name, field name) definition
       if (Map.member ck (rft st)) then
-        liftEither $ throwError $ "Duplicated record field: " ++ 
+        liftEither $ throwError $ "Duplicated record field: " ++
                                   recordName ++ "." ++ fieldName
       -- insert a (record name, field name) definition
       else
@@ -187,7 +187,7 @@ insertRecordField recordName (FieldDecl baseType fieldName) index
 
 getRecordField :: String -> String -> SymTableState (BaseType, Int)
 getRecordField recordName fieldName
-  = 
+  =
     do
       st <- get
       let ck = CompositeKey recordName fieldName
@@ -196,8 +196,8 @@ getRecordField recordName fieldName
         return $ (rft st) Map.! ck
       -- no (record name, field name) definition
       else
-        liftEither $ throwError $ "Record.field: " ++ 
-                                  recordName ++ "." ++ fieldName ++ 
+        liftEither $ throwError $ "Record.field: " ++
+                                  recordName ++ "." ++ fieldName ++
                                   " does not exist"
 
 getTypeAlias :: String -> SymTableState VariableType
@@ -205,22 +205,22 @@ getTypeAlias typeName
   =
     do
       st <- get
-      if (Map.member typeName (att st)) then 
+      if (Map.member typeName (att st)) then
         do
-          case (att st) Map.! typeName of 
+          case (att st) Map.! typeName of
             (RecordInfo _) -> return (RecordVar typeName)
             (ArrayInfo  _) -> return (ArrayVar  typeName)
-      else 
+      else
         liftEither $ throwError $ "Undefiend alias type: " ++ typeName
 
 getlabelCounter :: SymTableState String
 getlabelCounter
-  = 
+  =
     do
       st <- get
       let currentCount = (labelCounter st)
       put st{labelCounter = currentCount + 1}
-      return $ "label_" ++ show currentCount   
+      return $ "label_" ++ show currentCount
 
 -- ---------------------------------------------------------------------------
 -- ProcedureTable related helper methods
@@ -239,7 +239,7 @@ putProcedure procedureName formalParams p
       st <- get
       -- duplicate procedure definition
       if (Map.member procedureName (pt st)) then
-        liftEither $ throwError $ "Duplicated procedure name: " ++ 
+        liftEither $ throwError $ "Duplicated procedure name: " ++
                                   procedureName
       -- insert a procedure definition
       else
@@ -247,13 +247,13 @@ putProcedure procedureName formalParams p
 
 -- get procedure's type info
 getProcedure :: String -> SymTableState ([(Bool, DataType)], Procedure)
-getProcedure procedureName 
+getProcedure procedureName
   = do
       st <- get
-      if (Map.member procedureName (pt st)) then 
+      if (Map.member procedureName (pt st)) then
         return $ (pt st) Map.! procedureName
-      else 
-        liftEither $ throwError $ "Procedure named " ++ procedureName ++ 
+      else
+        liftEither $ throwError $ "Procedure named " ++ procedureName ++
                                   " does not exist"
 
 -- convert Parameter definted in AST to a tuple (is passed by value, type)
@@ -304,9 +304,9 @@ checkVariableNotDefined varName
   =
     do
       cvt <- getCurVariableTable
-      if (Map.member varName (vtt cvt)) then 
+      if (Map.member varName (vtt cvt)) then
         liftEither $ throwError $ "Duplicated variable name: " ++ varName
-      else 
+      else
         return ()
 
 -- get variable's type information by variable's name
@@ -317,10 +317,10 @@ getVariableType varName
       cvt <- getCurVariableTable
       if (Map.member varName (vtt cvt)) then
          return $ (vtt cvt) Map.! varName
-      else 
+      else
         liftEither $ throwError $ "Unknown variable name: " ++ varName
 
--- get variable's type information by variable's name for records 
+-- get variable's type information by variable's name for records
 -- (e.g. student.id)
 getVarRecordField :: String -> String -> SymTableState (BaseType, Int)
 getVarRecordField varName fieldName
@@ -331,7 +331,7 @@ getVarRecordField varName fieldName
       (_, _, varType, _) <- getVariableType varName
       case varType of
         (RecordVar recordName) -> getRecordField recordName varName
-        _ -> liftEither $ throwError $ "Variable name: " ++ varName ++ 
+        _ -> liftEither $ throwError $ "Variable name: " ++ varName ++
                                        " is not field type"
 
 getSlotCounter :: SymTableState Int
@@ -343,8 +343,8 @@ getSlotCounter
 
 -- return the current register counter and increase register counter by 1
 getRegisterCounter :: SymTableState Int
-getRegisterCounter 
-  = 
+getRegisterCounter
+  =
     do
       cvt <- getCurVariableTable
       let regCounter = registerCounter cvt
@@ -357,7 +357,7 @@ getRegisterCounter
 
 setRegisterCounter :: Int -> SymTableState ()
 setRegisterCounter newReg
-  = 
+  =
     do
       cvt <- getCurVariableTable
       updateCurVariableTable cvt { registerCounter = newReg }
@@ -367,27 +367,27 @@ setRegisterCounter newReg
 -- ---------------------------------------------------------------------------
 -- insert procedure's parameters and local variables
 insertProcedureVariable :: Procedure -> SymTableState ()
-insertProcedureVariable (Procedure (ProcedureHeader ident params) 
+insertProcedureVariable (Procedure (ProcedureHeader ident params)
                                    (ProcedureBody variableDecls _ ))
   =
     do
       mapM_ insertProcedureParameter params
       mapM_ insertProcedureVariableDecl variableDecls
 
--- insert procedure's parameter and identifying whether it is pass by 
+-- insert procedure's parameter and identifying whether it is pass by
 -- value/reference
 insertProcedureParameter :: Parameter -> SymTableState ()
-insertProcedureParameter (BooleanVal varName) 
+insertProcedureParameter (BooleanVal varName)
   = insertVariable BooleanVar True varName
-insertProcedureParameter (IntegerVal varName) 
+insertProcedureParameter (IntegerVal varName)
   = insertVariable IntegerVar True varName
-insertProcedureParameter (DataParameter (BaseDataType BooleanType) 
-                                        varName) 
+insertProcedureParameter (DataParameter (BaseDataType BooleanType)
+                                        varName)
   = insertVariable BooleanVar False varName
-insertProcedureParameter (DataParameter (BaseDataType IntegerType) 
-                                        varName) 
+insertProcedureParameter (DataParameter (BaseDataType IntegerType)
+                                        varName)
   = insertVariable IntegerVar False varName
-insertProcedureParameter (DataParameter (AliasDataType typeName) 
+insertProcedureParameter (DataParameter (AliasDataType typeName)
                                         varName)
   =
     do
@@ -396,17 +396,17 @@ insertProcedureParameter (DataParameter (AliasDataType typeName)
 
 -- insert procedure's local variables and they are pass by value by default
 insertProcedureVariableDecl :: VariableDecl -> SymTableState ()
-insertProcedureVariableDecl (VariableDecl (BaseDataType BooleanType) 
+insertProcedureVariableDecl (VariableDecl (BaseDataType BooleanType)
                                           variableNames)
   =
     do
       mapM_ (insertVariable BooleanVar True) variableNames
-insertProcedureVariableDecl (VariableDecl (BaseDataType IntegerType) 
+insertProcedureVariableDecl (VariableDecl (BaseDataType IntegerType)
                                           variableNames)
   =
     do
       mapM_ (insertVariable IntegerVar True) variableNames
-insertProcedureVariableDecl (VariableDecl (AliasDataType typeName) 
+insertProcedureVariableDecl (VariableDecl (AliasDataType typeName)
                                           variableNames)
   =
     do
@@ -420,22 +420,22 @@ insertVariable BooleanVar byValue varName
     do
       checkVariableNotDefined varName
       availableSlot <- getSlotCounter
-      -- no matter it is pass by value or by reference, 1 slot required as it 
+      -- no matter it is pass by value or by reference, 1 slot required as it
       -- is boolean
       let newSlotCounter = availableSlot + 1
-      updateNewVariableToLVT newSlotCounter 
-                             varName 
+      updateNewVariableToLVT newSlotCounter
+                             varName
                              (byValue, availableSlot, BooleanVar, 1)
 insertVariable IntegerVar byValue varName
   =
     do
       checkVariableNotDefined varName
       availableSlot <- getSlotCounter
-      -- no matter it is pass by value or by reference, 1 slot required as it 
+      -- no matter it is pass by value or by reference, 1 slot required as it
       -- is integer
       let newSlotCounter = availableSlot + 1
-      updateNewVariableToLVT newSlotCounter 
-                             varName 
+      updateNewVariableToLVT newSlotCounter
+                             varName
                              (byValue, availableSlot, IntegerVar, 1)
 insertVariable recVar@(RecordVar recordName) byValue varName
   =
@@ -445,11 +445,11 @@ insertVariable recVar@(RecordVar recordName) byValue varName
       (recordSize, _) <- getRecordType recordName
       if byValue then
         updateNewVariableToLVT (availableSlot + recordSize)
-                               varName 
+                               varName
                                (byValue, availableSlot, recVar, recordSize)
       else -- pass by reference, only allocate 1 slot
         updateNewVariableToLVT (availableSlot + 1 )
-                               varName 
+                               varName
                                (byValue, availableSlot, recVar, recordSize)
 insertVariable arr@(ArrayVar arrayName) byValue varName
   =
@@ -462,13 +462,13 @@ insertVariable arr@(ArrayVar arrayName) byValue varName
           do
             if byValue then
               updateNewVariableToLVT (availableSlot + arraySize)
-                                     varName 
+                                     varName
                                      (byValue, availableSlot, arr, arraySize)
             else -- pass by reference, only allocate 1 slot
               updateNewVariableToLVT (availableSlot + 1)
-                                     varName 
+                                     varName
                                      (byValue, availableSlot, arr, arraySize)
-        -- as an array cannot has alias type: array 
+        -- as an array cannot has alias type: array
         AliasDataType recordName ->
           do
             (recordSize, _) <- getRecordType recordName
@@ -476,26 +476,26 @@ insertVariable arr@(ArrayVar arrayName) byValue varName
             let nSlotsRequired = recordSize * arraySize
             if byValue then
               updateNewVariableToLVT (availableSlot + nSlotsRequired)
-                                     varName 
-                                     (byValue, availableSlot, arr, 
+                                     varName
+                                     (byValue, availableSlot, arr,
                                      nSlotsRequired)
             else -- pass by reference, only allocate 1 slot
               updateNewVariableToLVT (availableSlot + 1)
-                                     varName 
-                                     (byValue, availableSlot, arr, 
+                                     varName
+                                     (byValue, availableSlot, arr,
                                      nSlotsRequired)
 
-updateNewVariableToLVT :: Int -> String -> (Bool, Int, VariableType, Int) 
+updateNewVariableToLVT :: Int -> String -> (Bool, Int, VariableType, Int)
                               -> SymTableState ()
-updateNewVariableToLVT newSlotCounter 
-                       varName 
+updateNewVariableToLVT newSlotCounter
+                       varName
                        (byValue, availableSlot, varType, slotRequired)
   =
     do
       cvt <- getCurVariableTable
-      updateCurVariableTable cvt 
+      updateCurVariableTable cvt
         { slotCounter = newSlotCounter
-        , vtt = Map.insert varName 
+        , vtt = Map.insert varName
                            (byValue, availableSlot, varType, slotRequired)
                            (vtt cvt)
         }

@@ -27,7 +27,7 @@ data ConstantInstruction
     | OzStringConst Register String
     deriving (Eq)
 
-data OpType 
+data OpType
     = OpInt
     | OpReal
     deriving (Eq)
@@ -93,7 +93,7 @@ data OzInstruction
     | Label String
     deriving (Eq)
 
-    
+
 instance Show StackInstruction where
     show (PushStackFrame size) = "push_stack_frame " ++ show (size)
     show (PopStackFrame size) = "pop_stack_frame " ++ show (size)
@@ -101,11 +101,11 @@ instance Show StackInstruction where
         ++ ", r" ++ show (register)
     show (Load register slotnum) = "load r" ++ show (register) ++ ", "
         ++ show (slotnum)
-    show (LoadAddress register slotnum) = "load_address r" 
+    show (LoadAddress register slotnum) = "load_address r"
         ++ show (register) ++ ", "++ show (slotnum)
-    show (LoadIndirect register1 register2) = "load_indirect r" 
+    show (LoadIndirect register1 register2) = "load_indirect r"
         ++ show (register1) ++ ", r" ++ show (register2)
-    show (StoreIndirect register1 register2) = "store_indirect r" 
+    show (StoreIndirect register1 register2) = "store_indirect r"
         ++ show (register1) ++ ", r" ++ show (register2)
 
 instance Show ConstantInstruction where
@@ -145,14 +145,14 @@ instance Show ComparisonOperator where
     show Le = "cmp_le_"
 
 instance Show ComparisonInstruction where
-    show (CmpInstruction comparisonOp opType r1 r2 r3) = 
-        show (comparisonOp) ++ show (opType) ++ " r" 
+    show (CmpInstruction comparisonOp opType r1 r2 r3) =
+        show (comparisonOp) ++ show (opType) ++ " r"
         ++ show (r1) ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
 
 instance Show LogicInstruction where
-    show (LogicAnd r1 r2 r3) = "and r" ++ show (r1) 
+    show (LogicAnd r1 r2 r3) = "and r" ++ show (r1)
         ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
-    show (LogicOr r1 r2 r3) = "or r" ++ show (r1) 
+    show (LogicOr r1 r2 r3) = "or r" ++ show (r1)
         ++ ", r" ++ show (r2) ++ ", r" ++ show (r3)
     show (LogicNot r1 r2) = "not r" ++ show (r1) ++ ", r" ++ show (r2)
 
@@ -166,14 +166,14 @@ instance Show BranchInstruction where
     show (Uncond label) = "branch_uncond " ++ id (label)
 
 instance Show ProcedureInstruction where
-    show (ICall label) = "call " ++ id (label) 
+    show (ICall label) = "call " ++ id (label)
     show (ICallBuiltIn func) = "call_builtin " ++ id (func)
     show (IReturn) = "return"
     show (IHalt) = "halt"
 
 instance Show DebugInstruction where
-    show (DebugReg register) = "debug_reg r" ++ show (register) 
-    show (DebugSlot slotNum) = "debug_slot " ++ show (slotNum) 
+    show (DebugReg register) = "debug_reg r" ++ show (register)
+    show (DebugSlot slotNum) = "debug_slot " ++ show (slotNum)
     show (DebugStack) = "debug_stack"
 
 instance Show OzInstruction where
