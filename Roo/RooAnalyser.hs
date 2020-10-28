@@ -34,13 +34,11 @@ semanticCheckRooProgram prog
   =
     do
       constructSymbolTable prog
-      (_, mainProc@(Procedure _ (ProcedureBody _ mainProcStmts))) <-
-        getProcedure "main"
       checkArityProcedure "main" 0
 
       st <- get
       let procedures = pt st
-      mapM_ checkOneProcedures  procedures
+      mapM_ checkOneProcedures procedures
       st2 <- get
       return st2
 
@@ -80,7 +78,7 @@ checkStmt (Assign lvalue exp)
       checkLValue lvalue
       checkExp exp
       iInfo <- getDataTypeOfLValue lvalue
-      let (byV,identi) = iInfo
+      let (byV, identi) = iInfo
       expType <- getExpType exp
       let showLValueName = getLValueName lvalue
       let showTypeName = getDataT expType
@@ -97,7 +95,7 @@ checkStmt (Assign lvalue exp)
             if iRA then
               do
                 iInfo2 <- getDataTypeOfLValue expLvalue--jiancha
-                let (byV2,dataType2) = iInfo2
+                let (byV2, dataType2) = iInfo2
                 if (byV2 == False) && (byV == False) then
                   return ()
                 else

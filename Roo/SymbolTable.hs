@@ -213,6 +213,7 @@ getTypeAlias typeName
       else
         liftEither $ throwError $ "Undefiend alias type: " ++ typeName
 
+-- return label counter and auto step with +1
 getlabelCounter :: SymTableState String
 getlabelCounter
   =
