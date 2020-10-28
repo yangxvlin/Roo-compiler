@@ -24,7 +24,7 @@ array_t result;
 
     iter <- 0;
     while iter < numterms do
-        write result[iter];
+        writeln result[iter];
         iter <- iter + 1;
     od
     write "\n";
