@@ -92,29 +92,43 @@ generateProcedure p@(Procedure (ProcedureHeader procID params)
 -- ---------------------------------------------------------------------------            
 
 generateStatement :: Stmt -> SymTableState ()
-generateStatement (Assign (LId lId) (Lval(LId rId)))
+generateStatement (Assign (LId lId) (Lval rValue))
     =
         do
-            (_, _, rVarType, rTotalSlot) <- getVariableType rId
-            appendInstruction (Comment $ show lId ++ " <- " ++ show rId)
-            case rVarType of 
+            (_, _, lVarType, lTotalSlot) <- getVariableType lId
+            appendInstruction (Comment $ show lId ++ " <- " ++ show rValue)
+            case lVarType of 
                 -- assign the array by array reference
                 (ArrayVar _) -> 
                     do
-                        assignEle rTotalSlot lId rId
+                        assignEle lTotalSlot (LId lId) rValue
 
                 -- assign the record by record reference
                 (RecordVar _)->
                     do
-                        assignEle rTotalSlot lId rId
+                        assignEle lTotalSlot (LId lId) rValue
 
                 -- other case
                 _ ->
                     do
                         reg <- getRegisterCounter
-                        loadExp reg (Lval(LId rId))
+                        loadExp reg (Lval rValue)
                         storeVal reg (LId lId)
                         setRegisterCounter reg
+generateStatement (Assign (LBrackets lId lexp) (Lval rValue))
+    = 
+        do
+            (_, _, lVarType, lTotalSlot) <- getVariableType lId
+            appendInstruction (Comment $ show (LBrackets lId lexp) 
+                ++ " <- " ++ show rValue)
+            case lVarType of 
+                (ArrayVar alias) -> 
+                    do
+                        (size, _) <- getArrayType alias
+                        assignEle (div lTotalSlot size) 
+                            (LBrackets lId lexp) rValue
+                _ -> liftEither $ throwError $ "Expect Array as type"
+
 
 generateStatement (Assign lValue exp)
     = 
@@ -427,7 +441,7 @@ loadVarAddress reg (LBrackets arrayID exp)
             case varType of 
                 (ArrayVar alias) -> 
                     do
-                        (size, dataType) <- getArrayType alias 
+                        (size, _) <- getArrayType alias 
                         reg_2 <- getRegisterCounter
                         appendInstruction (ConstantInstruction
                             $ OzIntConst reg_2 $ div totalSlot size)
@@ -555,16 +569,16 @@ boolToInt False = 0
 
 
 -- assign the element in the array or record one by one
-assignEle :: Int -> Ident -> Ident -> SymTableState ()
-assignEle rTotalSlot lId rId
+assignEle :: Int -> LValue -> LValue -> SymTableState ()
+assignEle rTotalSlot lValue rValue
     =
         do
             mapM_ (\n ->
                 do
                     reg <- getRegisterCounter
-                    loadVarAddress reg (LId rId)
+                    loadVarAddress reg rValue
                     reg_1 <- getRegisterCounter
-                    loadVarAddress reg_1 (LId lId)
+                    loadVarAddress reg_1 lValue
                     reg_2 <- getRegisterCounter
                     appendInstruction (ConstantInstruction 
                         $ OzIntConst reg_2 n)
