@@ -386,10 +386,10 @@ loadExp reg (Op_not exp)
           $ LogicNot reg reg)
 loadExp reg (Op_neg exp)
 =
-do
-      loadExp reg exp
-      appendInstruction (ArithmeticInstruction
-          $ Neg OpInt reg reg)
+  do
+    loadExp reg exp
+    appendInstruction (ArithmeticInstruction
+        $ Neg OpInt reg reg)
 
 
 loadVal :: Int -> LValue -> SymTableState ()
