@@ -32,3 +32,6 @@ xuliny/
 ./Roo/xuliny_tests.roo
 3a/
 ./Roo/.DS_Store
+./oz/loz.c
+./oz/poz.c
+./oz/poz.h
