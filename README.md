@@ -30,6 +30,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
 ## marks
+- 26 out of 30 (87%)
 - <img width="80%" src="./docs/marks.jpg"/>
 
 ## repository structure
@@ -60,6 +61,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - [result](./docs/stage&#32;1&#32;result/all_files.pdf)
 
 ### stage 2
+- <img src="./docs/2.jpg" width="60%" />
 - [specification](./docs/asg2.pdf)
 
 ### stage 3a
@@ -68,6 +70,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - ``` verify COMP90045 3a | less ```
 
 ### stage 3b
+- <img src="./docs/3.jpg" width="60%" />
 - [specification](./docs/asg3.pdf)
 #### how to submit
 - ``` submit COMP90045 3b Makefile Roo.hs RooAST.hs PrettyRoo.hs RooParser.hs RooAnalyser.hs SymbolTable.hs Codegen.hs OzCode.hs ```
