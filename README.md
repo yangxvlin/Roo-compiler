@@ -58,7 +58,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - ``` submit COMP90045 1b Makefile Roo.hs RooAST.hs PrettyRoo.hs RooParser.hs ```
 - ``` verify COMP90045 1b | less ```
 #### stage 1 result
-- [result](./docs/stage&#32;1&#32;result/all_files.pdf)
+- [compile](./stage1b\ feedback/vis/xuliny.out)
+- [tests](./stage1b\ feedback/invis/xuliny.out)
 
 ### stage 2
 - <img src="./docs/2.jpg" width="60%" />
@@ -80,3 +81,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - ``` ./Roo/Roo ./roo_examples/contrib/xuliny.roo > out.oz ```
 - ``` ./oz/oz out.oz < ./roo_examples/contrib/xuliny.in ```
 
+#### stage 3b result
+- [compile](./stage3b\ feedback/vis/xuliny.out)
+- [tests](./stage3b\ feedback/invis/xuliny.out)
