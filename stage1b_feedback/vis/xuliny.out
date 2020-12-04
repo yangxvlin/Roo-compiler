@@ -1,0 +1,58 @@
+COMP90045 project - Test of parser and pretty-printer
+User:  xuliny
+
+--- Makefile found ---
+--- Running Makefile ---
+ghc Roo.hs
+[1 of 4] Compiling RooAST           ( RooAST.hs, RooAST.o )
+[2 of 4] Compiling PrettyRoo        ( PrettyRoo.hs, PrettyRoo.o )
+[3 of 4] Compiling RooParser        ( RooParser.hs, RooParser.o )
+[4 of 4] Compiling Main             ( Roo.hs, Roo.o )
+Linking Roo ...
+
+--- Succeeded to create a file called Roo ---
+
+**********************************************   Parsing aggr01.roo:
+Okay
+**********************************************   Parsing aggr02.roo:
+Okay
+**********************************************   Parsing aggr03.roo:
+Okay
+**********************************************   Parsing arrayprod.roo:
+Okay
+**********************************************   Parsing asg01.roo:
+Okay
+**********************************************   Parsing bell.roo:
+Okay
+**********************************************   Parsing gcd.roo:
+Okay
+**********************************************   Parsing hail.roo:
+Okay
+**********************************************   Parsing hello.roo:
+Okay
+**********************************************   Parsing io01.roo:
+Okay
+**********************************************   Parsing io02.roo:
+Okay
+**********************************************   Parsing power.roo:
+Okay
+**********************************************   Parsing sort.roo:
+Okay
+**********************************************   Parsing spec.roo:
+Okay
+**********************************************   Parsing t01.roo:
+Okay
+**********************************************   Parsing t02.roo:
+Okay
+**********************************************   Parsing t03.roo:
+Okay
+**********************************************   Parsing t04.roo:
+Okay
+**********************************************   Parsing t05.roo:
+Okay
+**********************************************   Parsing t06.roo:
+Okay
+20 of 20 tests passed.
+
+--- End of testing for xuliny ---
+

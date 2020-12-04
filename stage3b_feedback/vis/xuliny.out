@@ -1,0 +1,69 @@
+COMP90045 project - Test of semantic analysis and code generation
+User:  xuliny
+
+--- Makefile found ---
+--- Running Makefile ---
+ghc Roo.hs
+[1 of 8] Compiling OzCode           ( OzCode.hs, OzCode.o )
+[2 of 8] Compiling RooAST           ( RooAST.hs, RooAST.o )
+[3 of 8] Compiling PrettyRoo        ( PrettyRoo.hs, PrettyRoo.o )
+[4 of 8] Compiling RooParser        ( RooParser.hs, RooParser.o )
+[5 of 8] Compiling SymbolTable      ( SymbolTable.hs, SymbolTable.o )
+[6 of 8] Compiling RooAnalyser      ( RooAnalyser.hs, RooAnalyser.o )
+[7 of 8] Compiling Codegen          ( Codegen.hs, Codegen.o )
+[8 of 8] Compiling Main             ( Roo.hs, Roo.o )
+Linking Roo ...
+
+--- Succeeded to create a file called Roo ---
+
+PLEASE NOTE: These cases are very basic and are not intended to be
+comprehensive. Passing these does not guarantee a correct compiler!
+
+--- Running basic test of each milestone ---
+Milestone 1: Expressions and write statement
+PASS
+Milestone 2: Assignment and read statements
+PASS
+Milestone 3: If and while statements
+PASS
+Milestone 4: Procedure arguments and calls (by-value only)
+PASS
+Milestone 5: By-reference arguments
+PASS
+Milestone 6: Arrays, no records
+PASS
+Milestone 7: Arrays and records
+PASS
+Milestone 8: Arrays and records as parameters
+PASS
+
+--- Running public (visible) tests ---
+(vis/*.roo)
+arrayprod:          PASS
+bell:               PASS
+gcd:                PASS
+hail:               PASS
+hello:              PASS
+io01:               PASS
+io02:               PASS
+power:              PASS
+sort:               PASS
+spec:               PASS
+tuteq45:            PASS
+tuteq46:            PASS
+tuteq48:            PASS
+tuteq49:            PASS
+tuteq50:            PASS
+tuteq51:            PASS
+z01:                PASS
+z02:                PASS
+z03:                PASS
+19/19 cases passed
+
+--- Running peer-contributed tests ---
+(contrib/*.roo)
+harald:             PASS
+1/1 cases passed
+
+--- End of public testing for xuliny ---
+
