@@ -60,6 +60,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 #### stage 1 result
 - [compile](./stage1b_feedback/vis/xuliny.out)
 - [tests](./stage1b_feedback/invis/xuliny.out)
+- [marker feedbacks](./stage1b_feedback/all_files.pdf)
 
 ### stage 2
 - <img src="./docs/2.jpg" width="60%" />
@@ -84,3 +85,4 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 #### stage 3b result
 - [compile](./stage3b_feedback/vis/xuliny.out)
 - [tests](./stage3b_feedback/invis/xuliny.out)
+- [marker feedbacks](./stage3b_feedback/all_files.pdf)
